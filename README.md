@@ -7,7 +7,7 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 
 ## Requirements
 * Dropbox developer App key & redirect url configured.
-* Valid domain with DNS already set (preferebly).
+* Valid domain with DNS already set (preferably).
 * Recommended 4 GB RAM / 4 Cores for video recording.
 * Webcam
 
