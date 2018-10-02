@@ -250,7 +250,7 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
     hiddenDomain: \'recorder.$DOMAIN\',\\
 \\
     dropbox: \{\\
-    clientId: \'$DB_CID\'\\
+        appKey: \'$DB_CID\'\\
     },|" $MEET_CONF
 
 #LocalRecording
