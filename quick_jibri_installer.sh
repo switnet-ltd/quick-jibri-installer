@@ -256,7 +256,7 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 #LocalRecording
 echo "# Enabling local recording (audio only)."
 
-sed -i "348,358 s|\}|\},|" $MEET_CONF
+sed -i "356,366 s|\}|\},|" $MEET_CONF
 sed -i "s|// Local Recording|// Local Recording \\
 \\
     localRecording: \{\\
