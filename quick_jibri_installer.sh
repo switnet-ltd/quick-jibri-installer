@@ -97,11 +97,26 @@ apt -yqq install \
 check_serv
 
 echo "
-# Installing Jitsi Framework
+#--------------------------------------------------
+# Install Jitsi Framework
+#--------------------------------------------------
 "
 apt -yqq install \
 				jitsi-meet \
 				jibri
+
+echo "
+#--------------------------------------------------
+# Install NodeJS
+#--------------------------------------------------
+"
+if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" ]; then
+		echo "Nodejs is installed, skipping..."
+    else
+		curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+		apt install -yqq nodejs
+		npm install -g esprima
+fi
 
 # ALSA - Loopback
 echo "snd-aloop" | tee -a /etc/modules
@@ -154,10 +169,18 @@ REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
 read -p "Jibri internal.auth.$DOMAIN password: "$'\n' -sr JB_AUTH_PASS
 read -p "Jibri recorder.$DOMAIN password: "$'\n' -sr JB_REC_PASS
-read -p "Jibri requires Drobbox Client ID to enable video recording: "$'\n' -r DB_CID
+while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
+do
+read -p "Do you want to setup the Dropbox feature: (yes or no)"$'\n' -r ENABLE_DB
+if [ $ENABLE_DB = no ]; then
+	echo "Dropbox won't be enable"
+elif [ $ENABLE_DB = yes ]; then
+	read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
+fi
+done
 while [[ $ENABLE_SSL != yes && $ENABLE_SSL != no ]]
 do
-read -p "Do you want to setup LetsEncrypt with your domain: "$'\n' -r ENABLE_SSL
+read -p "Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
 if [ $ENABLE_SSL = no ]; then
 	echo "Please run letsencrypt.sh manually post-installation."
 elif [ $ENABLE_SSL = yes ]; then
@@ -247,25 +270,49 @@ sed -i "s|conference.$DOMAIN|internal.auth.$DOMAIN|" $MEET_CONF
 sed -i "s|// fileRecordingsEnabled: false,|fileRecordingsEnabled: true,| " $MEET_CONF
 sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 \\
-    hiddenDomain: \'recorder.$DOMAIN\',\\
-\\
-    dropbox: \{\\
-        appKey: \'$DB_CID\'\\
-    },|" $MEET_CONF
+    hiddenDomain: \'recorder.$DOMAIN\',|" $MEET_CONF
+
+#Dropbox feature
+if [ $ENABLE_DB = "yes" ]; then
+DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
+DB_END=$((DB_STR + 4))
+sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
+sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" $MEET_CONF
+sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
+fi
 
 #LocalRecording
 echo "# Enabling local recording (audio only)."
-
-sed -i "356,366 s|\}|\},|" $MEET_CONF
-sed -i "s|// Local Recording|// Local Recording \\
-\\
-    localRecording: \{\\
-    enabled: true,\\
-    format: 'flac'\\
-    \}|" $MEET_CONF
+DI_STR=$(grep -n "deploymentInfo:" $MEET_CONF | cut -d ":" -f1)
+DI_END=$((DI_STR + 6))
+sed -i "$DI_STR,$DI_END{s|}|},|}" $MEET_CONF
+LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
+LR_END=$((LR_STR + 18))
+sed -i "$LR_STR,$LR_END{s|// localRecording: {|localRecording: {|}" $MEET_CONF
+sed -i "$LR_STR,$LR_END{s|//     enabled: true,|enabled: true,|}" $MEET_CONF
+sed -i "$LR_STR,$LR_END{s|//     format: 'flac'|format: 'flac'|}" $MEET_CONF
+sed -i "$LR_STR,$LR_END{s|// }|}|}" $MEET_CONF
 
 sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
 #EOLR
+
+#Check config file
+echo "
+# Checking $MEET_CONF file for errors
+"
+CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
+if ($CHECKJS) < /dev/null > /dev/null 2>&1; then
+echo "
+# The $MEET_CONF configuration seems correct. =)
+"
+else
+echo "
+Watch out!, there seems to be an issue on $MEET_CONF line:
+$CHECKJS
+Most of the times this is due upstream changes, please report to
+https://github.com/switnet-ltd/quick-jibri-installer/issues
+"
+fi
 
 # Recording directory
 cat << REC_DIR > $REC_DIR
