@@ -6,9 +6,9 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Enabled Session (video) Recording using Jibri
 
 ## Requirements
-* Dropbox developer App key & redirect url configured.
 * Valid domain with DNS already set (preferably).
 * Recommended 4 GB RAM / 4 Cores for video recording.
+* Dropbox developer App key & redirect url configured (if you choose to enable Dropbox upload).
 * Webcam
 
 
