@@ -301,7 +301,7 @@ echo "
 # Checking $MEET_CONF file for errors
 "
 CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
-if ($CHECKJS) < /dev/null > /dev/null 2>&1; then
+if [[ -z "$CHECKJS" ]]; then
 echo "
 # The $MEET_CONF configuration seems correct. =)
 "
