@@ -196,7 +196,7 @@ INT_CONF=/usr/share/jitsi-meet/interface_config.js
 WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 enable_letsencrypt() {
-if [ "$SSL_ENABLE" = "yes" ]; then
+if [ "$ENABLE_SSL" = "yes" ]; then
 echo '
 ########################################################################
                     Starting LetsEncrypt configuration
