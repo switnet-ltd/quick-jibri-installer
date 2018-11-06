@@ -364,6 +364,48 @@ cat << CONF_JSON > $CONF_JSON
 }
 CONF_JSON
 
+#Tune webserver for Jitsi App control.
+if [ -f /etc/apache2/sites-available/$DOMAIN.conf ]; then
+WS_CONF=/etc/apache2/sites-available/$DOMAIN.conf
+sed -i '$ d' $WS_CONF
+cat << NG_APP >> $WS_CONF
+
+  Alias "/external_api.js" "/usr/share/jitsi-meet/libs/external_api.min.js"
+  <Location /config.js>
+    Require all granted
+  </Location>
+
+  Alias "/external_api.min.js" "/usr/share/jitsi-meet/libs/external_api.min.js"
+  <Location /config.js>
+    Require all granted
+  </Location>
+
+</VirtualHost>
+NG_APP
+service apache2 reload
+elif [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
+WS_CONF=/etc/nginx/sites-available/$DOMAIN.conf
+WS_STR=$(grep -n "Backward" $WS_CONF | cut -d ":" -f1)
+WS_END=$((WS_STR + 3))
+sed -i "$WS_STR,$WS_END s|^|#|" $WS_CONF
+sed -i '$ d' $WS_CONF
+cat << NG_APP >> $WS_CONF
+
+    location /external_api.min.js {
+        alias /usr/share/jitsi-meet/libs/external_api.min.js;
+    }
+
+    location /external_api.js {
+        alias /usr/share/jitsi-meet/libs/external_api.min.js;
+    }
+}
+NG_APP
+service nginx reload
+else
+	echo "No app configuration done to server file, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+fi
+
 #Enable jibri services
 systemctl enable jibri
 systemctl enable jibri-xorg
