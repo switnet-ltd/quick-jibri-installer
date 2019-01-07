@@ -5,6 +5,7 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Enabled Local (audio) recording using flac
 * Enabled Session (video) Recording using Jibri
 * Enabled Jitsi Electron app detection server side.
+* Option to enable Secure Rooms
 
 ## Requirements
 * Valid domain with DNS already set (preferably).
