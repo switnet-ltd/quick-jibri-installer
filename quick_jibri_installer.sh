@@ -259,7 +259,7 @@ prosodyctl register recorder recorder.$DOMAIN $JB_REC_PASS
 ## JICOFO
 # /etc/jitsi/jicofo/sip-communicator.properties
 cat  << BREWERY >> $JICOFO_SIP
-#org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
+org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
 org.jitsi.jicofo.jibri.BREWERY=$JibriBrewery@internal.auth.$DOMAIN
 org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 BREWERY
@@ -405,6 +405,25 @@ else
 	echo "No app configuration done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
+
+#Enable secure rooms?
+while [[ $ENABLE_SC != yes && $ENABLE_SC != no ]]
+do
+read -p "Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
+if [ $ENABLE_SC = no ]; then
+	echo "Secure rooms won't be enable"
+elif [ $ENABLE_SC = yes ]; then
+	echo "Secure rooms are being enable"
+cat << P_SR >> $PROSODY_FILE
+VirtualHost "$DOMAIN"
+    authentication = "internal_plain"
+
+VirtualHost "guest.$DOMAIN"
+    authentication = "anonymous"
+    c2s_require_encryption = false
+P_SR
+fi
+done
 
 #Enable jibri services
 systemctl enable jibri
