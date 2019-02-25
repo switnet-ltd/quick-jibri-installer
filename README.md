@@ -1,3 +1,5 @@
+Quick Jibri installer based for Xenial servers.
+=======
 # Quick Jibri Installer
 Bash installer for Jibri on *buntu 16.04 LTS based systems
 

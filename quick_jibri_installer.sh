@@ -10,7 +10,6 @@ APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok instal
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
-CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 
 if [ $DIST = flidas ]; then
 DIST="xenial"
@@ -122,7 +121,7 @@ fi
 echo "snd-aloop" | tee -a /etc/modules
 
 check_snd_driver
-
+CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 echo "# Installing Google Chrome / ChromeDriver"
 if [ -f $GOOGL_REPO ]; then
 echo "Google repository already set."
@@ -224,8 +223,8 @@ fi
 restart_services() {
 	service jitsi-videobridge restart
 	service jicofo restart
-	check_jibri
 	service prosody restart
+	check_jibri
 }
 
 # Configure Jibri
@@ -265,7 +264,7 @@ org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 BREWERY
 
 # Jibri tweaks for /etc/jitsi/meet/$DOMAIN-config.js
-sed -i "s|guest.example.com|guest.$DOMAIN|" $MEET_CONF
+sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 sed -i "s|conference.$DOMAIN|internal.auth.$DOMAIN|" $MEET_CONF
 sed -i "s|// fileRecordingsEnabled: false,|fileRecordingsEnabled: true,| " $MEET_CONF
 sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
@@ -364,21 +363,14 @@ cat << CONF_JSON > $CONF_JSON
 }
 CONF_JSON
 
-#Tune webserver for Jitsi App control.
+#Tune webserver for Jitsi App control
 if [ -f /etc/apache2/sites-available/$DOMAIN.conf ]; then
 WS_CONF=/etc/apache2/sites-available/$DOMAIN.conf
 sed -i '$ d' $WS_CONF
 cat << NG_APP >> $WS_CONF
 
   Alias "/external_api.js" "/usr/share/jitsi-meet/libs/external_api.min.js"
-  <Location /config.js>
-    Require all granted
-  </Location>
-
   Alias "/external_api.min.js" "/usr/share/jitsi-meet/libs/external_api.min.js"
-  <Location /config.js>
-    Require all granted
-  </Location>
 
 </VirtualHost>
 NG_APP
@@ -406,13 +398,45 @@ else
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
 
+#Enable static avatar
+while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
+do
+read -p "Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
+if [ "$ENABLE_SA" = "no" ]; then
+	echo "Static avatar won't be enable"
+elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/apache2/sites-available/$DOMAIN.conf ]; then
+	echo "Static avatar are being enable"
+	wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
+	WS_CONF=/etc/apache2/sites-available/$DOMAIN.conf
+	sed -i "/Alias \"\/external_api.js\"/i \ \ AliasMatch \^\/avatar\/\(.\*\)\\\.png /usr/share/jitsi-meet/images/avatar2.png" $WS_CONF
+	service apache2 reload
+	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" $INT_CONF
+	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
+	wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
+	WS_CONF=/etc/nginx/sites-available/$DOMAIN.conf
+	sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {\\
+\
+\ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;\\
+\
+\ \ \ \ }\\
+\ " $WS_CONF
+	service nginx reload
+	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
+	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+else
+		echo "No app configuration done to server file, please report to:
+		-> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+fi
+done
+
 #Enable secure rooms?
-while [[ $ENABLE_SC != yes && $ENABLE_SC != no ]]
+while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
 do
 read -p "Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
-if [ $ENABLE_SC = no ]; then
+if [ "$ENABLE_SC" = "no" ]; then
 	echo "Secure rooms won't be enable"
-elif [ $ENABLE_SC = yes ]; then
+elif [ "$ENABLE_SC" = "yes" ]; then
 	echo "Secure rooms are being enable"
 cat << P_SR >> $PROSODY_FILE
 VirtualHost "$DOMAIN"
@@ -424,6 +448,15 @@ VirtualHost "guest.$DOMAIN"
 P_SR
 fi
 done
+
+#Set main language (Spanish)
+sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'es',|" $MEET_CONF
+
+#Start with video muted by default
+sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
+
+#Start with audio muted but admin
+sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
 
 #Enable jibri services
 systemctl enable jibri
