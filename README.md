@@ -1,5 +1,3 @@
-Quick Jibri installer based for Xenial servers.
-=======
 # Quick Jibri Installer
 Bash installer for Jibri on *buntu 16.04 LTS based systems
 
@@ -14,6 +12,14 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Recommended 4 GB RAM / 4 Cores for video recording.
 * Dropbox developer App key & redirect url configured (if you choose to enable Dropbox upload).
 * Webcam
+
+## Custom changes
+* Disable welcome page
+* Video muted by default
+* Audio muted but admin
+* Rodentia static avatar (icon credit: sixsixfive)
+* Required display name
+* Language (es)
 
 Please note: This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 

@@ -458,6 +458,12 @@ sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
 #Start with audio muted but admin
 sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
 
+#Disable welcome page
+sed -i "s|enableWelcomePage: true|enableWelcomePage: false|" $MEET_CONF
+
+#Make displayname required
+sed -i "s|// requireDisplayName: true,|requireDisplayName: true,|" $MEET_CONF
+
 #Enable jibri services
 systemctl enable jibri
 systemctl enable jibri-xorg
