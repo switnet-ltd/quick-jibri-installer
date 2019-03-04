@@ -19,11 +19,15 @@ if [ "$APACHE_2" -eq 1 ] || [ "$NGINX" -eq 1 ]; then
 	echo "
 Webserver already installed!
 "
+elif [ "$APACHE_2" -eq 1 ] && [ "$NGINX" -eq 0 ]; then
+
+apt -yqq install python3-certbot-apache
+
 else
 	echo "
 Installing nginx as webserver!
 "
-	apt -yqq install nginx
+	apt -yqq install nginx python3-certbot-nginx
 fi
 }
 check_snd_driver() {
@@ -90,6 +94,7 @@ apt -yqq install \
 				ffmpeg \
 				git \
 				htop \
+				letsencrypt \
 				linux-image-extra-virtual \
 				unzip \
 				wget
@@ -145,10 +150,11 @@ else
 	rm -rf /tpm/chromedriver_linux64.zip
 fi
 
-# Check Google Software Working
+echo "
+Check Google Software Working...
+"
 /usr/bin/google-chrome --version
-/usr/local/bin/chromedriver --version
-
+/usr/local/bin/chromedriver --version | awk '{print$1,$2}'
 
 echo '
 ########################################################################
@@ -156,7 +162,7 @@ echo '
 ########################################################################
 '
 # MEET / JIBRI SETUP
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | cut -d "." -f "1,2,3")
+DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | cut -d "." -f "1-3")
 JB_AUTH_PASS_FILE=/var/JB_AUTH_PASS.txt
 JB_REC_PASS_FILE=/var/JB_REC_PASS.txt
 PROSODY_FILE=/etc/prosody/conf.d/$DOMAIN.cfg.lua
@@ -168,6 +174,13 @@ REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
 read -p "Jibri internal.auth.$DOMAIN password: "$'\n' -sr JB_AUTH_PASS
 read -p "Jibri recorder.$DOMAIN password: "$'\n' -sr JB_REC_PASS
+#Secure room initial user
+read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+read -p "Secure room moderator password: "$'\n' -sr SEC_ROOM_PASS
+echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
+or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
+If you have issues with the password refer to your sysadmin."
+read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
 while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
 do
 read -p "Do you want to setup the Dropbox feature: (yes or no)"$'\n' -r ENABLE_DB
@@ -186,6 +199,7 @@ elif [ $ENABLE_SSL = yes ]; then
 	echo "SSL will be enabled."
 fi
 done
+
 echo "$JB_AUTH_PASS" > $JB_AUTH_PASS_FILE
 chmod 600 $JB_AUTH_PASS_FILE
 echo "$JB_REC_PASS" > $JB_REC_PASS_FILE
@@ -194,6 +208,17 @@ JibriBrewery=JibriBrewery
 INT_CONF=/usr/share/jitsi-meet/interface_config.js
 WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
+ssl_wa() {
+service $1 stop
+	letsencrypt certonly --standalone --renew-by-default --agree-tos --email $SYSADMIN_EMAIL -d $DOMAIN
+	sed -i "s|/etc/jitsi/meet/$DOMAIN.crt|/etc/letsencrypt/live/$DOMAIN/fullchain.pem|" $WS_CONF
+	sed -i "s|/etc/jitsi/meet/$DOMAIN.key|/etc/letsencrypt/live/$DOMAIN/privkey.pem|" $WS_CONF
+service $1 restart
+	#Add cron
+	crontab -l | { cat; echo "@weekly certbot renew --${2}"; } | crontab -
+	crontab -l
+}
+
 enable_letsencrypt() {
 if [ "$ENABLE_SSL" = "yes" ]; then
 echo '
@@ -201,8 +226,18 @@ echo '
                     Starting LetsEncrypt configuration
 ########################################################################
 '
-bash /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
+#Disabled 'til fixed upstream
+#bash /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
+
 update_certbot
+#SSL workaround
+
+	if [ "$APACHE_2" -eq 1 ]; then
+	ssl_wa apache2 apache
+	elif [ "$NGINX" -eq 1 ]; then
+	ssl_wa nginx nginx
+	fi
+
 else
 echo "SSL setup will be skipped."
 fi
@@ -328,7 +363,7 @@ exit 0
 REC_DIR
 
 ## JSON Config
-cp $CONF_JSON CONF_JSON.orig
+cp $CONF_JSON $CONF_JSON.orig
 cat << CONF_JSON > $CONF_JSON
 {
     "recording_directory":"$DIR_RECORD",
@@ -409,7 +444,6 @@ elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/apache2/sites-available/$DOMAIN.conf 
 	wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
 	WS_CONF=/etc/apache2/sites-available/$DOMAIN.conf
 	sed -i "/Alias \"\/external_api.js\"/i \ \ AliasMatch \^\/avatar\/\(.\*\)\\\.png /usr/share/jitsi-meet/images/avatar2.png" $WS_CONF
-	service apache2 reload
 	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" $INT_CONF
 	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
@@ -421,7 +455,6 @@ elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/nginx/sites-available/$DOMAIN.conf ];
 \
 \ \ \ \ }\\
 \ " $WS_CONF
-	service nginx reload
 	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
 	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 else
@@ -446,6 +479,7 @@ VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
 P_SR
+	prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 fi
 done
 
@@ -458,11 +492,11 @@ sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
 #Start with audio muted but admin
 sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
 
-#Disable welcome page
-sed -i "s|enableWelcomePage: true|enableWelcomePage: false|" $MEET_CONF
+#Disable/enable welcome page
+sed -i "s|// enableWelcomePage: true,|enableWelcomePage: true,|" $MEET_CONF
 
-#Make displayname required
-sed -i "s|// requireDisplayName: true,|requireDisplayName: true,|" $MEET_CONF
+#Set displayname as not required since jibri can't set it up.
+sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
 
 #Enable jibri services
 systemctl enable jibri

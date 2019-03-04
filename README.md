@@ -14,11 +14,11 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Webcam
 
 ## Custom changes
-* Disable welcome page
-* Video muted by default
-* Audio muted but admin
+* Welcome page enabled
+* Start with video muted by default
+* Start with audio muted but moderator
 * Rodentia static avatar (icon credit: sixsixfive)
-* Required display name
+* Set displayname as not required since jibri can't set it up. 
 * Language (es)
 
 Please note: This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
