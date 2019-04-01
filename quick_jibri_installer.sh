@@ -14,6 +14,14 @@ GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 if [ $DIST = flidas ]; then
 DIST="xenial"
 fi
+install_ifnot() {
+if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+	echo " $1 is installed, skipping..."
+    else
+    	echo -e "\n---- Installing $1 ----"
+		apt -yqq install $1
+fi
+}
 check_serv() {
 if [ "$APACHE_2" -eq 1 ] || [ "$NGINX" -eq 1 ]; then
 	echo "
@@ -27,7 +35,7 @@ else
 	echo "
 Installing nginx as webserver!
 "
-	apt -yqq install nginx python3-certbot-nginx
+	apt -yqq install nginx
 fi
 }
 check_snd_driver() {
@@ -124,7 +132,6 @@ fi
 
 # ALSA - Loopback
 echo "snd-aloop" | tee -a /etc/modules
-
 check_snd_driver
 CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 echo "# Installing Google Chrome / ChromeDriver"
@@ -174,16 +181,10 @@ REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
 read -p "Jibri internal.auth.$DOMAIN password: "$'\n' -sr JB_AUTH_PASS
 read -p "Jibri recorder.$DOMAIN password: "$'\n' -sr JB_REC_PASS
-#Secure room initial user
-read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-read -p "Secure room moderator password: "$'\n' -sr SEC_ROOM_PASS
-echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
-or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
-If you have issues with the password refer to your sysadmin."
 read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
 while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
 do
-read -p "Do you want to setup the Dropbox feature: (yes or no)"$'\n' -r ENABLE_DB
+read -p "Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
 if [ $ENABLE_DB = no ]; then
 	echo "Dropbox won't be enable"
 elif [ $ENABLE_DB = yes ]; then
@@ -234,8 +235,11 @@ update_certbot
 
 	if [ "$APACHE_2" -eq 1 ]; then
 	ssl_wa apache2 apache
+	install_ifnot python3-certbot-apache
+	
 	elif [ "$NGINX" -eq 1 ]; then
 	ssl_wa nginx nginx
+	install_ifnot python3-certbot-nginx
 	fi
 
 else
@@ -296,6 +300,7 @@ cat  << BREWERY >> $JICOFO_SIP
 org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
 org.jitsi.jicofo.jibri.BREWERY=$JibriBrewery@internal.auth.$DOMAIN
 org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
+#org.jitsi.jicofo.auth.DISABLE_AUTOLOGIN=true
 BREWERY
 
 # Jibri tweaks for /etc/jitsi/meet/$DOMAIN-config.js
@@ -471,6 +476,12 @@ if [ "$ENABLE_SC" = "no" ]; then
 	echo "Secure rooms won't be enable"
 elif [ "$ENABLE_SC" = "yes" ]; then
 	echo "Secure rooms are being enable"
+#Secure room initial user
+read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+read -p "Secure room moderator password: "$'\n' -sr SEC_ROOM_PASS
+echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
+or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
+If you have issues with the password refer to your sysadmin."
 cat << P_SR >> $PROSODY_FILE
 VirtualHost "$DOMAIN"
     authentication = "internal_plain"
@@ -479,7 +490,7 @@ VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
 P_SR
-	prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
+prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 fi
 done
 
