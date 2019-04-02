@@ -306,7 +306,7 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 #Dropbox feature
 if [ $ENABLE_DB = "yes" ]; then
 DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
-DB_END=$((DB_STR + 4))
+DB_END=$((DB_STR + 10))
 sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
 sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" $MEET_CONF
 sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
