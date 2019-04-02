@@ -29,13 +29,15 @@ Webserver already installed!
 "
 elif [ "$APACHE_2" -eq 1 ] && [ "$NGINX" -eq 0 ]; then
 
-apt -yqq install python3-certbot-apache
+echo "
+Apache webserver already installed!
+"
 
 else
 	echo "
 Installing nginx as webserver!
 "
-	apt -yqq install nginx
+	install_ifnot nginx
 fi
 }
 check_snd_driver() {
@@ -211,9 +213,9 @@ WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 ssl_wa() {
 service $1 stop
-	letsencrypt certonly --standalone --renew-by-default --agree-tos --email $SYSADMIN_EMAIL -d $DOMAIN
-	sed -i "s|/etc/jitsi/meet/$DOMAIN.crt|/etc/letsencrypt/live/$DOMAIN/fullchain.pem|" $WS_CONF
-	sed -i "s|/etc/jitsi/meet/$DOMAIN.key|/etc/letsencrypt/live/$DOMAIN/privkey.pem|" $WS_CONF
+	letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
+	sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
+	sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
 service $1 restart
 	#Add cron
 	crontab -l | { cat; echo "@weekly certbot renew --${2}"; } | crontab -
@@ -231,16 +233,6 @@ echo '
 #bash /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
 
 update_certbot
-#SSL workaround
-
-	if [ "$APACHE_2" -eq 1 ]; then
-	ssl_wa apache2 apache
-	install_ifnot python3-certbot-apache
-	
-	elif [ "$NGINX" -eq 1 ]; then
-	ssl_wa nginx nginx
-	install_ifnot python3-certbot-nginx
-	fi
 
 else
 echo "SSL setup will be skipped."
@@ -516,6 +508,17 @@ systemctl enable jibri-icewm
 restart_services
 
 enable_letsencrypt
+
+#SSL workaround
+if [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
+ssl_wa apache2 apache $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
+install_ifnot python3-certbot-apache
+elif [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
+ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
+install_ifnot python3-certbot-nginx
+else
+echo "No webserver found please report."
+fi
 
 echo "
 ########################################################################
