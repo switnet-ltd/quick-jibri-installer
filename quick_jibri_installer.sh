@@ -289,7 +289,7 @@ prosodyctl register recorder recorder.$DOMAIN $JB_REC_PASS
 ## JICOFO
 # /etc/jitsi/jicofo/sip-communicator.properties
 cat  << BREWERY >> $JICOFO_SIP
-org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
+#org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
 org.jitsi.jicofo.jibri.BREWERY=$JibriBrewery@internal.auth.$DOMAIN
 org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 #org.jitsi.jicofo.auth.DISABLE_AUTOLOGIN=true
@@ -452,7 +452,7 @@ elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/nginx/sites-available/$DOMAIN.conf ];
 \
 \ \ \ \ }\\
 \ " $WS_CONF
-	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
+	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" $INT_CONF
 	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 else
 		echo "No app configuration done to server file, please report to:
@@ -461,6 +461,14 @@ fi
 done
 
 #Enable secure rooms?
+cat << P_SR >> $PROSODY_FILE
+VirtualHost "$DOMAIN"
+    authentication = "internal_plain"
+
+VirtualHost "guest.$DOMAIN"
+    authentication = "anonymous"
+    c2s_require_encryption = false
+P_SR
 while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
 do
 read -p "Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
@@ -474,14 +482,7 @@ read -p "Secure room moderator password: "$'\n' -sr SEC_ROOM_PASS
 echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
 or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
-cat << P_SR >> $PROSODY_FILE
-VirtualHost "$DOMAIN"
-    authentication = "internal_plain"
-
-VirtualHost "guest.$DOMAIN"
-    authentication = "anonymous"
-    c2s_require_encryption = false
-P_SR
+sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
 prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 fi
 done
@@ -511,13 +512,13 @@ enable_letsencrypt
 
 #SSL workaround
 if [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
-ssl_wa apache2 apache $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
-install_ifnot python3-certbot-apache
+	ssl_wa apache2 apache $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
+	install_ifnot python3-certbot-apache
 elif [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
-ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
-install_ifnot python3-certbot-nginx
+	ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
+	install_ifnot python3-certbot-nginx
 else
-echo "No webserver found please report."
+	echo "No webserver found please report."
 fi
 
 echo "
