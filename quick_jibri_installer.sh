@@ -47,7 +47,7 @@ if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; t
 	echo "Audio driver seems ok."
 else
 	echo "Seems to be an issue with your audio driver, please fix this before continue."
-	exit
+	#exit
 fi
 }
 update_certbot() {
