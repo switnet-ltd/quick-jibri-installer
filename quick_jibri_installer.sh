@@ -408,10 +408,10 @@ cat << NG_APP >> $WS_CONF
 NG_APP
 service apache2 reload
 elif [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
-WS_CONF=/etc/nginx/sites-available/$DOMAIN.conf
-WS_STR=$(grep -n "Backward" $WS_CONF | cut -d ":" -f1)
-WS_END=$((WS_STR + 3))
-sed -i "$WS_STR,$WS_END s|^|#|" $WS_CONF
+WS_CONF=/etc/nginx/sites-enabled/$DOMAIN.conf
+WS_STR=$(grep -n "external_api.js" $WS_CONF | cut -d ":" -f1)
+WS_END=$((WS_STR + 2))
+sed -i "${WS_STR},${WS_END} s|^|#|" $WS_CONF
 sed -i '$ d' $WS_CONF
 cat << NG_APP >> $WS_CONF
 
@@ -445,7 +445,7 @@ elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/apache2/sites-available/$DOMAIN.conf 
 	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
 	wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
-	WS_CONF=/etc/nginx/sites-available/$DOMAIN.conf
+	WS_CONF=/etc/nginx/sites-enabled/$DOMAIN.conf
 	sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {\\
 \
 \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;\\
