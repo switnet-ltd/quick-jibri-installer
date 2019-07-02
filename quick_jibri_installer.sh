@@ -171,7 +171,7 @@ echo '
 ########################################################################
 '
 # MEET / JIBRI SETUP
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | cut -d "." -f "1-3")
+DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 JB_AUTH_PASS_FILE=/var/JB_AUTH_PASS.txt
 JB_REC_PASS_FILE=/var/JB_REC_PASS.txt
 PROSODY_FILE=/etc/prosody/conf.d/$DOMAIN.cfg.lua
