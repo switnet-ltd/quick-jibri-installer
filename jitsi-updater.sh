@@ -9,9 +9,11 @@ Color_Off='\e[0m'
 support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
+LocRec="on"
 CHD_LST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 CHDB=/usr/local/bin/chromedriver
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | grep -v save | cut -d "." -f "1-3")
+DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+INT_CONF=/usr/share/jitsi-meet/interface_config.js
 if [ -f $apt_repo/google-chrome.list ]; then
     google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2 | paste -s -d ' ')
 else
@@ -105,20 +107,28 @@ fi
 ########################################################################
 printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
 avatar="$(grep -r avatar /etc/*/sites-*/ 2>/dev/null)"
-if ($avatar) < /dev/null > /dev/null 2>&1; then
+if [[ -z $avatar ]]; then
 	echo "Moving on..."
 else
 	echo "Setting Static Avatar"
-	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" /usr/share/jitsi-meet/interface_config.js
-	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" /usr/share/jitsi-meet/interface_config.js
+	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
+	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 fi
 
 printf "${Purple}========== Setting Support Link  ==========${Color_Off}\n"
-if ($support) < /dev/null > /dev/null 2>&1; then
+if [[ -z $support ]]; then
 	echo "Moving on..."
 else
 	echo "Setting Support custom link"
-	sed -i "s|https://jitsi.org/live|$support|g" /usr/share/jitsi-meet/interface_config.js
+	sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
+fi
+
+printf "${Purple}========== Re-enable Localrecording  ==========${Color_Off}\n"
+if [ $LocRec = on ]; then
+        echo "Setting LocalRecording..."
+        sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
+else
+        echo "Moving on..."
 fi
 
 restart_services
