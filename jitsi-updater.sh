@@ -11,7 +11,7 @@ apt_repo="/etc/apt/sources.list.d"
 jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
 LocRec="on"
 CHD_LST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-CHDB=/usr/local/bin/chromedriver
+CHDB=$(whereis chromedriver | awk '{print$2}')
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 INT_CONF=/usr/share/jitsi-meet/interface_config.js
 if [ -f $apt_repo/google-chrome.list ]; then
@@ -19,10 +19,10 @@ if [ -f $apt_repo/google-chrome.list ]; then
 else
     echo "Seems no Google repo installed"
 fi
-if [ -f $CHDB ]; then
-	CHD_AVB=$(chromedriver -v | awk '{print $2}' | cut -d . -f "1,2")
+if [ -z $CHDB ]; then
+	echo "Seems no chromedriver installed"
 else
-    echo "Seems no chromedriver installed"
+    CHD_AVB=$(chromedriver -v | awk '{print $2}')
 fi
 
 version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
