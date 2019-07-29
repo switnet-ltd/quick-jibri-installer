@@ -533,7 +533,7 @@ fi
 
 elif [ $ENABLE_TRANSCRIPT = yes ]; then
 	echo "Jigasi Transcription will be enabled."
-	bash <(curl -s https://raw.githubusercontent.com/switnet-ltd/quick-jibri-installer/jigasi/jigasi.sh)
+	bash ./jigasi.sh
 fi
 
 echo "
