@@ -149,6 +149,8 @@ echo "Your Google Cloud credentials are at $GC_API_JSON"
 echo "Setting up Jigasi transcript with current platform..."
 #Connect callcontrol
 sed -i "s|// call_control:|call_control:|" $MEET_CONF
+sed -i "s|// transcribingEnabled|transcribingEnabled|" $MEET_CONF
+sed -i "/transcribingEnabled/ s|false|true|" $MEET_CONF
 
 #siptest2siptest@domain.con
 #changed from conference to internal.auth from jibri
