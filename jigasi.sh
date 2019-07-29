@@ -30,7 +30,7 @@ apt -y install google-cloud-sdk google-cloud-sdk-app-engine-java
 
 echo "Please select one of the current options:
 [1] I want to configure a new project, service account, billing and JSON credentials.
-[2] I already have one project configured and already have a JSON key files from Google"
+[2] I already have one project configured and already have a JSON key file from Google"
 while [[ $SETUP_TYPE != 1 && $SETUP_TYPE != 2 ]]
 do
 read -p "What option suits your setup?: (1 or 2)"$'\n' -r SETUP_TYPE
@@ -58,12 +58,12 @@ PROJECT_GC_ID=$(gcloud projects list | grep $GC_PROJECT_NAME | awk '{print$3}')
 while [ ! -z $PROJECT_GC_ID ]
 do
 read -p "Enter the project name you just created for Jigasi Speech-to-Text"$'\n' -r GC_PROJECT_NAME
-if [ -z PROJECT_GC_ID ]
+if [ -z PROJECT_GC_ID ]; then
 	echo "Please check your project name,
 	There is no project listed with the provided name: $GC_PROJECT_NAME"
 	PROJECT_GC_ID=$(gcloud projects list | grep $GC_PROJECT_NAME | awk '{print$3}')
 fi
-
+done
 echo "Your $GC_PROJECT_NAME ID's project is: $PROJECT_GC_ID"
 
 # Enable Speech2Text
@@ -128,7 +128,9 @@ if [[ $? -eq 1 ]]; then
         CHECK_JSON_KEY="$(cat $GC_API_JSON | python -m json.tool 2>/dev/null)"
 fi
 done
-echo "Great, seems now your JSON key syntax is fine."
+echo "
+Great, seems your JSON key syntax is fine.
+"
 
 export GOOGLE_APPLICATION_CREDENTIALS=$GC_API_JSON
 
@@ -179,13 +181,19 @@ prosodyctl register transcript auth.$DOMAIN jigasi
 
 systemctl restart prosody ji*
 
-echo "To test, you need to enable subtitles beforehand then invite \
-\"jitsi_meet_transcribe\" to the meeting (no quotes)."
+echo "
+To test, you need to enable subtitles beforehand then invite \
+\"jitsi_meet_transcribe\" to the meeting (no quotes).
+"
 
-echo "Full transcript files are available at:
---> /var/lib/jigasi/transcripts/"
+echo "
+Full transcript files are available at:
+--> /var/lib/jigasi/transcripts/
+"
 
-echo "Happy transcripting..."
+echo "
+Happy transcripting!
+"
 
 #APP.conference._room.dial("jitsi_meet_transcribe");
 

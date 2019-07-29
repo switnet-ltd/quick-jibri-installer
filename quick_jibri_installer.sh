@@ -531,9 +531,9 @@ else
 	echo "No webserver found please report."
 fi
 
-elif [ $ENABLE_TRANSCRIPT = yes ]; then
+if [ $ENABLE_TRANSCRIPT = yes ]; then
 	echo "Jigasi Transcription will be enabled."
-	bash ./jigasi.sh
+	bash $PWD/jigasi.sh
 fi
 
 echo "
