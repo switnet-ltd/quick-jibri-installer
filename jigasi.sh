@@ -21,10 +21,25 @@ GC_API_JSON=/opt/gc-sdk/GCTranscriptAPI.json
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 MEET_CONF=/etc/jitsi/meet/${DOMAIN}-config.js
 JIG_SIP_PROP=/etc/jitsi/jigasi/sip-communicator.properties
+DIST=$(lsb_release -sc)
+CHECK_GC_REPO=$(apt-cache policy | grep http | grep cloud-sdk | head -n1 | awk '{print $3}' | awk -F '/' '{print $1}')
 
-export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+install_gc_repo() {
+	if [ "$CHECK_GC_REPO" = "cloud-sdk-$DIST" ]; then
+	echo "
+Google Cloud SDK repository already on the system!
+"
+else
+	echo "
+Adding Google Cloud SDK repository for latest updates
+"
+	export CLOUD_SDK_REPO="cloud-sdk-$DIST"
+	echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+	curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+fi
+}
+install_gc_repo
 apt -y update
 apt -y install google-cloud-sdk google-cloud-sdk-app-engine-java
 
@@ -131,6 +146,7 @@ done
 echo "
 Great, seems your JSON key syntax is fine.
 "
+sleep 2
 
 export GOOGLE_APPLICATION_CREDENTIALS=$GC_API_JSON
 
@@ -167,7 +183,7 @@ sed -i "/SAVE_JSON/ s|# ||" $JIG_SIP_PROP
 sed -i "/SEND_JSON/ s|# ||" $JIG_SIP_PROP
 sed -i "/SAVE_TXT/ s|# ||" $JIG_SIP_PROP
 sed -i "/SEND_TXT/ s|# ||" $JIG_SIP_PROP
-sed -i "/SEND_TXT/ s|false|true|" $JIG_SIP_PROP
+#sed -i "/SEND_TXT/ s|false|true|" $JIG_SIP_PROP
 
 #Remember to study how to use LE or what's needed #ToDo
 sed -i "/ALWAYS_TRUST_MODE_ENABLED/ s|# ||" $JIG_SIP_PROP
@@ -198,4 +214,3 @@ Happy transcripting!
 "
 
 #APP.conference._room.dial("jitsi_meet_transcribe");
-
