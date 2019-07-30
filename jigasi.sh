@@ -115,6 +115,8 @@ if [ $SETUP_TYPE = 2 ]; then
 #Setup option 1 - Google Cloud SDK
 echo "Once logged on Google Cloud SDK, please select the project that owns to the JSON key."
 gcloud init
+echo "Login to Google Auth Library"
+gcloud auth application-default login
 fi
 
 echo "Setting up JSON key file..."
