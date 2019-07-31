@@ -7,12 +7,16 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Enabled Jitsi Electron app detection server side.
 * Standalone SSL Certbot/LE implementation
 * Option to enable Secure Rooms
+* (New) Jigasi Transcript - Speech to Text powered by Google API
 
 ## Requirements
 * Valid domain with DNS already set (preferably).
 * Minimum recommended for video recording: 4 GB RAM / 4 Cores.
 * Dropbox developer App key & redirect url configured (if you choose to enable Dropbox upload).
 * Webcam
+### Jigasi Transcript
+* SIP account
+* Google Cloud Account with Billing setup.
 
 ## Custom changes
 * Welcome page enabled
