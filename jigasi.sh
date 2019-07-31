@@ -70,7 +70,7 @@ gcloud auth application-default login
 GC_MEMBER=transcript
 echo "Checking if project exist..."
 PROJECT_GC_ID=$(gcloud projects list | grep $GC_PROJECT_NAME | awk '{print$3}')
-while [ ! -z $PROJECT_GC_ID ]
+while [ -z $PROJECT_GC_ID ]
 do
 read -p "Enter the project name you just created for Jigasi Speech-to-Text"$'\n' -r GC_PROJECT_NAME
 if [ -z PROJECT_GC_ID ]; then
@@ -92,7 +92,8 @@ do
 CHECK_BILLING="$(gcloud services enable speech.googleapis.com 2>/dev/null)"
 if [[ $? -eq 1 ]]; then
         echo "Seems you haven't enabled billing for this project: $GC_PROJECT_NAME
-    For that go to: https://console.developers.google.com/project/$PROJECT_GC_ID/settings"
+    For that go to: https://console.developers.google.com/project/$PROJECT_GC_ID/settings
+    "
         read -p "Press Enter to continue"
         CHECK_BILLING="$(gcloud services enable speech.googleapis.com 2>/dev/null)"
 fi
@@ -127,12 +128,14 @@ cat << KEY_JSON > $GC_API_JSON
 # Paste below this comment your GC JSON key for the service account:
 # $GC_MEMBER@$GC_PROJECT_NAME.iam.gserviceaccount.com
 #
+# Visit the following URL and create a *Service Account Key*:
+# https://console.developers.google.com/apis/credentials?folder=&organizationId=&project=$GC_PROJECT_NAME
 # These comment lines will be deleted afterwards.
 #
 KEY_JSON
 chmod 644 $GC_API_JSON
 nano $GC_API_JSON
-sed -i "1,6d" $GC_API_JSON
+sed -i '/^#/d' $GC_API_JSON
 
 CHECK_JSON_KEY="$(cat $GC_API_JSON | python -m json.tool 2>/dev/null)"
 while [[ $? -eq 1 ]]
@@ -152,7 +155,7 @@ sleep 2
 
 export GOOGLE_APPLICATION_CREDENTIALS=$GC_API_JSON
 
-echo "Installing Jigasi, your SIP credentials will be asked. (skip)"
+echo "Installing Jigasi, your SIP credentials will be asked. (mandatory)"
 apt -y install jigasi
 
 
