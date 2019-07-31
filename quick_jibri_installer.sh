@@ -202,6 +202,16 @@ elif [ $ENABLE_SSL = yes ]; then
 	echo "SSL will be enabled."
 fi
 done
+#Jigasi
+while [[ $ENABLE_TRANSCRIPT != yes && $ENABLE_TRANSCRIPT != no ]]
+do
+read -p "Do you want to setup Jigasi Transcription: (yes or no)"$'\n' -r ENABLE_TRANSCRIPT
+if [ $ENABLE_TRANSCRIPT = no ]; then
+	echo "Jigasi Transcription won't be enabled."
+elif [ $ENABLE_TRANSCRIPT = yes ]; then
+	echo "Jigasi Transcription will be enabled."
+fi
+done
 
 echo "$JB_AUTH_PASS" > $JB_AUTH_PASS_FILE
 chmod 600 $JB_AUTH_PASS_FILE
@@ -519,6 +529,11 @@ elif [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed
 	install_ifnot python3-certbot-nginx
 else
 	echo "No webserver found please report."
+fi
+
+if [ $ENABLE_TRANSCRIPT = yes ]; then
+	echo "Jigasi Transcription will be enabled."
+	bash $PWD/jigasi.sh
 fi
 
 echo "
