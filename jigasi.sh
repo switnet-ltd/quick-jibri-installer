@@ -8,6 +8,12 @@
 # https://github.com/jitsi/jigasi/pull/130
 #######################################################
 
+#Check if user is root
+if ! [ $(id -u) = 0 ]; then
+   echo "You need to be root or have sudo privileges!"
+   exit 0
+fi
+
 clear
 echo '
 ########################################################################
