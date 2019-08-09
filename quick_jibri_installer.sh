@@ -77,12 +77,10 @@ echo '
                     by Software, IT & Networks Ltd
 '
 
-# Check correct user (sudo or root)
-if [ "$EUID" == 0 ]
-  then echo "Ok, you have superuser powers"
-else
-	echo "You should run it with root or sudo permissions."
-	exit
+#Check if user is root
+if ! [ $(id -u) = 0 ]; then
+   echo "You need to be root or have sudo privileges!"
+   exit 0
 fi
 
 # Jitsi-Meet Repo
@@ -129,7 +127,15 @@ if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" 
     else
 		curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
 		apt install -yqq nodejs
+		echo "Installing nodejs esprima package..."
 		npm install -g esprima
+fi
+
+if [ "$(npm list -g esprima 2>/dev/null | grep -c "empty")" == "1" ]; then
+	echo "Installing nodejs esprima package..."
+	npm install -g esprima
+elif [ "$(npm list -g esprima 2>/dev/null | grep -c "esprima")" == "1" ]; then
+	echo "Good. Esprima package is already installed"
 fi
 
 # ALSA - Loopback
@@ -181,6 +187,16 @@ CONF_JSON=/etc/jitsi/jibri/config.json
 DIR_RECORD=/tmp/recordings
 REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
+echo "## Setting up Jitsi Meet language ##
+You can define your language by using a two letter code (ISO 639-1);
+	English -> en
+	Spanish -> es
+	German -> de
+	...
+
+Jitsi Meet web interface will be set to use such language (if availabe).
+"
+read -p "Please set your language:"$'\n' -r LANG
 read -p "Jibri internal.auth.$DOMAIN password: "$'\n' -sr JB_AUTH_PASS
 read -p "Jibri recorder.$DOMAIN password: "$'\n' -sr JB_REC_PASS
 read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
@@ -336,6 +352,15 @@ sed -i "$LR_STR,$LR_END{s|// }|}|}" $MEET_CONF
 
 sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
 #EOLR
+
+#Setup main language
+if [ -z $LANG ] || [ "$LANG" = "en" ]; then
+	echo "Leaving English (en) as default language..."
+	#sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
+else
+	echo "Changing default language to: $LANG"
+	#sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$LANG\',|" $MEET_CONF
+fi
 
 #Check config file
 echo "
@@ -496,9 +521,6 @@ sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JI
 prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 fi
 done
-
-#Set main language (Spanish)
-sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'es',|" $MEET_CONF
 
 #Start with video muted by default
 sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
