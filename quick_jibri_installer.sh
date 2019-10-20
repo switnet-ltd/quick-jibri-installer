@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick Jibri Installer - *buntu 16.04 (LTS) based systems.
-# SwITNet Ltd © - 2018, https://switnet.net/
+# SwITNet Ltd © - 2019, https://switnet.net/
 # GPLv3 or later.
 
 # SYSTEM SETUP

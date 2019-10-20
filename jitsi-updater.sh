@@ -1,6 +1,6 @@
 #!/bin/bash
 # Jitsi Meet upgrade and custom keeper for Debian/*buntu binaries.
-# 2018 - SwITNet Ltd
+# 2019 - SwITNet Ltd
 # GNU GPLv3 or later.
 
 Blue='\e[0;34m'
