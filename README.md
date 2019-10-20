@@ -7,6 +7,7 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Enabled Jitsi Electron app detection server side.
 * Standalone SSL Certbot/LE implementation
 * Option to enable Secure Rooms
+* Option to setup UI language
 * (New) Jigasi Transcript - Speech to Text powered by Google API
 
 ## Requirements
@@ -24,8 +25,7 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Start with audio muted but moderator
 * Rodentia static avatar (icon credit: sixsixfive)
 * Set displayname as not required since jibri can't set it up.
-* Language (es)
 
 Please note: This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 
-SwITNet Ltd © - 2018, https://switnet.net/
+SwITNet Ltd © - 2019, https://switnet.net/
