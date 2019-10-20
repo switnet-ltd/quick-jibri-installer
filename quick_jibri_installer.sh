@@ -125,7 +125,7 @@ echo "
 if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" ]; then
 		echo "Nodejs is installed, skipping..."
     else
-		curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+		curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 		apt install -yqq nodejs
 		echo "Installing nodejs esprima package..."
 		npm install -g esprima
