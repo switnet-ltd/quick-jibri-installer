@@ -495,6 +495,9 @@ else
 fi
 done
 
+# Temporary disable "Blur my background" until is stable
+sed -i "s|'videobackgroundblur', ||" $INT_CONF
+
 #Enable secure rooms?
 cat << P_SR >> $PROSODY_FILE
 VirtualHost "$DOMAIN"
