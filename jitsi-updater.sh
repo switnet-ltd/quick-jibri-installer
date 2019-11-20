@@ -131,5 +131,8 @@ else
         echo "Moving on..."
 fi
 
+printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
+sed -i "s|'videobackgroundblur', ||" $INT_CONF
+
 restart_services
 printf "${Blue}Script completed \o/! ${Color_Off}\n"
