@@ -357,10 +357,10 @@ sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
 #Setup main language
 if [ -z $LANG ] || [ "$LANG" = "en" ]; then
 	echo "Leaving English (en) as default language..."
-	#sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
+	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
 else
 	echo "Changing default language to: $LANG"
-	#sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$LANG\',|" $MEET_CONF
+	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$LANG\',|" $MEET_CONF
 fi
 
 #Check config file
