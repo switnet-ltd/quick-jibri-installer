@@ -187,6 +187,7 @@ CONF_JSON=/etc/jitsi/jibri/config.json
 DIR_RECORD=/tmp/recordings
 REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
+LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 echo "## Setting up Jitsi Meet language ##
 You can define your language by using a two letter code (ISO 639-1);
 	English -> en
@@ -244,7 +245,7 @@ service $1 stop
 	sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
 service $1 restart
 	#Add cron
-	crontab -l | { cat; echo "@weekly certbot renew --${2}"; } | crontab -
+	crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1 || mail -s 'LE SSL Errors' $SYSADMIN_EMAIL < $LE_RENEW_LOG"; } | crontab -
 	crontab -l
 }
 
