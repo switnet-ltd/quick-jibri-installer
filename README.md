@@ -1,5 +1,5 @@
 # Quick Jibri Installer
-Bash installer for Jibri on *buntu 16.04 LTS based systems
+Bash installer for Jibri on *buntu LTS based systems
 
 ## Features
 * Enabled Local (audio) recording using flac
@@ -7,6 +7,7 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Enabled Jitsi Electron app detection server side.
 * Standalone SSL Certbot/LE implementation
 * Option to enable Secure Rooms
+* Option to enable Welcome Page
 * Option to setup UI language
 * (New) Jigasi Transcript - Speech to Text powered by Google API
 
@@ -20,7 +21,6 @@ Bash installer for Jibri on *buntu 16.04 LTS based systems
 * Google Cloud Account with Billing setup.
 
 ## Custom changes
-* Welcome page enabled
 * Start with video muted by default
 * Start with audio muted but moderator
 * Rodentia static avatar (icon credit: sixsixfive)
