@@ -533,7 +533,17 @@ sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
 sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
 
 #Disable/enable welcome page
-sed -i "s|// enableWelcomePage: true,|enableWelcomePage: true,|" $MEET_CONF
+while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
+do
+read -p "Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
+if [ $ENABLE_WELCP = no ]; then
+	echo "Welcome page won't be enabled."
+	sed -i "s|// enableWelcomePage: true,|enableWelcomePage: false,|" $MEET_CONF
+elif [ $ENABLE_WELCP = yes ]; then
+	echo "Welcome page will be enabled."
+	sed -i "s|// enableWelcomePage: true,|enableWelcomePage: true,|" $MEET_CONF
+fi
+done
 
 #Set displayname as not required since jibri can't set it up.
 sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
