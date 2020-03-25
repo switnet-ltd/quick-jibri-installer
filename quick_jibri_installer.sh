@@ -3,6 +3,20 @@
 # SwITNet Ltd © - 2019, https://switnet.net/
 # GPLv3 or later.
 
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo ./quick_jibri_installer.sh [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
+
 # SYSTEM SETUP
 JITSI_UNS_REPO=$(apt-cache policy | grep http | grep jitsi | grep unstable | awk '{print $3}' | head -n 1 | cut -d "/" -f 1)
 CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f 4)
@@ -536,10 +550,10 @@ sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
 while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
 do
 read -p "Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
-if [ $ENABLE_WELCP = no ]; then
-	echo "Welcome page won't be enabled."
+if [ $ENABLE_WELCP = yes ]; then
+	echo "Welcome page will be disabled."
 	sed -i "s|// enableWelcomePage: true,|enableWelcomePage: false,|" $MEET_CONF
-elif [ $ENABLE_WELCP = yes ]; then
+elif [ $ENABLE_WELCP = no ]; then
 	echo "Welcome page will be enabled."
 	sed -i "s|// enableWelcomePage: true,|enableWelcomePage: true,|" $MEET_CONF
 fi
