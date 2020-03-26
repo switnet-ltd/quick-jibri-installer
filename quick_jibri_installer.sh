@@ -362,7 +362,7 @@ fi
 
 #LocalRecording
 #No longer necessary thanks to: makeJsonParserHappy
-#echo "# Enabling local recording (audio only)."
+echo "# Enabling local recording (audio only)."
 #DI_STR=$(grep -n "deploymentInfo:" $MEET_CONF | cut -d ":" -f1)
 #DI_END=$((DI_STR + 6))
 #sed -i "$DI_STR,$DI_END{s|}|},|}" $MEET_CONF
@@ -560,10 +560,10 @@ do
 read -p "Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
 if [ $ENABLE_WELCP = yes ]; then
 	echo "Welcome page will be disabled."
-	sed -i "s|// enableWelcomePage: true,|enableWelcomePage: false,|" $MEET_CONF
+	sed -i "s|.*enableWelcomePage:.*|enableWelcomePage: false,|" $MEET_CONF
 elif [ $ENABLE_WELCP = no ]; then
 	echo "Welcome page will be enabled."
-	sed -i "s|// enableWelcomePage: true,|enableWelcomePage: true,|" $MEET_CONF
+	sed -i "s|.*enableWelcomePage:.*|enableWelcomePage: true,|" $MEET_CONF
 fi
 done
 
