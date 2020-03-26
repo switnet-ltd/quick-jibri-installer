@@ -131,7 +131,12 @@ echo "
 "
 apt -yqq install \
 				jitsi-meet \
-				jibri
+				jibri \
+				openjdk-8-jre-headless
+
+# Fix RAND_load_file error
+#https://github.com/openssl/openssl/issues/7754#issuecomment-444063355
+sed -i "/RANDFILE/d" /etc/ssl/openssl.cnf
 
 echo "
 #--------------------------------------------------
