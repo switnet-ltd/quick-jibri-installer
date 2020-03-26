@@ -2,6 +2,8 @@
 # Quick Jibri Installer - *buntu 16.04 (LTS) based systems.
 # SwITNet Ltd © - 2019, https://switnet.net/
 # GPLv3 or later.
+{
+echo "Started at $(date +'%Y-%m-%d %H:%M:%S')" >> qj-installer.log
 
 while getopts m: option
 do
@@ -602,4 +604,5 @@ while [ $secs -gt 0 ]; do
    sleep 1
    : $((secs--))
 done
+}  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 reboot
