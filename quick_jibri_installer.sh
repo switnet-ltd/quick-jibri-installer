@@ -361,10 +361,11 @@ sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 fi
 
 #LocalRecording
-echo "# Enabling local recording (audio only)."
-DI_STR=$(grep -n "deploymentInfo:" $MEET_CONF | cut -d ":" -f1)
-DI_END=$((DI_STR + 6))
-sed -i "$DI_STR,$DI_END{s|}|},|}" $MEET_CONF
+#No longer necessary thanks to: makeJsonParserHappy
+#echo "# Enabling local recording (audio only)."
+#DI_STR=$(grep -n "deploymentInfo:" $MEET_CONF | cut -d ":" -f1)
+#DI_END=$((DI_STR + 6))
+#sed -i "$DI_STR,$DI_END{s|}|},|}" $MEET_CONF
 LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
 LR_END=$((LR_STR + 18))
 sed -i "$LR_STR,$LR_END{s|// localRecording: {|localRecording: {|}" $MEET_CONF
