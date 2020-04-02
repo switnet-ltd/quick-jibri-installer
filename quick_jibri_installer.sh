@@ -560,10 +560,10 @@ do
 read -p "Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
 if [ $ENABLE_WELCP = yes ]; then
 	echo "Welcome page will be disabled."
-	sed -i "s|.*enableWelcomePage:.*|enableWelcomePage: false,|" $MEET_CONF
+	sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" $MEET_CONF
 elif [ $ENABLE_WELCP = no ]; then
 	echo "Welcome page will be enabled."
-	sed -i "s|.*enableWelcomePage:.*|enableWelcomePage: true,|" $MEET_CONF
+	sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" $MEET_CONF
 fi
 done
 
