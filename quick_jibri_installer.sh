@@ -20,7 +20,7 @@ set -x
 fi
 
 # SYSTEM SETUP
-JITSI_UNS_REPO=$(apt-cache policy | grep http | grep jitsi | grep unstable | awk '{print $3}' | head -n 1 | cut -d "/" -f 1)
+JITSI_STBL_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f 1)
 CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f 4)
 APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
@@ -60,10 +60,16 @@ check_snd_driver() {
 modprobe snd-aloop
 echo "snd-aloop" >> /etc/modules
 if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
-	echo "Audio driver seems ok."
+	echo "
+########################################################################
+                        Audio driver seems - OK.
+########################################################################"
 else
-	echo "Seems to be an issue with your audio driver, please fix this before continue."
-	#exit
+	echo "
+########################################################################
+Seems to be an issue with your audio driver, please review your hw setup.
+########################################################################"
+	read -p
 fi
 }
 update_certbot() {
@@ -99,12 +105,22 @@ if ! [ $(id -u) = 0 ]; then
    exit 0
 fi
 
+DISTRO_RELEASE=$(lsb_release -sc)
+if [ $DISTRO_RELEASE = xenial ] || [ $DISTRO_RELEASE = bionic ]; then
+	echo "OS: $(lsb_release -sd)
+Good, this is a supported platform!"
+else
+	echo "OS: $(lsb_release -sd)
+Sorry, this platform is not supported... exiting"
+exit
+fi
+
 # Jitsi-Meet Repo
 echo "Add Jitsi key"
-if [ "$JITSI_UNS_REPO" = "unstable" ]; then
-	echo "Jitsi unstable repository already installed"
+if [ "$JITSI_STBL_REPO" = "stable" ]; then
+	echo "Jitsi stable repository already installed"
 else
-	echo 'deb https://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
+	echo 'deb https://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 fi
 
@@ -112,6 +128,7 @@ fi
 echo "We'll start by installing system requirements this may take a while please be patient..."
 apt update -yq2
 apt dist-upgrade -yq2
+
 apt -yqq install \
 				bmon \
 				curl \
@@ -119,9 +136,10 @@ apt -yqq install \
 				git \
 				htop \
 				letsencrypt \
-				linux-image-extra-virtual \
+				linux-image-generic-hwe-$(lsb_release -r|awk '{print$2}') \
 				unzip \
 				wget
+
 check_serv
 
 echo "
@@ -163,6 +181,8 @@ fi
 echo "snd-aloop" | tee -a /etc/modules
 check_snd_driver
 CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
+
 echo "# Installing Google Chrome / ChromeDriver"
 if [ -f $GOOGL_REPO ]; then
 echo "Google repository already set."
@@ -192,6 +212,12 @@ Check Google Software Working...
 /usr/bin/google-chrome --version
 /usr/local/bin/chromedriver --version | awk '{print$1,$2}'
 
+echo "
+Remove Chrome warning...
+"
+mkdir -p /etc/opt/chrome/policies/managed
+echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' >> $GCMP_JSON
+
 echo '
 ########################################################################
                     Starting Jibri configuration
@@ -199,13 +225,14 @@ echo '
 '
 # MEET / JIBRI SETUP
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
-JB_AUTH_PASS_FILE=/var/JB_AUTH_PASS.txt
-JB_REC_PASS_FILE=/var/JB_REC_PASS.txt
+JB_AUTH_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
+JB_REC_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 PROSODY_FILE=/etc/prosody/conf.d/$DOMAIN.cfg.lua
+PROSODY_SYS=/etc/prosody/prosody.cfg.lua
 JICOFO_SIP=/etc/jitsi/jicofo/sip-communicator.properties
 MEET_CONF=/etc/jitsi/meet/$DOMAIN-config.js
 CONF_JSON=/etc/jitsi/jibri/config.json
-DIR_RECORD=/tmp/recordings
+DIR_RECORD=/var/jbrecord
 REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
 LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
@@ -219,8 +246,6 @@ You can define your language by using a two letter code (ISO 639-1);
 Jitsi Meet web interface will be set to use such language (if availabe).
 "
 read -p "Please set your language:"$'\n' -r LANG
-read -p "Jibri internal.auth.$DOMAIN password: "$'\n' -sr JB_AUTH_PASS
-read -p "Jibri recorder.$DOMAIN password: "$'\n' -sr JB_REC_PASS
 read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
 while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
 do
@@ -251,10 +276,6 @@ elif [ $ENABLE_TRANSCRIPT = yes ]; then
 fi
 done
 
-echo "$JB_AUTH_PASS" > $JB_AUTH_PASS_FILE
-chmod 600 $JB_AUTH_PASS_FILE
-echo "$JB_REC_PASS" > $JB_REC_PASS_FILE
-chmod 600 $JB_REC_PASS_FILE
 JibriBrewery=JibriBrewery
 INT_CONF=/usr/share/jitsi-meet/interface_config.js
 WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
@@ -330,6 +351,28 @@ VirtualHost "recorder.$DOMAIN"
 
 REC-JIBRI
 
+#Fix Jibri conectivity issues
+sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
+sed -i "/c2s_require_encryption = false/a \\
+\\
+consider_bosh_secure = true" $PROSODY_SYS
+
+if [ ! -f /usr/lib/prosody/modules/mod_listusers.lua ]; then
+echo "
+-> Adding external module to list prosody users...
+"
+cd /usr/lib/prosody/modules/
+curl -s https://prosody.im/files/mod_listusers.lua > mod_listusers.lua
+
+echo "Now you can check registered users with:
+prosodyctl mod_listusers
+"
+else
+echo "Prosody support for listing users seems to be enabled.
+check with: prosodyctl mod_listusers
+"
+fi
+
 ### Prosody users
 prosodyctl register jibri auth.$DOMAIN $JB_AUTH_PASS
 prosodyctl register recorder recorder.$DOMAIN $JB_REC_PASS
@@ -361,11 +404,7 @@ sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 fi
 
 #LocalRecording
-#No longer necessary thanks to: makeJsonParserHappy
 echo "# Enabling local recording (audio only)."
-#DI_STR=$(grep -n "deploymentInfo:" $MEET_CONF | cut -d ":" -f1)
-#DI_END=$((DI_STR + 6))
-#sed -i "$DI_STR,$DI_END{s|}|},|}" $MEET_CONF
 LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
 LR_END=$((LR_STR + 18))
 sed -i "$LR_STR,$LR_END{s|// localRecording: {|localRecording: {|}" $MEET_CONF
@@ -404,18 +443,25 @@ https://github.com/switnet-ltd/quick-jibri-installer/issues
 fi
 
 # Recording directory
+mkdir $DIR_RECORD
+chown -R jibri:jibri $DIR_RECORD
+
 cat << REC_DIR > $REC_DIR
 #!/bin/bash
 
-RECORDINGS_DIR=$1
+RECORDINGS_DIR=$DIR_RECORD
 
 echo "This is a dummy finalize script" > /tmp/finalize.out
 echo "The script was invoked with recordings directory $RECORDINGS_DIR." >> /tmp/finalize.out
 echo "You should put any finalize logic (renaming, uploading to a service" >> /tmp/finalize.out
 echo "or storage provider, etc.) in this script" >> /tmp/finalize.out
 
+chmod -R 770 \$RECORDINGS_DIR
+
 exit 0
 REC_DIR
+chown jibri:jibri $REC_DIR
+chmod +x $REC_DIR
 
 ## JSON Config
 cp $CONF_JSON $CONF_JSON.orig
@@ -427,7 +473,7 @@ cat << CONF_JSON > $CONF_JSON
         {
             "name": "$JB_NAME",
             "xmpp_server_hosts": [
-                "$WAN_IP"
+                "$DOMAIN"
             ],
             "xmpp_domain": "$DOMAIN",
             "control_login": {
@@ -446,7 +492,7 @@ cat << CONF_JSON > $CONF_JSON
                 "password": "$JB_REC_PASS"
             },
 
-            "room_jid_domain_string_to_strip_from_start": "internal.auth",
+            "room_jid_domain_string_to_strip_from_start": "conference.",
             "usage_timeout": "0"
         }
     ]
@@ -534,7 +580,7 @@ while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
 do
 read -p "Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
 if [ "$ENABLE_SC" = "no" ]; then
-	echo "Secure rooms won't be enable"
+	echo "-- Secure rooms won't be enable"
 elif [ "$ENABLE_SC" = "yes" ]; then
 	echo "Secure rooms are being enable"
 #Secure room initial user
@@ -593,6 +639,10 @@ if [ $ENABLE_TRANSCRIPT = yes ]; then
 	echo "Jigasi Transcription will be enabled."
 	bash $PWD/jigasi.sh
 fi
+
+#Prevent Jibri conecction issue
+sed -i "/127.0.0.1/a \\
+127.0.0.1       $DOMAIN" /etc/hosts
 
 echo "
 ########################################################################
