@@ -78,8 +78,8 @@ update_certbot() {
 Cerbot repository already on the system!
 Checking for updates...
 "
-	apt -qq update
-	apt -yqq dist-upgrade
+	apt -q2 update
+	apt -yq2 dist-upgrade
 else
 	echo "
 Adding cerbot (formerly letsencrypt) PPA repository for latest updates
@@ -129,7 +129,7 @@ echo "We'll start by installing system requirements this may take a while please
 apt update -yq2
 apt dist-upgrade -yq2
 
-apt -yqq install \
+apt -y install \
 				bmon \
 				curl \
 				ffmpeg \
@@ -147,7 +147,7 @@ echo "
 # Install Jitsi Framework
 #--------------------------------------------------
 "
-apt -yqq install \
+apt -y install \
 				jitsi-meet \
 				jibri \
 				openjdk-8-jre-headless
@@ -165,7 +165,7 @@ if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" 
 		echo "Nodejs is installed, skipping..."
     else
 		curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-		apt install -yqq nodejs
+		apt install -yq2 nodejs
 		echo "Installing nodejs esprima package..."
 		npm install -g esprima
 fi
@@ -192,7 +192,7 @@ echo "Installing Google Chrome Stable"
 	echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee $GOOGL_REPO
 fi
 apt -qq update
-apt install -yqq google-chrome-stable
+apt install -yq2 google-chrome-stable
 rm -rf /etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list
 
 if [ -f /usr/local/bin/chromedriver ]; then
@@ -281,11 +281,11 @@ INT_CONF=/usr/share/jitsi-meet/interface_config.js
 WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 ssl_wa() {
-service $1 stop
+systemctl stop $1
 	letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
 	sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
 	sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
-service $1 restart
+systemctl restart $1
 	#Add cron
 	crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1 || mail -s 'LE SSL Errors' $SYSADMIN_EMAIL < $LE_RENEW_LOG"; } | crontab -
 	crontab -l
@@ -311,9 +311,9 @@ fi
 check_jibri() {
 if [ "$(dpkg-query -W -f='${Status}' "jibri" 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
-	service jibri restart
-	service jibri-icewm restart
-	service jibri-xorg restart
+	systemctl restart jibri
+	systemctl restart jibri-icewm
+	systemctl restart jibri-xorg
 else
 	echo "Jibri service not installed"
 fi
@@ -321,9 +321,9 @@ fi
 
 # Restarting services
 restart_services() {
-	service jitsi-videobridge restart
-	service jicofo restart
-	service prosody restart
+	systemctl restart jitsi-videobridge*
+	systemctl restart jicofo
+	systemctl restart prosody
 	check_jibri
 }
 
@@ -510,7 +510,7 @@ cat << NG_APP >> $WS_CONF
 
 </VirtualHost>
 NG_APP
-service apache2 reload
+systemctl reload apache2
 elif [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
 WS_CONF=/etc/nginx/sites-enabled/$DOMAIN.conf
 WS_STR=$(grep -n "external_api.js" $WS_CONF | cut -d ":" -f1)
@@ -528,7 +528,7 @@ cat << NG_APP >> $WS_CONF
     }
 }
 NG_APP
-service nginx reload
+systemctl reload nginx
 else
 	echo "No app configuration done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
