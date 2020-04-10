@@ -128,7 +128,8 @@ CREATE USER ${NC_DB_USER}@localhost IDENTIFIED BY '${NC_DB_PASSWD}';
 GRANT ALL PRIVILEGES ON ${NC_DB}.* TO '${NC_DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
 DB
-
+echo "Done!
+"
 #Tune MariaDB
 #mysql_secure_installation
 
@@ -148,8 +149,8 @@ server {
 }
 
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 4444 ssl http2;
+    listen [::]:4444 ssl http2;
     server_name $NC_DOMAIN;
 
     ssl_certificate /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem;
