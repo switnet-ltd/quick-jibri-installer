@@ -41,9 +41,9 @@ add_mariadb() {
 }
 add_php74() {
 	if [ "$(dpkg-query -W -f='${Status}' "php$PHPVER-fpm" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-		echo "MariaDB already installed"
+		echo "PHP $PHPVER already installed"
 	else
-		echo "# Adding PHP 7.x Repository"
+		echo "# Adding PHP $PHPVER Repository"
 		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com E5267A6C
 		echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php7x.list
 		apt update -qq
@@ -123,7 +123,7 @@ echo -e "\n---- Creating the MariaDB User  ----"
 cd /tmp
 
 mysql -u root <<DB
-CREATE DATABASE ${NC_DB};
+CREATE DATABASE nextcloud_db;
 CREATE USER ${NC_DB_USER}@localhost IDENTIFIED BY '${NC_DB_PASSWD}';
 GRANT ALL PRIVILEGES ON ${NC_DB}.* TO '${NC_DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
@@ -134,11 +134,38 @@ DB
 
 #nginx - configuration
 cat << NC_NGINX > /etc/nginx/sites-available/$NC_DOMAIN.conf
+upstream php-handler {
+    #server 127.0.0.1:9000;
+    server unix:/run/php/php${PHPVER}-fpm.sock;
+}
+
 server {
     listen 80;
+    listen [::]:80;
+    server_name $NC_DOMAIN;
+    # enforce https
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
     server_name $NC_DOMAIN;
 
+    ssl_certificate /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$NC_DOMAIN/privkey.pem;
+
     # Add headers to serve security related headers
+    # Before enabling Strict-Transport-Security headers please read into this
+    # topic first.
+    # add_header Strict-Transport-Security "max-age=15552000;
+    # includeSubDomains; preload;";
+    #
+    # WARNING: Only add the preload option once you read about
+    # the consequences in https://hstspreload.org/. This option
+    # will add the domain to a hardcoded list that is shipped
+    # in all major browsers and getting removed from this list
+    # could take several months.
     add_header X-Content-Type-Options nosniff;
     add_header X-XSS-Protection "1; mode=block";
     add_header X-Robots-Tag none;
@@ -146,7 +173,7 @@ server {
     add_header X-Permitted-Cross-Domain-Policies none;
 
     # Path to the root of your installation
-    root $NC_PATH;
+    root $NC_PATH/;
 
     location = /robots.txt {
         allow all;
@@ -161,12 +188,11 @@ server {
     # last;
 
     location = /.well-known/carddav {
-        return 301 \$scheme://\$host/remote.php/dav;
+      return 301 \$scheme://\$host/remote.php/dav;
     }
     location = /.well-known/caldav {
-       return 301 \$scheme://\$host/remote.php/dav;
-    }
-
+      return 301 \$scheme://\$host/remote.php/dav;
+    }    
     location ~ /.well-known/acme-challenge {
       allow all;
     }
@@ -175,71 +201,88 @@ server {
     client_max_body_size 1024M;
     fastcgi_buffers 64 4K;
 
-    # Disable gzip to avoid the removal of the ETag header
-    gzip off;
+    # Enable gzip but do not remove ETag headers
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 4;
+    gzip_min_length 256;
+    gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
+    gzip_types application/atom+xml application/javascript application/json application/ld+json application/manifest+json application/rss+xml application/vnd.geo+json application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/bmp image/svg+xml image/x-icon text/cache-manifest text/css text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
 
-    # Uncomment if your server is build with the ngx_pagespeed module
+    # Uncomment if your server is built with the ngx_pagespeed module
     # This module is currently not supported.
     #pagespeed off;
 
-    error_page 403 /core/templates/403.php;
-    error_page 404 /core/templates/404.php;
-
     location / {
-       rewrite ^ /index.php\$uri;
+        rewrite ^ /index.php\$uri;
     }
 
     location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)/ {
-       deny all;
+        deny all;
     }
     location ~ ^/(?:\.|autotest|occ|issue|indie|db_|console) {
-       deny all;
-     }
+        deny all;
+    }
 
-    location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+|core/templates/40[34])\.php(?:\$|/) {
-       include fastcgi_params;
-       fastcgi_split_path_info ^(.+\.php)(/.*)\$;
-       fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-       fastcgi_param PATH_INFO \$fastcgi_path_info;
-       #Avoid sending the security headers twice
-       fastcgi_param modHeadersAvailable true;
-       fastcgi_param front_controller_active true;
-       fastcgi_pass unix:/run/php/php7.4-fpm.sock;
-       fastcgi_intercept_errors on;
-       fastcgi_request_buffering off;
+    location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+)\.php(?:\$|/) {
+        fastcgi_split_path_info ^(.+\.php)(/.*)\$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_param PATH_INFO \$fastcgi_path_info;
+        fastcgi_param HTTPS on;
+        #Avoid sending the security headers twice
+        fastcgi_param modHeadersAvailable true;
+        fastcgi_param front_controller_active true;
+        fastcgi_pass php-handler;
+        fastcgi_intercept_errors on;
+        fastcgi_request_buffering off;
     }
 
     location ~ ^/(?:updater|ocs-provider)(?:\$|/) {
-       try_files \$uri/ =404;
-       index index.php;
+        try_files \$uri/ =404;
+        index index.php;
     }
 
     # Adding the cache control header for js and css files
     # Make sure it is BELOW the PHP block
-    location ~* \.(?:css|js)\$ {
+    location ~ \.(?:css|js|woff|svg|gif)\$ {
         try_files \$uri /index.php\$uri\$is_args\$args;
-        add_header Cache-Control "public, max-age=7200";
+        add_header Cache-Control "public, max-age=15778463";
         # Add headers to serve security related headers (It is intended to
         # have those duplicated to the ones above)
-#        add_header X-Content-Type-Options nosniff;
-#        add_header X-XSS-Protection "1; mode=block";
-#        add_header X-Robots-Tag none;
-#        add_header X-Download-Options noopen;
-#        add_header X-Permitted-Cross-Domain-Policies none;
+        # Before enabling Strict-Transport-Security headers please read into
+        # this topic first.
+        # add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload;";
+        #
+        # WARNING: Only add the preload option once you read about
+        # the consequences in https://hstspreload.org/. This option
+        # will add the domain to a hardcoded list that is shipped
+        # in all major browsers and getting removed from this list
+        # could take several months.
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header X-Robots-Tag none;
+        add_header X-Download-Options noopen;
+        add_header X-Permitted-Cross-Domain-Policies none;
         # Optional: Don't log access to assets
         access_log off;
-   }
+    }
 
-   location ~* \.(?:svg|gif|png|html|ttf|woff|ico|jpg|jpeg)\$ {
+    location ~ \.(?:png|html|ttf|ico|jpg|jpeg)\$ {
         try_files \$uri /index.php\$uri\$is_args\$args;
         # Optional: Don't log access to other assets
         access_log off;
-   }
+    }
 }
 NC_NGINX
-
-ln -s /etc/nginx/sites-available/$NC_DOMAIN.conf /etc/nginx/sites-enabled/
-
+systemctl stop nginx
+letsencrypt certonly --standalone --renew-by-default --agree-tos -d $NC_DOMAIN
+if [ -f /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem ];then
+	ln -s /etc/nginx/sites-available/$NC_DOMAIN.conf /etc/nginx/sites-enabled/
+else
+	echo "There are issues on getting the SSL certs, exiting..."
+	exit
+fi
 nginx -t
 systemctl reload nginx
 
