@@ -30,6 +30,7 @@ GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 if [ $DIST = flidas ]; then
 DIST="xenial"
 fi
+
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " $1 is installed, skipping..."
@@ -39,14 +40,15 @@ if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" =
 fi
 }
 check_serv() {
-if [ "$APACHE_2" -eq 1 ] || [ "$NGINX" -eq 1 ]; then
+if [ "$APACHE_2" -eq 1 ]; then
 	echo "
-Webserver already installed!
+The recommended setup is using NGINX, exiting...
 "
-elif [ "$APACHE_2" -eq 1 ] && [ "$NGINX" -eq 0 ]; then
+	exit
+elif [ "$NGINX" -eq 1 ]; then
 
 echo "
-Apache webserver already installed!
+Webserver already installed!
 "
 
 else
@@ -245,6 +247,14 @@ You can define your language by using a two letter code (ISO 639-1);
 
 Jitsi Meet web interface will be set to use such language (if availabe).
 "
+while [[ $DROP_TLS1 != yes && $DROP_TLS1 != no ]]
+do
+read -p "Do you want to drop support for TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
+if [ $DROP_TLS1 = no ]; then
+	echo "TLSv1.0/1.1 will remain."
+elif [ $DROP_TLS1 = yes ]; then
+	echo "TLSv1.0/1.1 will be dropped"
+fi
 read -p "Please set your language:"$'\n' -r LANG
 read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
 while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
@@ -500,18 +510,7 @@ cat << CONF_JSON > $CONF_JSON
 CONF_JSON
 
 #Tune webserver for Jitsi App control
-if [ -f /etc/apache2/sites-available/$DOMAIN.conf ]; then
-WS_CONF=/etc/apache2/sites-available/$DOMAIN.conf
-sed -i '$ d' $WS_CONF
-cat << NG_APP >> $WS_CONF
-
-  Alias "/external_api.js" "/usr/share/jitsi-meet/libs/external_api.min.js"
-  Alias "/external_api.min.js" "/usr/share/jitsi-meet/libs/external_api.min.js"
-
-</VirtualHost>
-NG_APP
-systemctl reload apache2
-elif [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
+if [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
 WS_CONF=/etc/nginx/sites-enabled/$DOMAIN.conf
 WS_STR=$(grep -n "external_api.js" $WS_CONF | cut -d ":" -f1)
 WS_END=$((WS_STR + 2))
@@ -540,13 +539,6 @@ do
 read -p "Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
 if [ "$ENABLE_SA" = "no" ]; then
 	echo "Static avatar won't be enable"
-elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/apache2/sites-available/$DOMAIN.conf ]; then
-	echo "Static avatar are being enable"
-	wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
-	WS_CONF=/etc/apache2/sites-available/$DOMAIN.conf
-	sed -i "/Alias \"\/external_api.js\"/i \ \ AliasMatch \^\/avatar\/\(.\*\)\\\.png /usr/share/jitsi-meet/images/avatar2.png" $WS_CONF
-	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" $INT_CONF
-	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 elif [ "$ENABLE_SA" = "yes" ] && [ -f /etc/nginx/sites-available/$DOMAIN.conf ]; then
 	wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
 	WS_CONF=/etc/nginx/sites-enabled/$DOMAIN.conf
@@ -563,6 +555,18 @@ else
 		-> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
 done
+
+if [ $DROP_TLS1 = yes ] && [ $DIST = "bionic" ];then
+	echo "Dropping TLSv1/1.1 in favor of v1.3"
+	if [ -f /etc/nginx/nginx.conf ];
+		sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
+	fi
+elif [ $DROP_TLS1 = yes ] && [ ! $DIST = "bionic" ];then
+	echo "Only dropping TLSv1/1.1"
+	if [ -f /etc/nginx/nginx.conf ];
+		sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
+	fi
+fi
 
 # Temporary disable "Blur my background" until is stable
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
@@ -625,10 +629,7 @@ restart_services
 enable_letsencrypt
 
 #SSL workaround
-if [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
-	ssl_wa apache2 apache $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
-	install_ifnot python3-certbot-apache
-elif [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
+if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
 	ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
 	install_ifnot python3-certbot-nginx
 else
