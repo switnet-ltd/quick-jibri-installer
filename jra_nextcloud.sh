@@ -315,7 +315,7 @@ systemctl reload nginx
 echo "
   Latest version to be installed: $STABLEVERSION
 "
-curl -s $NC_REPO/$STABLEVERSION.zip > /tmp/
+curl -s $NC_REPO/$STABLEVERSION.zip > /tmp/$STABLEVERSION.zip
 unzip -q $STABLEVERSION.zip
 sudo mv nextcloud $NC_PATH
 
