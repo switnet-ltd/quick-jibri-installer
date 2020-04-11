@@ -74,7 +74,8 @@ else
 # Seems to be an issue with your audio driver,
 # please review your hw setup.
 #--------------------------------------------------"
-	read -n 1 -s -r -p "Press any key to continue"
+read -n 1 -s -r -p "Press any key to continue...
+"
 fi
 }
 update_certbot() {
@@ -112,6 +113,7 @@ Featuring:
 
 See more at: https://github.com/switnet-ltd/quick-jibri-installer/
 '
+read -n 1 -s -r -p "Press any key to continue..."
 
 #Check if user is root
 if ! [ $(id -u) = 0 ]; then
@@ -130,7 +132,7 @@ fi
 if [ "$DIST" = "xenial" ]; then
 echo "$(lsb_release -sc), even when it's compatible and functional.
 We suggest to use the next (LTS) release, for longer support and security reasons."
-read -p "Enter any key to continue..."
+read -n 1 -s -r -p "Press any key to continue..."
 fi
 # Jitsi-Meet Repo
 echo "Add Jitsi key"
@@ -270,7 +272,7 @@ read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
 #Drop unsecure TLS
 while [[ $DROP_TLS1 != yes && $DROP_TLS1 != no ]]
 do
-read -p "Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
+read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
 if [ $DROP_TLS1 = no ]; then
 	echo "TLSv1.0/1.1 will remain."
 elif [ $DROP_TLS1 = yes ]; then
@@ -300,7 +302,7 @@ done
 #Brandless  Mode
 while [[ $ENABLE_BLESSM != yes && $ENABLE_BLESSM != no ]]
 do
-read -p "> Do you want to install on custom \"Brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
+read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
 if [ $ENABLE_BLESSM = no ]; then
 	echo "Brandless mode won't be set."
 elif [ $ENABLE_BLESSM = yes ]; then
@@ -356,7 +358,7 @@ if [ "$ENABLE_SC" = "no" ]; then
 elif [ "$ENABLE_SC" = "yes" ]; then
 	echo "-- Secure rooms will being enabled."
 	read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-	read -p "Secure room moderator password: "$'\n' -sr SEC_ROOM_PASS
+	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
 fi
 done
 #Welcome Page
