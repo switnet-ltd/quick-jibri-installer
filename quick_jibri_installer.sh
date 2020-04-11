@@ -290,6 +290,16 @@ elif [ $ENABLE_SSL = yes ]; then
 	echo "SSL will be enabled."
 fi
 done
+#Jibri Records Access (JRA) via Nextcloud
+while [[ $ENABLE_NC_ACCESS != yes && $ENABLE_NC_ACCESS != no ]]
+do
+read -p "Do you want to setup Jibri Records Access via Nextcloud: (yes or no)"$'\n' -r ENABLE_NC_ACCESS
+if [ $ENABLE_NC_ACCESS = no ]; then
+	echo "JRA via Nextcloud won't be enabled."
+elif [ $ENABLE_NC_ACCESS = yes ]; then
+	echo "JRA via Nextcloud will be enabled."
+fi
+done
 #Jigasi
 while [[ $ENABLE_TRANSCRIPT != yes && $ENABLE_TRANSCRIPT != no ]]
 do
@@ -305,9 +315,19 @@ while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
 read -p "Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
 if [ "$ENABLE_SA" = "no" ]; then
-	echo "Static avatar won't be enable"
+	echo "Static avatar won't be enabled"
 elif [ "$ENABLE_SA" = "yes" ]; then
-	echo "Static avatar will be enable"
+	echo "Static avatar will be enabled"
+fi
+done
+#Enable local audio recording
+while [[ "$ENABLE_LAR" != "yes" && "$ENABLE_LAR" != "no" ]]
+do
+read -p "Do you want to enable local audio recording option?: (yes or no)"$'\n' -r ENABLE_LAR
+if [ "$ENABLE_LAR" = "no" ]; then
+	echo "Local audio recording option won't be enabled"
+elif [ "$ENABLE_LAR" = "yes" ]; then
+	echo "Local audio recording option will be enabled"
 fi
 done
 #Secure room initial user
@@ -465,6 +485,7 @@ sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 fi
 
 #LocalRecording
+if
 echo "# Enabling local recording (audio only)."
 LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
 LR_END=$((LR_STR + 18))
@@ -474,7 +495,8 @@ sed -i "$LR_STR,$LR_END{s|//     format: 'flac'|format: 'flac'|}" $MEET_CONF
 sed -i "$LR_STR,$LR_END{s|// }|}|}" $MEET_CONF
 
 sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
-#EOLR
+sed -i "s|LOC_REC=.*|LOC_REC=\"on\"|" jitsi-updater.sh
+fi
 
 #Setup main language
 if [ -z $LANG ] || [ "$LANG" = "en" ]; then
@@ -574,7 +596,8 @@ else
 fi
 #Static avatar
 if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
-	wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
+	#wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
+	cp images/avatar2.png /usr/share/jitsi-meet/images/
 	sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {" $WS_CONF
 	sed -i "/location \/external_api.min.js/i \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;" $WS_CONF
 	sed -i "/location \/external_api.min.js/i \ \ \ \ }\\
@@ -647,7 +670,12 @@ if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 else
 	echo "No webserver found please report."
 fi
-
+#JRA via Nextcloud
+if [ $ENABLE_NC_ACCESS = yes ]; then
+	echo "Jigasi Transcription will be enabled."
+	bash $PWD/jra_nextcloud.sh
+fi
+#Jigasi Transcript
 if [ $ENABLE_TRANSCRIPT = yes ]; then
 	echo "Jigasi Transcription will be enabled."
 	bash $PWD/jigasi.sh
