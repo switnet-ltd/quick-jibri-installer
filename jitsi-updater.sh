@@ -1,6 +1,7 @@
 #!/bin/bash
-# Jitsi Meet upgrade and custom keeper for Debian/*buntu binaries.
-# 2019 - SwITNet Ltd
+# Jitsi Meet recurring upgrader and customization keeper
+# for Debian/*buntu binaries.
+# 2020 - SwITNet Ltd
 # GNU GPLv3 or later.
 
 Blue='\e[0;34m'
@@ -10,10 +11,12 @@ support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
 LOC_REC="TBD"
+ENABLE_BLESSM="TBD"
 CHD_LST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 CHDB=$(whereis chromedriver | awk '{print$2}')
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 INT_CONF=/usr/share/jitsi-meet/interface_config.js
+AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f $apt_repo/google-chrome.list ]; then
     google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2 | paste -s -d ' ')
 else
@@ -102,12 +105,18 @@ else
 	exit 1
 fi
 
+# Any customization, image, name or link change for any purpose should
+# be documented here so new updates won't remove those changes.
+# We divide them on UI changes and branding changes, feel free to adapt
+# to your needs.
+#
+# Please keep in mind that fees to support for customization changes
+# may apply.
 ########################################################################
-#                         Keeping changes                              #
+#                     User interface changes                           #
 ########################################################################
 printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
-avatar="$(grep -r avatar /etc/*/sites-*/ 2>/dev/null)"
-if [[ -z $avatar ]]; then
+if [[ -z $AVATAR ]]; then
 	echo "Moving on..."
 else
 	echo "Setting Static Avatar"
@@ -135,4 +144,12 @@ printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 restart_services
+
+
+########################################################################
+#                         Brandless mode                               #
+########################################################################
+if [ $ENABLE_BLESSM = on ]; then
+	bash $PWD/jm-bm.sh
+fi
 printf "${Blue}Script completed \o/! ${Color_Off}\n"
