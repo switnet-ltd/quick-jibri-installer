@@ -17,14 +17,27 @@ echo '
 read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
 read -p "Nextcloud user: " -r NC_USER
 read -p "Nextcloud user password: " -r NC_PASS
-
-DISTRO_RELEASE=$(lsb_release -sc)
-PHPVER=7.4
-MDBVER=10.4
-PHP_FPM_DIR=/etc/php/$PHPVER/fpm
-PHP_INI=$PHP_FPM_DIR/php.ini
+#Enable HSTS
+while [[ "$ENABLE_HSTS" != "yes" && "$ENABLE_HSTS" != "no" ]]
+do
+read -p "> Do you want to enable HSTS for this domain?: (yes or no)
+  Be aware this option apply mid-term effects on the domain, choose \"no\"
+  in case you don't know what you are doing. More at https://hstspreload.org/"$'\n' -r ENABLE_HSTS
+if [ "$ENABLE_HSTS" = "no" ]; then
+	echo "-- HSTS won't be enabled."
+elif [ "$ENABLE_HSTS" = "yes" ]; then
+	echo "-- HSTS will be enabled."
+fi
+done
+DISTRO_RELEASE="$(lsb_release -sc)"
+PHPVER="7.4"
+MDBVER="10.4"
+PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
+PHP_INI="$PHP_FPM_DIR/php.ini"
+PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
+NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
 NC_REPO="https://download.nextcloud.com/server/releases"
-NCVERSION=$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)
+NCVERSION="$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)"
 STABLEVERSION="nextcloud-$NCVERSION"
 NC_PATH="/var/www/nextcloud"
 NC_CONFIG="$NC_PATH/config/config.php"
@@ -32,7 +45,7 @@ NC_DB_USER="nextcloud_user"
 NC_DB="nextcloud_db"
 NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 DIR_RECORD="$(grep -nr RECORDING /home/jibri/finalize_recording.sh|head -n1|cut -d "=" -f2)"
-
+REDIS_CONF="/etc/redis/redis.conf"
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " This instance already has $1 installed, exiting..."
@@ -94,16 +107,18 @@ apt install -y \
 			php$PHPVER-xml \
 			php$PHPVER-xmlrpc \
 			php$PHPVER-zip \
-			php-imagick
+			php-imagick \
+			php-redis \
+			redis-server
 
 #System related
 install_ifnot smbclient
-sed -i "s|.*env\[HOSTNAME\].*|env\[HOSTNAME\] = \$HOSTNAME|" /etc/php/$PHPVER/fpm/pool.d/www.conf
-sed -i "s|.*env\[PATH\].*|env\[PATH\] = /usr/local/bin:/usr/bin:/bin|" /etc/php/$PHPVER/fpm/pool.d/www.conf
-sed -i "s|.*env\[TMP\].*|env\[TMP\] = /tmp|" /etc/php/$PHPVER/fpm/pool.d/www.conf
-sed -i "s|.*env\[TMPDIR\].*|env\[TMPDIR\] = /tmp|" /etc/php/$PHPVER/fpm/pool.d/www.conf
-sed -i "s|.*env\[TEMP\].*|env\[TEMP\] = /tmp|" /etc/php/$PHPVER/fpm/pool.d/www.conf
-sed -i "s|;clear_env = no|clear_env = no|" /etc/php/$PHPVER/fpm/pool.d/www.conf
+sed -i "s|.*env\[HOSTNAME\].*|env\[HOSTNAME\] = \$HOSTNAME|" $PHP_CONF
+sed -i "s|.*env\[PATH\].*|env\[PATH\] = /usr/local/bin:/usr/bin:/bin|" $PHP_CONF
+sed -i "s|.*env\[TMP\].*|env\[TMP\] = /tmp|" $PHP_CONF
+sed -i "s|.*env\[TMPDIR\].*|env\[TMPDIR\] = /tmp|" $PHP_CONF
+sed -i "s|.*env\[TEMP\].*|env\[TEMP\] = /tmp|" $PHP_CONF
+sed -i "s|;clear_env = no|clear_env = no|" $PHP_CONF
 
 echo "
 Tunning PHP.ini...
@@ -154,7 +169,7 @@ echo "Done!
 #mysql_secure_installation
 
 #nginx - configuration
-cat << NC_NGINX > /etc/nginx/sites-available/$NC_DOMAIN.conf
+cat << NC_NGINX > $NC_NGINX_CONF
 upstream php-handler {
     #server 127.0.0.1:9000;
     server unix:/run/php/php${PHPVER}-fpm.sock;
@@ -179,8 +194,7 @@ server {
     # Add headers to serve security related headers
     # Before enabling Strict-Transport-Security headers please read into this
     # topic first.
-    # add_header Strict-Transport-Security "max-age=15552000;
-    # includeSubDomains; preload;";
+    # add_header Strict-Transport-Security "max-age=15552000; includeSubDomains; preload;";
     #
     # WARNING: Only add the preload option once you read about
     # the consequences in https://hstspreload.org/. This option
@@ -311,6 +325,11 @@ fi
 nginx -t
 systemctl restart nginx
 
+if [ "$ENABLE_HSTS" = "yes" ]; then
+sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
+fi
+
+
 echo "
   Latest version to be installed: $STABLEVERSION
 "
@@ -339,13 +358,35 @@ sudo -u www-data php $NC_PATH/occ maintenance:install \
 --admin-pass="$NC_PASS"
 
 echo "
-Prevent demo data on accounts and custom mods...
+Apply custom mods...
 "
 sed -i "/datadirectory/a \ \ \'skeletondirectory\' => \'\'," $NC_CONFIG
 sed -i "/skeletondirectory/a \ \ \'simpleSignUpLink.shown\' => false," $NC_CONFIG
 sed -i "/simpleSignUpLink.shown/a \ \ \'knowledgebaseenabled\' => false," $NC_CONFIG
 sed -i "s|http://localhost|http://$NC_DOMAIN|" $NC_CONFIG
 
+echo "
+Add memcache support...
+"
+sed -i "s|# unixsocket .*|unixsocket /var/run/redis/redis.sock|g" $REDIS_CONF
+sed -i "s|# unixsocketperm .*|unixsocketperm 777|g" $REDIS_CONF
+sed -i "s|port 6379|port 0|" $REDIS_CONF
+systemctl restart redis-server
+
+echo "--> Setting config.php..."
+sed -i "/);/i \ \ 'filelocking.enabled' => 'true'," $NC_CONFIG
+sed -i "/);/i \ \ 'memcache.locking' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
+sed -i "/);/i \ \ 'memcache.local' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
+sed -i "/);/i \ \ 'memcache.local' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
+sed -i "/);/i \ \ 'memcache.distributed' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
+sed -i "/);/i \ \ 'redis' =>" $NC_CONFIG
+sed -i "/);/i \ \ \ \ array (" $NC_CONFIG
+sed -i "/);/i \ \ \ \ \ 'host' => '/var/run/redis/redis.sock'," $NC_CONFIG
+sed -i "/);/i \ \ \ \ \ 'port' => 0," $NC_CONFIG
+sed -i "/);/i \ \ \ \ \ 'timeout' => 0," $NC_CONFIG
+sed -i "/);/i \ \ )," $NC_CONFIG
+echo "Done
+"
 echo "
 Addding & Setting up Files External App for Local storage...
 "
