@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick Jibri Installer - *buntu (LTS) based systems.
-# SwITNet Ltd © - 2019, https://switnet.net/
+# SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
 {
 echo "Started at $(date +'%Y-%m-%d %H:%M:%S')" >> qj-installer.log
@@ -103,6 +103,15 @@ echo '
                     Welcome to Jitsi/Jibri Installer
 ########################################################################
                     by Software, IT & Networks Ltd
+
+Featuring:
+- Jibri
+- Jibri Recordings Access via Nextcloud
+- Jigasi Transcription
+- Brandless Mode
+- Recurring changes updater
+
+See more at: https://github.com/switnet-ltd/quick-jibri-installer/
 '
 
 #Check if user is root
