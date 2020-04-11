@@ -316,8 +316,8 @@ echo "
   Latest version to be installed: $STABLEVERSION
 "
 curl -s $NC_REPO/$STABLEVERSION.zip > /tmp/$STABLEVERSION.zip
-unzip -q $STABLEVERSION.zip
-sudo mv nextcloud $NC_PATH
+unzip -q /tmp/$STABLEVERSION.zip
+mv nextcloud $NC_PATH
 
 chown -R www-data:www-data $NC_PATH
 chmod -R 755 $NC_PATH
@@ -325,9 +325,7 @@ chmod -R 755 $NC_PATH
 if $(dpkg --compare-versions "$NCVERSION" "le" "18.0.3"); then 
 echo "
 -> Patching #425 (scssphp/src/Compiler.php)..."
-#sudo -u www-data cp -s https://nc.switnet.net/s/J89EmtEKcgj9AwP/download \
-#> $NC_PATH/3rdparty/leafo/scssphp/src/patch_425_3thy.patch
-sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < files/patch_425_3thy.patch
+sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < files/patch_425_3dty.patch
 fi
 
 echo "
