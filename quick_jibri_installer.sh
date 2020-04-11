@@ -118,17 +118,16 @@ if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
-DISTRO_RELEASE=$(lsb_release -sc)
-if [ $DISTRO_RELEASE = xenial ] || [ $DISTRO_RELEASE = bionic ]; then
+if [ "$DIST" = "xenial" ] || [ "$DIST" = "bionic" ]; then
 	echo "OS: $(lsb_release -sd)
 Good, this is a supported platform!"
 else
 	echo "OS: $(lsb_release -sd)
 Sorry, this platform is not supported... exiting"
-exit
+	exit
 fi
 #Suggest 18.04 LTS release over 16.04
-if [ $DIST="xenial" ]; then
+if [ "$DIST" = "xenial" ]; then
 echo "$(lsb_release -sc), even when it's compatible and functional.
 We suggest to use the next (LTS) release, for longer support and security reasons."
 read -p "Enter any key to continue..."
