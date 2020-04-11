@@ -324,7 +324,7 @@ chmod -R 755 $NC_PATH
 if $(dpkg --compare-versions "$NCVERSION" "le" "18.0.3"); then 
 echo "
 -> Patching #425 (scssphp/src/Compiler.php)..."
-sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < files/patch_425_3dty.patch
+sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < $PWD/files/patch_425_3dty.patch
 fi
 
 echo "
@@ -349,9 +349,9 @@ sed -i "s|http://localhost|http://$NC_DOMAIN|" $NC_CONFIG
 echo "
 Addding & Setting up Files External App for Local storage...
 "
-sudo -u www-data php occ app:install files_external
-sudo -u www-data php occ app:enable files_external
-sudo -u www-data php $NC_PATH/occ files_external:import files/jb-qnci-ef.json
+sudo -u www-data php $NC_PATH/occ app:install files_external
+sudo -u www-data php $NC_PATH/occ app:enable files_external
+sudo -u www-data php $NC_PATH/occ files_external:import $PWD/files/jra-nc-app-ef.json
 
 usermod -a -G jibri www-data
 chown -R jibri:www-data $DIR_RECORD
@@ -361,12 +361,12 @@ chmod -R g+s $DIR_RECORD
 echo "
 Fixing possible missing tables...
 "
-echo "y"|sudo -u www-data php occ db:convert-filecache-bigint
-sudo -u www-data php occ db:add-missing-indices
+echo "y"|sudo -u www-data php $NC_PATH/occ db:convert-filecache-bigint
+sudo -u www-data php $NC_PATH/occ db:add-missing-indices
 
 echo "
 Adding trusted domain...
 "
-sudo -u www-data php occ config:system:set trusted_domains 0 --value=$NC_DOMAIN
+sudo -u www-data php $NC_PATH/occ config:system:set trusted_domains 0 --value=$NC_DOMAIN
 
 echo "Quick Nextcloud installation complete!"
