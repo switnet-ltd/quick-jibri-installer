@@ -299,6 +299,16 @@ elif [ $ENABLE_SSL = yes ]; then
 	echo "SSL will be enabled."
 fi
 done
+#Brandless  Mode
+while [[ $ENABLE_BLESSM != yes && $ENABLE_BLESSM != no ]]
+do
+read -p "Do you want to install on custom \"Brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
+if [ $ENABLE_BLESSM = no ]; then
+	echo "Brandless mode won't be set."
+elif [ $ENABLE_BLESSM = yes ]; then
+	echo "Brandless mode will be set."
+fi
+done
 #Jibri Records Access (JRA) via Nextcloud
 while [[ $ENABLE_NC_ACCESS != yes && $ENABLE_NC_ACCESS != no ]]
 do
@@ -368,7 +378,7 @@ echo '
 ########################################################################
 '
 JibriBrewery=JibriBrewery
-INT_CONF=/usr/share/jitsi-meet/interface_config.js
+INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 ssl_wa() {
@@ -678,6 +688,12 @@ if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 	install_ifnot python3-certbot-nginx
 else
 	echo "No webserver found please report."
+fi
+#Brandless  Mode
+if [ $ENABLE_BLESSM = yes ]; then
+	echo "Jigasi Transcription will be enabled."
+	sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
+	bash $PWD/jm-bm.sh
 fi
 #JRA via Nextcloud
 if [ $ENABLE_NC_ACCESS = yes ]; then
