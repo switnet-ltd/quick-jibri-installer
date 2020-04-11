@@ -9,7 +9,7 @@ Color_Off='\e[0m'
 support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
-LocRec="on"
+LOC_REC="TBD"
 CHD_LST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 CHDB=$(whereis chromedriver | awk '{print$2}')
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
@@ -124,7 +124,7 @@ else
 fi
 
 printf "${Purple}========== Re-enable Localrecording  ==========${Color_Off}\n"
-if [ $LocRec = on ]; then
+if [ $LOC_REC = on ]; then
         echo "Setting LocalRecording..."
         sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
 else
