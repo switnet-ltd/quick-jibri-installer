@@ -67,7 +67,6 @@ add_php74() {
 		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com E5267A6C
 		echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php7x.list
 		apt update -qq
-		
 	fi
 }
 
@@ -306,11 +305,11 @@ letsencrypt certonly --standalone --renew-by-default --agree-tos -d $NC_DOMAIN
 if [ -f /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem ];then
 	ln -s /etc/nginx/sites-available/$NC_DOMAIN.conf /etc/nginx/sites-enabled/
 else
-	echo "There are issues on getting the SSL certs, exiting..."
-	exit
+	echo "There are issues on getting the SSL certs..."
+	read -n 1 -s -r -p "Press any key to continue"
 fi
 nginx -t
-systemctl reload nginx
+systemctl restart nginx
 
 echo "
   Latest version to be installed: $STABLEVERSION
@@ -352,7 +351,6 @@ Addding & Setting up Files External App for Local storage...
 "
 sudo -u www-data php occ app:install files_external
 sudo -u www-data php occ app:enable files_external
-#curl -s https://nc.switnet.net/s/r22QLNMYzLcay39/download > /tmp/jb-qnci-ef.json
 sudo -u www-data php $NC_PATH/occ files_external:import files/jb-qnci-ef.json
 
 usermod -a -G jibri www-data
