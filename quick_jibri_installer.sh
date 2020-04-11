@@ -105,10 +105,10 @@ echo '
                     by Software, IT & Networks Ltd
 
 Featuring:
-- Jibri
+- Jibri Recording and YouTube Streaming
 - Jibri Recordings Access via Nextcloud
 - Jigasi Transcription
-- Brandless Mode
+- Customized brandless mode
 - Recurring changes updater
 
 See more at: https://github.com/switnet-ltd/quick-jibri-installer/
