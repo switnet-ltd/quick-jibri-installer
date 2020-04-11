@@ -39,6 +39,7 @@ if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" =
 	echo " Please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
 	exit
+fi
 }
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
