@@ -33,7 +33,6 @@ fi
 if [ $DIST = etiona ]; then
 DIST="bionic"
 fi
-if
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " $1 is installed, skipping..."
@@ -204,9 +203,9 @@ GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
 echo "# Installing Google Chrome / ChromeDriver"
 if [ -f $GOOGL_REPO ]; then
-echo "Google repository already set."
+	echo "Google repository already set."
 else
-echo "Installing Google Chrome Stable"
+	echo "Installing Google Chrome Stable"
 	wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 	echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee $GOOGL_REPO
 fi
