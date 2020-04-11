@@ -140,7 +140,6 @@ systemctl restart php$PHPVER-fpm.service
 #--------------------------------------------------
 
 echo -e "\n---- Creating the MariaDB User  ----"
-cd /tmp
 
 mysql -u root <<DB
 CREATE DATABASE nextcloud_db;
@@ -310,7 +309,7 @@ systemctl reload nginx
 echo "
   Latest version to be installed: $STABLEVERSION
 "
-cd /tmp && wget $NC_REPO/$STABLEVERSION.zip
+curl -s $NC_REPO/$STABLEVERSION.zip > /tmp/
 unzip -q $STABLEVERSION.zip
 sudo mv nextcloud $NC_PATH
 
@@ -320,18 +319,15 @@ chmod -R 755 $NC_PATH
 if $(dpkg --compare-versions "$NCVERSION" "le" "18.0.3"); then 
 echo "
 -> Patching #425 (scssphp/src/Compiler.php)..."
-cd $NC_PATH/3rdparty/leafo/scssphp/src
-sudo -u www-data curl -s https://nc.switnet.net/s/J89EmtEKcgj9AwP/download \
-> patch_425_3thy.patch
-sudo -u www-data patch -p0  < patch_425_3thy.patch
-rm patch_425_3thy.patch
+#sudo -u www-data cp -s https://nc.switnet.net/s/J89EmtEKcgj9AwP/download \
+#> $NC_PATH/3rdparty/leafo/scssphp/src/patch_425_3thy.patch
+sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < files/patch_425_3thy.patch
 fi
 
 echo "
 Database installation...
 "
-cd $NC_PATH
-sudo -u www-data php occ maintenance:install \
+sudo -u www-data php $NC_PATH/occ maintenance:install \
 --database=mysql \
 --database-name="$NC_DB" \
 --database-user="$NC_DB_USER" \
@@ -352,8 +348,8 @@ Addding & Setting up Files External App for Local storage...
 "
 sudo -u www-data php occ app:install files_external
 sudo -u www-data php occ app:enable files_external
-curl -s https://nc.switnet.net/s/r22QLNMYzLcay39/download > /tmp/jb-qnci-ef.json
-sudo -u www-data php $NC_PATH/occ files_external:import /tmp/jb-qnci-ef.json
+#curl -s https://nc.switnet.net/s/r22QLNMYzLcay39/download > /tmp/jb-qnci-ef.json
+sudo -u www-data php $NC_PATH/occ files_external:import files/jb-qnci-ef.json
 
 usermod -a -G jibri www-data
 chown -R jibri:www-data $DIR_RECORD
