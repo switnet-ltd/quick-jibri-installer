@@ -1,6 +1,7 @@
 #!/bin/bash
-# Quick Nextcloud Jitsi
-#
+# JRA (Jibri Recordings Access) via Nextcloud
+# SwITNet Ltd © - 2020, https://switnet.net/
+# GPLv3 or later.
 if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
