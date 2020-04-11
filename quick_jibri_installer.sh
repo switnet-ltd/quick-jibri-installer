@@ -74,7 +74,7 @@ else
 # Seems to be an issue with your audio driver,
 # please review your hw setup.
 #--------------------------------------------------"
-	read -p
+	read -n 1 -s -r -p "Press any key to continue"
 fi
 }
 update_certbot() {
@@ -216,7 +216,7 @@ if [ -f /usr/local/bin/chromedriver ]; then
 	echo "Chromedriver already installed."
 else
 	echo "Installing Chromedriver"
-	wget https://chromedriver.storage.googleapis.com/$CHD_VER/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+	wget -q https://chromedriver.storage.googleapis.com/$CHD_VER/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
 	unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
 	chown root:root /usr/local/bin/chromedriver
 	chmod 0755 /usr/local/bin/chromedriver
