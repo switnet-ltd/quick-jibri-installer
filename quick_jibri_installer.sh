@@ -280,7 +280,7 @@ done
 #Dropbox
 while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
 do
-read -p "Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
+read -p "> Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
 if [ $ENABLE_DB = no ]; then
 	echo "Dropbox won't be enable"
 elif [ $ENABLE_DB = yes ]; then
@@ -290,7 +290,7 @@ done
 #SSL LE
 while [[ $ENABLE_SSL != yes && $ENABLE_SSL != no ]]
 do
-read -p "Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
+read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
 if [ $ENABLE_SSL = no ]; then
 	echo "Please run letsencrypt.sh manually post-installation."
 elif [ $ENABLE_SSL = yes ]; then
@@ -300,7 +300,7 @@ done
 #Brandless  Mode
 while [[ $ENABLE_BLESSM != yes && $ENABLE_BLESSM != no ]]
 do
-read -p "Do you want to install on custom \"Brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
+read -p "> Do you want to install on custom \"Brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
 if [ $ENABLE_BLESSM = no ]; then
 	echo "Brandless mode won't be set."
 elif [ $ENABLE_BLESSM = yes ]; then
@@ -310,7 +310,7 @@ done
 #Jibri Records Access (JRA) via Nextcloud
 while [[ $ENABLE_NC_ACCESS != yes && $ENABLE_NC_ACCESS != no ]]
 do
-read -p "Do you want to setup Jibri Records Access via Nextcloud: (yes or no)"$'\n' -r ENABLE_NC_ACCESS
+read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)"$'\n' -r ENABLE_NC_ACCESS
 if [ $ENABLE_NC_ACCESS = no ]; then
 	echo "JRA via Nextcloud won't be enabled."
 elif [ $ENABLE_NC_ACCESS = yes ]; then
@@ -320,7 +320,7 @@ done
 #Jigasi
 while [[ $ENABLE_TRANSCRIPT != yes && $ENABLE_TRANSCRIPT != no ]]
 do
-read -p "Do you want to setup Jigasi Transcription: (yes or no)"$'\n' -r ENABLE_TRANSCRIPT
+read -p "> Do you want to setup Jigasi Transcription: (yes or no)"$'\n' -r ENABLE_TRANSCRIPT
 if [ $ENABLE_TRANSCRIPT = no ]; then
 	echo "Jigasi Transcription won't be enabled."
 elif [ $ENABLE_TRANSCRIPT = yes ]; then
@@ -330,7 +330,7 @@ done
 #Enable static avatar
 while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
-read -p "Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
+read -p "> Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
 if [ "$ENABLE_SA" = "no" ]; then
 	echo "Static avatar won't be enabled"
 elif [ "$ENABLE_SA" = "yes" ]; then
@@ -340,7 +340,7 @@ done
 #Enable local audio recording
 while [[ "$ENABLE_LAR" != "yes" && "$ENABLE_LAR" != "no" ]]
 do
-read -p "Do you want to enable local audio recording option?: (yes or no)"$'\n' -r ENABLE_LAR
+read -p "> Do you want to enable local audio recording option?: (yes or no)"$'\n' -r ENABLE_LAR
 if [ "$ENABLE_LAR" = "no" ]; then
 	echo "Local audio recording option won't be enabled"
 elif [ "$ENABLE_LAR" = "yes" ]; then
@@ -350,7 +350,7 @@ done
 #Secure room initial user
 while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
 do
-read -p "Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
+read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
 if [ "$ENABLE_SC" = "no" ]; then
 	echo "-- Secure rooms won't be enabled."
 elif [ "$ENABLE_SC" = "yes" ]; then
@@ -362,7 +362,7 @@ done
 #Welcome Page
 while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
 do
-read -p "Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
+read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
 if [ $ENABLE_WELCP = yes ]; then
 	echo "Welcome page will be disabled."
 elif [ $ENABLE_WELCP = no ]; then
