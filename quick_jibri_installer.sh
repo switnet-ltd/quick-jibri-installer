@@ -504,7 +504,7 @@ sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 fi
 
 #LocalRecording
-if
+if [ $ENABLE_LAR = "yes" ]; then
 echo "# Enabling local recording (audio only)."
 LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
 LR_END=$((LR_STR + 18))
