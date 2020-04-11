@@ -6,6 +6,8 @@
 
 Blue='\e[0;34m'
 Purple='\e[0;35m'
+Green='\e[0;32m'
+Yellow='\e[0;33m'
 Color_Off='\e[0m'
 support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
