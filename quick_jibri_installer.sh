@@ -689,7 +689,7 @@ else
 fi
 #Brandless  Mode
 if [ $ENABLE_BLESSM = yes ]; then
-	echo "Jigasi Transcription will be enabled."
+	echo "Custom brandless mode will be enabled."
 	sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
 	bash $PWD/jm-bm.sh
 fi
