@@ -1,6 +1,6 @@
 #!/bin/bash
-# Quick Jigasi Installer - *buntu 16.04 (LTS) based systems.
-# SwITNet Ltd © - 2019, https://switnet.net/
+# Quick Jigasi Installer - *buntu (LTS) based systems.
+# SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
 
 ##################### Whistlist #######################
@@ -208,8 +208,10 @@ sed -i "/xmpp.acc.ANONYMOUS_AUTH/ s|# ||" $JIG_SIP_PROP
 
 prosodyctl register transcript auth.$DOMAIN jigasi
 
-systemctl restart prosody ji*
-
+systemctl restart 	prosody \
+					jicofo \
+					jibri* \
+					jitsi-videobridge*
 echo "
 To test, you need to enable subtitles beforehand then invite \
 \"jitsi_meet_transcribe\" to the meeting (no quotes).

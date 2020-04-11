@@ -1,0 +1,24 @@
+--- Compiler.php	2020-03-11 08:52:46.000000000 -0600
++++ Compiler-fixed.php	2020-04-04 06:56:43.175786008 -0600
+@@ -5211,10 +5211,10 @@
+         return new Node\Number(strlen($stringContent), '');
+     }
+ 
+-    protected static $libStrSlice = ['string', 'start-at', 'end-at'];
++    protected static $libStrSlice = ['string', 'start-at', 'end-at:-1'];
+     protected function libStrSlice($args)
+     {
+-        if (isset($args[2]) && $args[2][1] == 0) {
++        if (isset($args[2]) && ! $args[2][1]) {
+             return static::$nullString;
+         }
+ 
+@@ -5227,7 +5227,7 @@
+             $start--;
+         }
+ 
+-        $end    = (int) $args[2][1];
++        $end    = isset($args[2]) ? (int) $args[2][1] : -1;
+         $length = $end < 0 ? $end + 1 : ($end > 0 ? $end - $start : $end);
+ 
+         $string[2] = $length
