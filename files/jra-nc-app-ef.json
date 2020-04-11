@@ -1,0 +1,23 @@
+[
+    {
+        "mount_id": 1,
+        "mount_point": "\/Jitsi Record",
+        "storage": "\\OC\\Files\\Storage\\Local",
+        "authentication_type": "null::null",
+        "configuration": {
+            "datadir": "\/var\/jbrecord"
+        },
+        "options": {
+            "encrypt": true,
+            "previews": true,
+            "enable_sharing": false,
+            "filesystem_check_changes": 1,
+            "encoding_compatibility": false,
+            "readonly": false
+        },
+        "applicable_users": [],
+        "applicable_groups": [
+            "admin"
+        ]
+    }
+]
