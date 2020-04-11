@@ -1,10 +1,21 @@
 #!/bin/bash
 # Quick Nextcloud Jitsi
 #
+if ! [ $(id -u) = 0 ]; then
+   echo "You need to be root or have sudo privileges!"
+   exit 0
+fi
 
-read -p "Dominio a usar para nextcloud: " -r NC_DOMAIN
-read -p "Usuario para Nextcloud: " -r NC_USER
-read -p "Password de usuario para Nextcloud: " -r NC_PASS
+clear
+echo '
+########################################################################
+                 Jibri Recordings Access via Nextcloud
+########################################################################
+                    by Software, IT & Networks Ltd
+'
+read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
+read -p "Nextcloud user: " -r NC_USER
+read -p "Nextcloud user password: " -r NC_PASS
 
 DISTRO_RELEASE=$(lsb_release -sc)
 PHPVER=7.4
@@ -18,9 +29,16 @@ NC_PATH="/var/www/nextcloud"
 NC_CONFIG="$NC_PATH/config/config.php"
 NC_DB_USER="nextcloud_user"
 NC_DB="nextcloud_db"
-NC_DB_PASSWD="opwezyLWSVZ3_"
+NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 DIR_RECORD="$(grep -nr RECORDING /home/jibri/finalize_recording.sh|head -n1|cut -d "=" -f2)"
 
+exit_ifinstalled() {
+if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+	echo " This instance already has $1 installed, exiting..."
+	echo " Please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+	exit
+}
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " $1 is installed, skipping..."
@@ -33,7 +51,7 @@ add_mariadb() {
 	if [ "$(dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 		echo "MariaDB already installed"
 	else
-		echo "# Adding MariaDB $MDBVER Repository"
+		echo "# Adding MariaDB $MDBVER repository"
 		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com C74CD1D8
 		echo "deb [arch=amd64] http://ftp.ddg.lth.se/mariadb/repo/$MDBVER/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/mariadb.list
 		apt update -qq
@@ -50,6 +68,8 @@ add_php74() {
 		
 	fi
 }
+
+exit_ifinstalled mariadb-server
 
 ## Install software requirements
 # MariaDB
