@@ -33,10 +33,6 @@ fi
 if [ $DIST = etiona ]; then
 DIST="bionic"
 fi
-if [ $DIST="xenial" ]; then
-echo "$(lsb_release -sc), even when it's compatible and functional.
-We suggest you choose an upgrade to the next (LTS) release."
-fi
 if
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
@@ -114,7 +110,6 @@ if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
-
 DISTRO_RELEASE=$(lsb_release -sc)
 if [ $DISTRO_RELEASE = xenial ] || [ $DISTRO_RELEASE = bionic ]; then
 	echo "OS: $(lsb_release -sd)
@@ -124,7 +119,12 @@ else
 Sorry, this platform is not supported... exiting"
 exit
 fi
-
+#Suggest 18.04 LTS release over 16.04
+if [ $DIST="xenial" ]; then
+echo "$(lsb_release -sc), even when it's compatible and functional.
+We suggest to use the next (LTS) release, for longer support and security reasons."
+read -p "Enter any key to continue..."
+fi
 # Jitsi-Meet Repo
 echo "Add Jitsi key"
 if [ "$JITSI_STBL_REPO" = "stable" ]; then
