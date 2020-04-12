@@ -258,14 +258,14 @@ JB_NAME="Jibri Sessions"
 LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
 MOD_LIST_FILE="/usr/lib/prosody/modules/mod_listusers.lua"
+#Language
 echo "## Setting up Jitsi Meet language ##
-You can define your language by using a two letter code (ISO 639-1);
-	English -> en
-	Spanish -> es
-	German -> de
-	...
+You can define the language, for a complete list of the supported languages
 
-Jitsi Meet web interface will be set to use such language (if availabe).
+See here:
+https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
+
+Jitsi Meet web interface will be set to use such language.
 "
 read -p "Please set your language:"$'\n' -r LANG
 read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
@@ -279,16 +279,6 @@ elif [ $DROP_TLS1 = yes ]; then
 	echo "TLSv1.0/1.1 will be dropped"
 fi
 done
-#Dropbox
-while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
-do
-read -p "> Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
-if [ $ENABLE_DB = no ]; then
-	echo "Dropbox won't be enable"
-elif [ $ENABLE_DB = yes ]; then
-	read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
-fi
-done
 #SSL LE
 while [[ $ENABLE_SSL != yes && $ENABLE_SSL != no ]]
 do
@@ -297,6 +287,16 @@ if [ $ENABLE_SSL = no ]; then
 	echo "Please run letsencrypt.sh manually post-installation."
 elif [ $ENABLE_SSL = yes ]; then
 	echo "SSL will be enabled."
+fi
+done
+#Dropbox
+while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
+do
+read -p "> Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
+if [ $ENABLE_DB = no ]; then
+	echo "Dropbox won't be enable"
+elif [ $ENABLE_DB = yes ]; then
+	read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
 fi
 done
 #Brandless  Mode
@@ -309,24 +309,23 @@ elif [ $ENABLE_BLESSM = yes ]; then
 	echo "Brandless mode will be set."
 fi
 done
-#Jibri Records Access (JRA) via Nextcloud
-while [[ $ENABLE_NC_ACCESS != yes && $ENABLE_NC_ACCESS != no ]]
+echo "We'll take a minute to localize some UI excerpts if you need."
+#Participant
+echo "> Do you want to translate 'Participant' to your own language?"
+read -p "Leave empty to use the default one:" L10N_PARTICIPANT
+#Me
+echo "> Do you want to translate 'me' to your own language?
+This must be a really small word to present one self.
+Some suggestions might be: yo (Spanish) | je (French) | ich (German)"
+read -p "Leave empty to use the default one:" L10N_ME
+#Welcome Page
+while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
 do
-read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)"$'\n' -r ENABLE_NC_ACCESS
-if [ $ENABLE_NC_ACCESS = no ]; then
-	echo "JRA via Nextcloud won't be enabled."
-elif [ $ENABLE_NC_ACCESS = yes ]; then
-	echo "JRA via Nextcloud will be enabled."
-fi
-done
-#Jigasi
-while [[ $ENABLE_TRANSCRIPT != yes && $ENABLE_TRANSCRIPT != no ]]
-do
-read -p "> Do you want to setup Jigasi Transcription: (yes or no)"$'\n' -r ENABLE_TRANSCRIPT
-if [ $ENABLE_TRANSCRIPT = no ]; then
-	echo "Jigasi Transcription won't be enabled."
-elif [ $ENABLE_TRANSCRIPT = yes ]; then
-	echo "Jigasi Transcription will be enabled."
+read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
+if [ $ENABLE_WELCP = yes ]; then
+	echo "Welcome page will be disabled."
+elif [ $ENABLE_WELCP = no ]; then
+	echo "Welcome page will be enabled."
 fi
 done
 #Enable static avatar
@@ -361,14 +360,24 @@ elif [ "$ENABLE_SC" = "yes" ]; then
 	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
 fi
 done
-#Welcome Page
-while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
+#Jibri Records Access (JRA) via Nextcloud
+while [[ $ENABLE_NC_ACCESS != yes && $ENABLE_NC_ACCESS != no ]]
 do
-read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
-if [ $ENABLE_WELCP = yes ]; then
-	echo "Welcome page will be disabled."
-elif [ $ENABLE_WELCP = no ]; then
-	echo "Welcome page will be enabled."
+read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)"$'\n' -r ENABLE_NC_ACCESS
+if [ $ENABLE_NC_ACCESS = no ]; then
+	echo "JRA via Nextcloud won't be enabled."
+elif [ $ENABLE_NC_ACCESS = yes ]; then
+	echo "JRA via Nextcloud will be enabled."
+fi
+done
+#Jigasi
+while [[ $ENABLE_TRANSCRIPT != yes && $ENABLE_TRANSCRIPT != no ]]
+do
+read -p "> Do you want to setup Jigasi Transcription: (yes or no)"$'\n' -r ENABLE_TRANSCRIPT
+if [ $ENABLE_TRANSCRIPT = no ]; then
+	echo "Jigasi Transcription won't be enabled."
+elif [ $ENABLE_TRANSCRIPT = yes ]; then
+	echo "Jigasi Transcription will be enabled."
 fi
 done
 #Start configuration
@@ -457,7 +466,12 @@ sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_
 sed -i "/c2s_require_encryption = false/a \\
 \\
 consider_bosh_secure = true" $PROSODY_SYS
-
+if [ ! -z $L10N_PARTICIPANT ]; then
+	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jb-bm.sh
+fi
+if [ ! -z $L10N_ME ]; then
+	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_PARTICIPANT\"|" jb-bm.sh
+fi
 if [ ! -f $MOD_LIST_FILE ]; then
 echo "
 -> Adding external module to list prosody users...
