@@ -4,7 +4,7 @@ Bash installer for Jibri on *buntu LTS based systems
 ## Requirements
 * Clean VM/VPS/Server using Ubuntu LTS
 * Valid domain with DNS record.
-* Minimum recommended for video recording: 4 GB RAM / 4 Cores.
+* Minimum recommended for video recording: 8 GB RAM / 2 Cores.
 * Dropbox developer App key & redirect url configured (if you choose to enable Dropbox upload).
 * Webcam
 
