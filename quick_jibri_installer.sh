@@ -431,7 +431,7 @@ fi
 
 # Restarting services
 restart_services() {
-	systemctl restart jitsi-videobridge*
+	systemctl restart jitsi-videobridge2
 	systemctl restart jicofo
 	systemctl restart prosody
 	check_jibri
@@ -672,6 +672,7 @@ or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
 sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
 prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
+sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
 fi
 #Start with video muted by default
 sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
