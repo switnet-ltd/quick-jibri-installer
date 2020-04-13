@@ -11,13 +11,13 @@ Yellow='\e[0;33m'
 Color_Off='\e[0m'
 support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
-jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
 LOC_REC="TBD"
 ENABLE_BLESSM="TBD"
 CHD_LST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 CHDB=$(whereis chromedriver | awk '{print$2}')
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 INT_CONF=/usr/share/jitsi-meet/interface_config.js
+jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f $apt_repo/google-chrome.list ]; then
     google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2 | paste -s -d ' ')
@@ -35,9 +35,9 @@ version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 check_jibri() {
 if [ "$(dpkg-query -W -f='${Status}' "jibri" 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
-	service jibri restart
-	service jibri-icewm restart
-	service jibri-xorg restart
+	systemctl restart jibri
+	systemctl restart jibri-icewm
+	systemctl restart jibri-xorg
 else
 	echo "Jibri service not installed"
 fi
@@ -45,10 +45,10 @@ fi
 
 # Restarting services
 restart_services() {
-	service jitsi-videobridge restart
-	service jicofo restart
+	systemctl restart jitsi-videobridge2
+	systemctl restart jicofo
 	check_jibri
-	service prosody restart
+	systemctl restart prosody
 }
 
 upgrade_cd() {
