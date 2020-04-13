@@ -17,6 +17,8 @@ APP_NAME="Conferences"
 MOVILE_APP_NAME="Jitsi Meet"
 PART_USER="Participant"
 LOCAL_USER="me"
+#
+SEC_ROOM="TBD"
 echo '
 #--------------------------------------------------
 # Applying Brandless mode
