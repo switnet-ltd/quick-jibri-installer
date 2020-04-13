@@ -1,6 +1,13 @@
 # Quick Jibri Installer
 Bash installer for Jibri on *buntu LTS based systems
 
+## Requirements
+* Clean VM/VPS/Server using Ubuntu LTS
+* Valid domain with DNS record.
+* Minimum recommended for video recording: 4 GB RAM / 4 Cores.
+* Dropbox developer App key & redirect url configured (if you choose to enable Dropbox upload).
+* Webcam
+
 ## Features
 * Enabled Session (video) Recording using Jibri
 * Enabled Jitsi Electron app detection server side.
@@ -14,11 +21,6 @@ Bash installer for Jibri on *buntu LTS based systems
 * (New) Customized brandless mode
 * (New) Improved recurring updater
 
-## Requirements
-* Valid domain with DNS record.
-* Minimum recommended for video recording: 4 GB RAM / 4 Cores.
-* Dropbox developer App key & redirect url configured (if you choose to enable Dropbox upload).
-* Webcam
 ### Jigasi Transcript
 * SIP account
 * Google Cloud Account with Billing setup.
