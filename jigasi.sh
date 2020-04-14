@@ -46,8 +46,8 @@ Adding Google Cloud SDK repository for latest updates
 fi
 }
 install_gc_repo
-apt -y update
-apt -y install google-cloud-sdk google-cloud-sdk-app-engine-java
+apt-get -q2 update
+apt-get -y install google-cloud-sdk google-cloud-sdk-app-engine-java
 
 echo "Please select one of the current options:
 [1] I want to configure a new project, service account, billing and JSON credentials.
@@ -162,7 +162,7 @@ sleep 2
 export GOOGLE_APPLICATION_CREDENTIALS=$GC_API_JSON
 
 echo "Installing Jigasi, your SIP credentials will be asked. (mandatory)"
-apt -y install jigasi
+apt-get -y install jigasi
 
 
 cat  << JIGASI_CONF >> $JIGASI_CONFIG

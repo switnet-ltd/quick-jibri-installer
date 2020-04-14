@@ -59,7 +59,7 @@ if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" =
 	echo " $1 is installed, skipping..."
     else
     	echo -e "\n---- Installing $1 ----"
-		apt -yqq install $1
+		apt-get -yq2 install $1
 fi
 }
 add_mariadb() {
@@ -69,7 +69,7 @@ add_mariadb() {
 		echo "# Adding MariaDB $MDBVER repository"
 		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com C74CD1D8
 		echo "deb [arch=amd64] http://ftp.ddg.lth.se/mariadb/repo/$MDBVER/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/mariadb.list
-		apt update -qq
+		apt-get update -q2
 	fi
 }
 add_php74() {
@@ -79,7 +79,7 @@ add_php74() {
 		echo "# Adding PHP $PHPVER Repository"
 		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com E5267A6C
 		echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php7x.list
-		apt update -qq
+		apt-get update -q2
 	fi
 }
 
@@ -92,7 +92,7 @@ install_ifnot mariadb-server-$MDBVER
 
 # PHP 7.4
 add_php74
-apt install -y \
+apt-get install -y \
 			php$PHPVER-fpm \
 			php$PHPVER-bz2 \
 			php$PHPVER-curl \
@@ -364,6 +364,9 @@ sed -i "/datadirectory/a \ \ \'skeletondirectory\' => \'\'," $NC_CONFIG
 sed -i "/skeletondirectory/a \ \ \'simpleSignUpLink.shown\' => false," $NC_CONFIG
 sed -i "/simpleSignUpLink.shown/a \ \ \'knowledgebaseenabled\' => false," $NC_CONFIG
 sed -i "s|http://localhost|http://$NC_DOMAIN|" $NC_CONFIG
+
+echo "Add crontab..."
+crontab -u www-data -l | { cat; echo "*/5  *  *  *  * php -f $NC_PATH/cron.php"; } | crontab -u www-data -
 
 echo "
 Add memcache support...

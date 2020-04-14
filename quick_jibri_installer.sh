@@ -38,7 +38,7 @@ if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" =
 	echo " $1 is installed, skipping..."
     else
     	echo -e "\n---- Installing $1 ----"
-		apt -yqq install $1
+		apt-get -yq2 install $1
 fi
 }
 check_serv() {
@@ -84,16 +84,16 @@ update_certbot() {
 Cerbot repository already on the system!
 Checking for updates...
 "
-	apt -q2 update
-	apt -yq2 dist-upgrade
+	apt-get -q2 update
+	apt-get -yq2 dist-upgrade
 else
 	echo "
 Adding cerbot (formerly letsencrypt) PPA repository for latest updates
 "
 	echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
-	apt -qq update
-	apt -yqq dist-upgrade
+	apt-get -q2 update
+	apt-get -yq2 dist-upgrade
 fi
 }
 
@@ -145,10 +145,10 @@ fi
 
 # Requirements
 echo "We'll start by installing system requirements this may take a while please be patient..."
-apt update -yq2
-apt dist-upgrade -yq2
+apt-get update -q2
+apt-get dist-upgrade -yq2
 
-apt -y install \
+apt-get -y install \
 				bmon \
 				curl \
 				ffmpeg \
@@ -166,7 +166,7 @@ echo "
 # Install Jitsi Framework
 #--------------------------------------------------
 "
-apt -y install \
+apt-get -y install \
 				jitsi-meet \
 				jibri \
 				openjdk-8-jre-headless
@@ -184,7 +184,7 @@ if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" 
 		echo "Nodejs is installed, skipping..."
     else
 		curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-		apt install -yq2 nodejs
+		apt-get install -yq2 nodejs
 		echo "Installing nodejs esprima package..."
 		npm install -g esprima
 fi
@@ -210,8 +210,8 @@ else
 	wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 	echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee $GOOGL_REPO
 fi
-apt -qq update
-apt install -yq2 google-chrome-stable
+apt-get -q2 update
+apt-get install -yq2 google-chrome-stable
 rm -rf /etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list
 
 if [ -f /usr/local/bin/chromedriver ]; then
@@ -734,8 +734,8 @@ echo "
            for customized support: http://switnet.net
 ########################################################################
 "
-apt -y autoremove
-apt autoclean
+apt-get -y autoremove
+apt-get autoclean
 
 echo "Rebooting in..."
 secs=$((15))
