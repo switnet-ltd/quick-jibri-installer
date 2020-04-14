@@ -55,7 +55,7 @@ Webserver already installed!
 
 else
 	echo "
-Installing nginx as webserver!
+Installing nginx webserver!
 "
 	install_ifnot nginx
 fi
@@ -267,7 +267,7 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 
 Jitsi Meet web interface will be set to use such language.
 "
-read -p "Please set your language:"$'\n' -r LANG
+read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r LANG
 read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
 #Drop unsecure TLS
 while [[ $DROP_TLS1 != yes && $DROP_TLS1 != no ]]
