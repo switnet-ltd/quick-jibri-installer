@@ -1,5 +1,5 @@
 # Quick Jibri Installer
-Bash installer for Jibri on *buntu LTS based systems
+Bash installer for Jibri on **\*buntu LTS** based systems using **nginx** as default webserver.
 
 ## Requirements
 * Clean VM/VPS/Server using Ubuntu LTS
