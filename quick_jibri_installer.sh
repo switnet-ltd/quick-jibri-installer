@@ -268,7 +268,10 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 Jitsi Meet web interface will be set to use such language.
 "
 read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r LANG
-read -p "Set sysadmin email: "$'\n' -r SYSADMIN_EMAIL
+while [[ -z $SYSADMIN_EMAIL ]]
+do
+read -p "Set sysadmin email (this is a mandatory field):"$'\n' -r SYSADMIN_EMAIL
+done
 #Drop unsecure TLS
 while [[ $DROP_TLS1 != yes && $DROP_TLS1 != no ]]
 do
@@ -312,12 +315,12 @@ done
 echo "We'll take a minute to localize some UI excerpts if you need."
 #Participant
 echo "> Do you want to translate 'Participant' to your own language?"
-read -p "Leave empty to use the default one:" L10N_PARTICIPANT
+read -p "Leave empty to use the default one (English): " L10N_PARTICIPANT
 #Me
 echo "> Do you want to translate 'me' to your own language?
 This must be a really small word to present one self.
 Some suggestions might be: yo (Spanish) | je (French) | ich (German)"
-read -p "Leave empty to use the default one:" L10N_ME
+read -p "Leave empty to use the default one (English): " L10N_ME
 #Welcome Page
 while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
 do
@@ -467,10 +470,10 @@ sed -i "/c2s_require_encryption = false/a \\
 \\
 consider_bosh_secure = true" $PROSODY_SYS
 if [ ! -z $L10N_PARTICIPANT ]; then
-	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jb-bm.sh
+	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
 fi
 if [ ! -z $L10N_ME ]; then
-	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_PARTICIPANT\"|" jb-bm.sh
+	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
 fi
 if [ ! -f $MOD_LIST_FILE ]; then
 echo "
