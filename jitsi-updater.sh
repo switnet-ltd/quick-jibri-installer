@@ -106,7 +106,11 @@ else
 	echo "Please check your repositories, something is not right."
 	exit 1
 fi
-
+if [ ! -f jm-bm.sh ]; then
+	echo "Please check that you are running the jitsi updater while being on the project folder"
+	echo "other wise the updater might have errors or be incomplete. Exiting..."
+	exit
+fi
 # Any customization, image, name or link change for any purpose should
 # be documented here so new updates won't remove those changes.
 # We divide them on UI changes and branding changes, feel free to adapt
