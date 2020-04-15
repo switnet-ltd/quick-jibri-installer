@@ -13,11 +13,11 @@ support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 LOC_REC="TBD"
 ENABLE_BLESSM="TBD"
-CHD_LST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-CHDB=$(whereis chromedriver | awk '{print$2}')
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
-INT_CONF=/usr/share/jitsi-meet/interface_config.js
-jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
+CHD_LST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
+CHDB="$(whereis chromedriver | awk '{print$2}')"
+DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
+INT_CONF="/usr/share/jitsi-meet/interface_config.js"
+jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')"
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 #Check if user is root
 if ! [ $(id -u) = 0 ]; then
