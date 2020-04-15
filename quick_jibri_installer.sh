@@ -111,7 +111,9 @@ Featuring:
 - Customized brandless mode
 - Recurring changes updater
 
-See more at: https://github.com/switnet-ltd/quick-jibri-installer/
+Learn more about these at,
+Main repository: https://github.com/switnet-ltd/quick-jibri-installer
+Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki
 '
 read -n 1 -s -r -p "Press any key to continue..."
 
