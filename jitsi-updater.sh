@@ -9,16 +9,6 @@ Purple='\e[0;35m'
 Green='\e[0;32m'
 Yellow='\e[0;33m'
 Color_Off='\e[0m'
-support="https://switnet.net/support"
-apt_repo="/etc/apt/sources.list.d"
-LOC_REC="TBD"
-ENABLE_BLESSM="TBD"
-CHD_LST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
-CHDB="$(whereis chromedriver | awk '{print$2}')"
-DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
-INT_CONF="/usr/share/jitsi-meet/interface_config.js"
-jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')"
-AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 #Check if user is root
 if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
@@ -29,6 +19,16 @@ if [ ! -f jm-bm.sh ]; then
         echo "other wise the updater might have errors or be incomplete. Exiting..."
         exit
 fi
+support="https://switnet.net/support"
+apt_repo="/etc/apt/sources.list.d"
+LOC_REC="TBD"
+ENABLE_BLESSM="TBD"
+CHD_LST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
+CHDB="$(whereis chromedriver | awk '{print$2}')"
+DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
+INT_CONF="/usr/share/jitsi-meet/interface_config.js"
+jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')"
+AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f $apt_repo/google-chrome.list ]; then
     google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2 | paste -s -d ' ')
 else
