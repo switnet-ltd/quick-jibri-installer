@@ -74,7 +74,7 @@ else
 # Seems to be an issue with your audio driver,
 # please review your hw setup.
 #--------------------------------------------------"
-read -n 1 -s -r -p "Press any key to continue...
+read -n 1 -s -r -p "Press any key to continue...$'\n'
 "
 fi
 }
@@ -115,7 +115,7 @@ Learn more about these at,
 Main repository: https://github.com/switnet-ltd/quick-jibri-installer
 Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki
 '
-read -n 1 -s -r -p "Press any key to continue..."
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 #Check if user is root
 if ! [ $(id -u) = 0 ]; then
@@ -134,7 +134,7 @@ fi
 if [ "$DIST" = "xenial" ]; then
 echo "$(lsb_release -sc), even when it's compatible and functional.
 We suggest to use the next (LTS) release, for longer support and security reasons."
-read -n 1 -s -r -p "Press any key to continue..."
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 # Jitsi-Meet Repo
 echo "Add Jitsi key"
@@ -237,7 +237,7 @@ echo "
 Remove Chrome warning...
 "
 mkdir -p /etc/opt/chrome/policies/managed
-echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' >> $GCMP_JSON
+echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
 
 echo '
 ########################################################################
@@ -317,12 +317,12 @@ done
 echo "We'll take a minute to localize some UI excerpts if you need."
 #Participant
 echo "> Do you want to translate 'Participant' to your own language?"
-read -p "Leave empty to use the default one (English): " L10N_PARTICIPANT
+read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
 #Me
 echo "> Do you want to translate 'me' to your own language?
 This must be a really small word to present one self.
 Some suggestions might be: yo (Spanish) | je (French) | ich (German)"
-read -p "Leave empty to use the default one (English): " L10N_ME
+read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
 #Welcome Page
 while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
 do
