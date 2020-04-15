@@ -19,6 +19,16 @@ DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}'
 INT_CONF=/usr/share/jitsi-meet/interface_config.js
 jibri_packages=$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
+#Check if user is root
+if ! [ $(id -u) = 0 ]; then
+   echo "You need to be root or have sudo privileges!"
+   exit 0
+fi
+if [ ! -f jm-bm.sh ]; then
+        echo "Please check that you are running the jitsi updater while being on the project folder"
+        echo "other wise the updater might have errors or be incomplete. Exiting..."
+        exit
+fi
 if [ -f $apt_repo/google-chrome.list ]; then
     google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2 | paste -s -d ' ')
 else
@@ -105,11 +115,6 @@ elif [ -f $apt_repo/jitsi-stable.list ]; then
 else
 	echo "Please check your repositories, something is not right."
 	exit 1
-fi
-if [ ! -f jm-bm.sh ]; then
-	echo "Please check that you are running the jitsi updater while being on the project folder"
-	echo "other wise the updater might have errors or be incomplete. Exiting..."
-	exit
 fi
 # Any customization, image, name or link change for any purpose should
 # be documented here so new updates won't remove those changes.
