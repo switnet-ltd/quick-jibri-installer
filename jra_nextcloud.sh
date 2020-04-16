@@ -30,12 +30,14 @@ elif [ "$ENABLE_HSTS" = "yes" ]; then
 fi
 done
 DISTRO_RELEASE="$(lsb_release -sc)"
+DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 PHPVER="7.4"
 MDBVER="10.4"
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
 NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
+NC_NGINX_SSL_PORT="$(grep "listen 44" /etc/nginx/sites-enabled/$DOMAIN.conf | awk '{print$2}')"
 NC_REPO="https://download.nextcloud.com/server/releases"
 NCVERSION="$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)"
 STABLEVERSION="nextcloud-$NCVERSION"
@@ -184,8 +186,8 @@ server {
 }
 
 server {
-    listen 4444 ssl http2;
-    listen [::]:4444 ssl http2;
+    listen $NC_NGINX_SSL_PORT ssl http2;
+    listen [::]:$NC_NGINX_SSL_PORT ssl http2;
     server_name $NC_DOMAIN;
 
     ssl_certificate /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem;
