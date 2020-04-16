@@ -368,7 +368,8 @@ done
 #Jibri Records Access (JRA) via Nextcloud
 while [[ $ENABLE_NC_ACCESS != yes && $ENABLE_NC_ACCESS != no ]]
 do
-read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)"$'\n' -r ENABLE_NC_ACCESS
+read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
 if [ $ENABLE_NC_ACCESS = no ]; then
 	echo "JRA via Nextcloud won't be enabled."
 elif [ $ENABLE_NC_ACCESS = yes ]; then
@@ -378,7 +379,8 @@ done
 #Jigasi
 while [[ $ENABLE_TRANSCRIPT != yes && $ENABLE_TRANSCRIPT != no ]]
 do
-read -p "> Do you want to setup Jigasi Transcription: (yes or no)"$'\n' -r ENABLE_TRANSCRIPT
+read -p "> Do you want to setup Jigasi Transcription: (yes or no)
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
 if [ $ENABLE_TRANSCRIPT = no ]; then
 	echo "Jigasi Transcription won't be enabled."
 elif [ $ENABLE_TRANSCRIPT = yes ]; then
