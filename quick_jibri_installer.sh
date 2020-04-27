@@ -477,7 +477,7 @@ if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
 fi
 if [ ! -z $L10N_ME ]; then
-	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
+	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
 fi
 if [ ! -f $MOD_LIST_FILE ]; then
 echo "
