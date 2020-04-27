@@ -84,6 +84,9 @@ add_php74() {
 		apt-get update -q2
 	fi
 }
+#Prevent root folder permission issues
+cp $PWD/files/patch_425_3dty.patch /tmp
+cp $PWD/files/jra-nc-app-ef.json /tmp
 
 exit_ifinstalled mariadb-server
 
@@ -345,7 +348,7 @@ chmod -R 755 $NC_PATH
 if $(dpkg --compare-versions "$NCVERSION" "le" "18.0.3"); then 
 echo "
 -> Patching #425 (scssphp/src/Compiler.php)..."
-sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < $PWD/files/patch_425_3dty.patch
+sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < /tmp/patch_425_3dty.patch
 fi
 
 echo "
@@ -397,7 +400,7 @@ Addding & Setting up Files External App for Local storage...
 "
 sudo -u www-data php $NC_PATH/occ app:install files_external
 sudo -u www-data php $NC_PATH/occ app:enable files_external
-sudo -u www-data php $NC_PATH/occ files_external:import $PWD/files/jra-nc-app-ef.json
+sudo -u www-data php $NC_PATH/occ files_external:import /tmp/jra-nc-app-ef.json
 
 usermod -a -G jibri www-data
 chown -R jibri:www-data $DIR_RECORD
