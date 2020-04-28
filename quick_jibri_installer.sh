@@ -65,15 +65,16 @@ modprobe snd-aloop
 echo "snd-aloop" >> /etc/modules
 if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
 	echo "
-#--------------------------------------------------
+#-----------------------------------------------------------------------
 # Audio driver seems - OK.
-#--------------------------------------------------"
+#-----------------------------------------------------------------------"
 else
 	echo "
-#--------------------------------------------------
-# Seems to be an issue with your audio driver,
-# please review your hw setup.
-#--------------------------------------------------"
+#-----------------------------------------------------------------------
+# Your audio driver might not be able to load, once the installation
+# is complete and server restarted, please run: `lsmod | grep snd_aloop'
+# to make sure it did. If not, any feedback for your setup is welcome.
+#-----------------------------------------------------------------------"
 read -n 1 -s -r -p "Press any key to continue...$'\n'
 "
 fi
