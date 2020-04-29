@@ -72,11 +72,10 @@ else
 	echo "
 #-----------------------------------------------------------------------
 # Your audio driver might not be able to load, once the installation
-# is complete and server restarted, please run: `lsmod | grep snd_aloop'
+# is complete and server restarted, please run: \`lsmod | grep snd_aloop'
 # to make sure it did. If not, any feedback for your setup is welcome.
 #-----------------------------------------------------------------------"
-read -n 1 -s -r -p "Press any key to continue...$'\n'
-"
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 }
 update_certbot() {
