@@ -148,9 +148,9 @@ fi
 while [[ $LE_SSL != yes && $LE_SSL != no ]]
 do
 read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)"$'\n' -r LE_SSL
-if [ $LE_SSL = no ]; then
+if [ $LE_SSL = yes ]; then
 	echo "We'll defaul to Let's Encrypt SSL cers."
-elif [ $LE_SSL = yes ]; then
+elif [ $LE_SSL = no ]; then
 	echo "We'll let you choose later on for it."
 fi
 done
