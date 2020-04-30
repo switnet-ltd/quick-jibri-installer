@@ -44,7 +44,9 @@ sed -i "s|jitsilogo.png|watermark2.png|g" $TITLE_FILE
 sed -i "s|logo-deep-linking.png|watermark2.png|g" $BUNDLE_JS
 
 #Disable logo and url
+if [ -z $(grep -nr ".leftwatermark{display:none" $CSS_FILE) ]; then
 sed -i "s|.leftwatermark{|.leftwatermark{display:none;|" $CSS_FILE
+fi
 
 #Customize room title
 sed -i "s|Jitsi Meet|$APP_NAME|g" $TITLE_FILE

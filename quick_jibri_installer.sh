@@ -107,7 +107,7 @@ echo '
 Featuring:
 - Jibri Recording and YouTube Streaming
 - Jibri Recordings Access via Nextcloud
-- Jigasi Transcription
+- Jigasi Transcription (Advanced)
 - Customized brandless mode
 - Recurring changes updater
 
@@ -168,6 +168,7 @@ echo "
 # Install Jitsi Framework
 #--------------------------------------------------
 "
+echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
 apt-get -y install \
 				jitsi-meet \
 				jibri \
@@ -260,6 +261,7 @@ JB_NAME="Jibri Sessions"
 LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
 MOD_LIST_FILE="/usr/lib/prosody/modules/mod_listusers.lua"
+ENABLE_SA="yes"
 #Language
 echo "## Setting up Jitsi Meet language ##
 You can define the language, for a complete list of the supported languages
@@ -566,7 +568,9 @@ https://github.com/switnet-ltd/quick-jibri-installer/issues
 fi
 
 # Recording directory
+if [ ! -d $DIR_RECORD ]; then
 mkdir $DIR_RECORD
+fi
 chown -R jibri:jibri $DIR_RECORD
 
 cat << REC_DIR > $REC_DIR
