@@ -144,6 +144,16 @@ else
 	echo 'deb https://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 fi
+#Default to LE SSL?
+while [[ $LE_SSL != yes && $LE_SSL != no ]]
+do
+read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)"$'\n' -r LE_SSL
+if [ $LE_SSL = yes ]; then
+	echo "We'll defaul to Let's Encrypt SSL cers."
+elif [ $LE_SSL = no ]; then
+	echo "We'll let you choose later on for it."
+fi
+done
 
 # Requirements
 echo "We'll start by installing system requirements this may take a while please be patient..."
@@ -168,7 +178,9 @@ echo "
 # Install Jitsi Framework
 #--------------------------------------------------
 "
+if [ "$LE_SSL" = "yes" ]; then
 echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
+fi
 apt-get -y install \
 				jitsi-meet \
 				jibri \
@@ -287,15 +299,19 @@ elif [ $DROP_TLS1 = yes ]; then
 fi
 done
 #SSL LE
-while [[ $ENABLE_SSL != yes && $ENABLE_SSL != no ]]
-do
-read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
-if [ $ENABLE_SSL = no ]; then
-	echo "Please run letsencrypt.sh manually post-installation."
-elif [ $ENABLE_SSL = yes ]; then
-	echo "SSL will be enabled."
+if [ "$LE_SSL" = "yes" ]; then
+	ENABLE_SSL=yes
+else
+	while [[ $ENABLE_SSL != yes && $ENABLE_SSL != no ]]
+	do
+	read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
+	if [ $ENABLE_SSL = no ]; then
+		echo "Please run letsencrypt.sh manually post-installation."
+	elif [ $ENABLE_SSL = yes ]; then
+		echo "SSL will be enabled."
+	fi
+	done
 fi
-done
 #Dropbox
 while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
 do
