@@ -338,7 +338,7 @@ done
 #Enable static avatar
 while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
-read -p "> Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
+read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
 if [ "$ENABLE_SA" = "no" ]; then
 	echo "Static avatar won't be enabled"
 elif [ "$ENABLE_SA" = "yes" ]; then
@@ -667,12 +667,23 @@ fi
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #Setup secure rooms
+SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+SRP_END=$((SRP_STR + 10))
+sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+
 cat << P_SR >> $PROSODY_FILE
-VirtualHost "$DOMAIN"
-    authentication = "internal_plain"
 
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
+
+    speakerstats_component = "speakerstats.$DOMAIN"
+	conference_duration_component = "conferenceduration.$DOMAIN"
+
+	modules_enabled = {
+		"muc_size";
+		"speakerstats";
+		"conference_duration";
+	}
     c2s_require_encryption = false
 P_SR
 #Secure room initial user
