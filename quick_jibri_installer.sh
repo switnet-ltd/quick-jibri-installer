@@ -138,10 +138,10 @@ read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 # Jitsi-Meet Repo
 echo "Add Jitsi key"
-if [ "$JITSI_STBL_REPO" = "stable" ]; then
+if [ "$JITSI_STBL_REPO" = "unstable" ]; then
 	echo "Jitsi stable repository already installed"
 else
-	echo 'deb https://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
+	echo 'deb https://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 fi
 
