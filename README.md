@@ -30,7 +30,7 @@ Bash installer for Jibri on **\*buntu LTS** based systems using **nginx** as def
 * Option to enable Secure Rooms
 * Option to enable Welcome Page
 * Option to enable Local audio recording using flac.
-* Option to use Rodentia static avatar (icon credit: sixsixfive).
+* Option to use Rodentia static avatar (icon credit: sixsixfive) - Legacy
 
 ## Custom changes
 * Start with video muted by default
