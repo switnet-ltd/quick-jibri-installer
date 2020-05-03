@@ -48,6 +48,10 @@ NC_DB="nextcloud_db"
 NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 DIR_RECORD="$(grep -nr RECORDING /home/jibri/finalize_recording.sh|head -n1|cut -d "=" -f2)"
 REDIS_CONF="/etc/redis/redis.conf"
+JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
+if [ -f $JITSI_MEET_PROXY ];then
+PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
+fi
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " This instance already has $1 installed, exiting..."
@@ -334,6 +338,15 @@ if [ "$ENABLE_HSTS" = "yes" ]; then
 sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
+if [ "$DISTRO_RELEASE" = "bionic" ] && [ -z $PREAD_PROXY ]; then
+echo "
+  Setting up Nextcloud domain on Jitsi Meet turn proxy
+"
+	sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" $JITSI_MEET_PROXY
+	sed -i "/server {/i \ \ \ \ \ \ $DOMAIN      web;" $JITSI_MEET_PROXY
+	sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN web;" $JITSI_MEET_PROXY
+	sed -i "/server {/i \ \ }" $JITSI_MEET_PROXY
+fi
 
 echo "
   Latest version to be installed: $STABLEVERSION
