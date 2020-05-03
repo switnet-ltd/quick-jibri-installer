@@ -6,7 +6,7 @@ Bash installer for Jibri on **\*buntu LTS** based systems using **nginx** as def
 * Valid domain with DNS record, **mandatory** for SSL certs via Let's Encrypt.
 * Ports open for ACME (SSL) interaction & validation.
 * Minimum recommended for video recording: 8 GB RAM / 2 Cores.
-* Dropbox developer App key & redirect url configured (if you choose to enable Dropbox upload).
+* Dropbox developer App key & redirect url configured (if you choose to enable local recording).
 * Webcam
 
 ## Features
