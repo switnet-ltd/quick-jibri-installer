@@ -138,7 +138,7 @@ We suggest to use the next (LTS) release, for longer support and security reason
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 #Prosody repository
-echo "Add Jitsi key"
+echo "Add Prosody repo"
 if [ "$PROSODY_REPO" = "main" ]; then
 	echo "Prosody repository already installed"
 else
@@ -146,7 +146,7 @@ else
 	wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
 fi
 # Jitsi-Meet Repo
-echo "Add Jitsi key"
+echo "Add Jitsi repo"
 if [ "$JITSI_UNSTBL_REPO" = "unstable" ]; then
 	echo "Jitsi stable repository already installed"
 else
@@ -251,7 +251,7 @@ echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
 
 echo '
 ########################################################################
-                    Please Setup Your Instalation
+                    Please Setup Your Installation
 ########################################################################
 '
 # MEET / JIBRI SETUP
