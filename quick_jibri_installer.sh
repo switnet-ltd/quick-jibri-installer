@@ -20,7 +20,7 @@ set -x
 fi
 
 # SYSTEM SETUP
-JITSI_UNSTBL_REPO=$(apt-cache policy | grep http | grep jitsi | grep unstable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
+JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
 CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
 APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
@@ -97,6 +97,10 @@ Adding cerbot (formerly letsencrypt) PPA repository for latest updates
 	apt-get -yq2 dist-upgrade
 fi
 }
+# sed limiters for add-jibri-node.sh variables
+var_dlim() {
+    grep -n $1 add-jibri-node.sh|head -n1|cut -d ":" -f1
+}
 
 clear
 echo '
@@ -150,7 +154,7 @@ echo "Add Jitsi repo"
 if [ "$JITSI_UNSTBL_REPO" = "unstable" ]; then
 	echo "Jitsi stable repository already installed"
 else
-	echo 'deb https://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
+	echo 'deb http://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 fi
 
@@ -634,6 +638,17 @@ cat << CONF_JSON > $CONF_JSON
     ]
 }
 CONF_JSON
+
+#Setting varibales for add-jibri-node.sh
+sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jibri-node.sh
+sed -i "s|MAIN_SRV_REPO=.*|MAIN_SRV_REPO=\"$JITSI_REPO\"|" add-jibri-node.sh
+sed -i "s|MAIN_SRV_DOMAIN=.*|MAIN_SRV_DOMAIN=\"$DOMAIN\"|" add-jibri-node.sh
+sed -i "s|JB_NAME=.*|JB_NAME=\"$JB_NAME\"|" add-jibri-node.sh
+sed -i "s|JibriBrewery=.*|JibriBrewery=\"$JibriBrewery\"|" add-jibri-node.sh
+sed -i "s|JB_AUTH_PASS=.*|JB_AUTH_PASS=\"$JB_AUTH_PASS\"|" add-jibri-node.sh
+sed -i "s|JB_REC_PASS=.*|JB_REC_PASS=\"$JB_REC_PASS\"|" add-jibri-node.sh
+sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
+echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
 
 #Tune webserver for Jitsi App control
 if [ -f $WS_CONF ]; then
