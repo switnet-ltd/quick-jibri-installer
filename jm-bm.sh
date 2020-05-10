@@ -9,7 +9,7 @@ TITLE_FILE="/usr/share/jitsi-meet/title.html"
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 BUNDLE_JS="/usr/share/jitsi-meet/libs/app.bundle.min.js"
 #
-JM_IMG_PATH="/usr/share/jitsi-meet/images/"
+JM_IMG_PATH="/usr/share/jitsi-meet/images"
 WTM2_PATH="$JM_IMG_PATH/watermark2.png"
 FICON_PATH="$JM_IMG_PATH/favicon2.ico"
 #
