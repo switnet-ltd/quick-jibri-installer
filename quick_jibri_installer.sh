@@ -616,7 +616,7 @@ chown jibri:jibri $REC_DIR
 chmod +x $REC_DIR
 
 ## JSON Config
-cp $CONF_JSON $CONF_JSON.orig
+cp $CONF_JSON ${CONF_JSON}.orig
 cat << CONF_JSON > $CONF_JSON
 {
     "recording_directory":"$DIR_RECORD",
