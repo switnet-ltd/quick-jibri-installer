@@ -146,11 +146,7 @@ echo "Add Jitsi key"
 if [ "$JITSI_REPO" = "stable" ]; then
 	echo "Jitsi stable repository already installed"
 else
-<<<<<<< HEAD
-	echo 'deb https://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
-=======
-	echo 'deb http://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
->>>>>>> 2dd120e... Set additional jibri node variables
+	echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 fi
 #Default to LE SSL?
