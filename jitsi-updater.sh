@@ -27,7 +27,7 @@ CHD_LST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
 DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
-jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | sort -u | awk '{print $2}' | paste -s -d ' ')"
+jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages |sort -u|awk '{print $2}'|sed 's|jigasi||'|paste -s -d ' ')"
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f $apt_repo/google-chrome.list ]; then
     google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2 | paste -s -d ' ')
