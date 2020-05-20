@@ -317,16 +317,16 @@ else
 	fi
 	done
 fi
-#Dropbox
-while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
-do
-read -p "> Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
-if [ $ENABLE_DB = no ]; then
-	echo "Dropbox won't be enable"
-elif [ $ENABLE_DB = yes ]; then
-	read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
-fi
-done
+#Dropbox -- no longer requirement for localrecording
+#while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
+#do
+#read -p "> Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
+#if [ $ENABLE_DB = no ]; then
+#	echo "Dropbox won't be enable"
+#elif [ $ENABLE_DB = yes ]; then
+#	read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
+#fi
+#done
 #Brandless  Mode
 while [[ $ENABLE_BLESSM != yes && $ENABLE_BLESSM != no ]]
 do
