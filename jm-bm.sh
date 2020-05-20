@@ -12,6 +12,7 @@ BUNDLE_JS="/usr/share/jitsi-meet/libs/app.bundle.min.js"
 JM_IMG_PATH="/usr/share/jitsi-meet/images"
 WTM2_PATH="$JM_IMG_PATH/watermark2.png"
 FICON_PATH="$JM_IMG_PATH/favicon2.ico"
+REC_ICON_PATH="$JM_IMG_PATH/gnome_record.png"
 #
 APP_NAME="Conferences"
 MOVILE_APP_NAME="Jitsi Meet"
@@ -36,13 +37,19 @@ if [ ! -f $FICON_PATH ]; then
 else
 	echo "favicon2 file exists, skipping copying..."
 fi
+#Local recording icon
+if [ ! -f $REC_ICON_PATH ];then
+	cp images/gnome_record.png $REC_ICON_PATH
+else
+        echo "recodring icon exists, skipping copying..."
+fi
 
 #Custom / Remove icons
 sed -i "s|watermark.png|watermark2.png|g" $CSS_FILE
 sed -i "s|favicon.ico|favicon2.ico|g" $TITLE_FILE
 sed -i "s|jitsilogo.png|watermark2.png|g" $TITLE_FILE
 sed -i "s|logo-deep-linking.png|watermark2.png|g" $BUNDLE_JS
-
+sed -i "s|jitsiLogo_square.png|gnome_record.png|g" $BUNDLE_JS
 #Disable logo and url
 if [ -z $(grep -nr ".leftwatermark{display:none" $CSS_FILE) ]; then
 sed -i "s|.leftwatermark{|.leftwatermark{display:none;|" $CSS_FILE
