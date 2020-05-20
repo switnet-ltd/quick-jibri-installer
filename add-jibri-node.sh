@@ -262,8 +262,10 @@ sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jibri-n
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
 echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
 
-echo "Start Jibri at system boot"
+#Enable jibri services
 systemctl enable jibri
+systemctl enable jibri-xorg
+systemctl enable jibri-icewm
 
 echo "
 ########################################################################
