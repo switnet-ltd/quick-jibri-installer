@@ -761,12 +761,13 @@ if [ $ENABLE_NC_ACCESS = yes ]; then
 	echo "Jigasi Transcription will be enabled."
 	bash $PWD/jra_nextcloud.sh
 fi
+}  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 #Jigasi Transcript
 if [ $ENABLE_TRANSCRIPT = yes ]; then
 	echo "Jigasi Transcription will be enabled."
 	bash $PWD/jigasi.sh
 fi
-
+{
 #Prevent Jibri conecction issue
 sed -i "/127.0.0.1/a \\
 127.0.0.1       $DOMAIN" /etc/hosts
