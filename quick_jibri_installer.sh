@@ -314,6 +314,8 @@ else
 	    echo "Please run letsencrypt.sh manually post-installation."
         elif [ "$ENABLE_SSL" = "yes" ]; then
             echo "SSL will be enabled."
+        fi
+        done
 fi
 #Dropbox -- no longer requirement for localrecording
 #while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
