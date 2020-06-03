@@ -294,12 +294,12 @@ do
 read -p "Set sysadmin email (this is a mandatory field):"$'\n' -r SYSADMIN_EMAIL
 done
 #Drop unsecure TLS
-while [[ $DROP_TLS1 != yes && $DROP_TLS1 != no ]]
+while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
 read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
-if [ $DROP_TLS1 = no ]; then
+if [ "$DROP_TLS1" = "no" ]; then
 	echo "TLSv1.0/1.1 will remain."
-elif [ $DROP_TLS1 = yes ]; then
+elif [ "$DROP_TLS1" = "yes" ]; then
 	echo "TLSv1.0/1.1 will be dropped"
 fi
 done
@@ -307,15 +307,13 @@ done
 if [ "$LE_SSL" = "yes" ]; then
 	ENABLE_SSL=yes
 else
-	while [[ $ENABLE_SSL != yes && $ENABLE_SSL != no ]]
-	do
-	read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
-	if [ $ENABLE_SSL = no ]; then
-		echo "Please run letsencrypt.sh manually post-installation."
-	elif [ $ENABLE_SSL = yes ]; then
-		echo "SSL will be enabled."
-	fi
-	done
+        while [[ "$ENABLE_SSL" != "yes" && "$ENABLE_SSL" != "no" ]]
+        do
+        read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
+        if [ "$ENABLE_SSL" = "no" ]; then
+	    echo "Please run letsencrypt.sh manually post-installation."
+        elif [ "$ENABLE_SSL" = "yes" ]; then
+            echo "SSL will be enabled."
 fi
 #Dropbox -- no longer requirement for localrecording
 #while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
@@ -328,12 +326,12 @@ fi
 #fi
 #done
 #Brandless  Mode
-while [[ $ENABLE_BLESSM != yes && $ENABLE_BLESSM != no ]]
+while [[ "$ENABLE_BLESSM" != "yes" && "$ENABLE_BLESSM" != "no" ]]
 do
 read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
-if [ $ENABLE_BLESSM = no ]; then
+if [ "$ENABLE_BLESSM" = "no" ]; then
 	echo "Brandless mode won't be set."
-elif [ $ENABLE_BLESSM = yes ]; then
+elif [ "$ENABLE_BLESSM" = "yes" ]; then
 	echo "Brandless mode will be set."
 fi
 done
@@ -347,12 +345,12 @@ This must be a really small word to present one self.
 Some suggestions might be: yo (Spanish) | je (French) | ich (German)"
 read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
 #Welcome Page
-while [[ $ENABLE_WELCP != yes && $ENABLE_WELCP != no ]]
+while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
 read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
-if [ $ENABLE_WELCP = yes ]; then
+if [ "$ENABLE_WELCP" = "yes" ]; then
 	echo "Welcome page will be disabled."
-elif [ $ENABLE_WELCP = no ]; then
+elif [ "$ENABLE_WELCP" = "no" ]; then
 	echo "Welcome page will be enabled."
 fi
 done
@@ -389,24 +387,24 @@ elif [ "$ENABLE_SC" = "yes" ]; then
 fi
 done
 #Jibri Records Access (JRA) via Nextcloud
-while [[ $ENABLE_NC_ACCESS != yes && $ENABLE_NC_ACCESS != no ]]
+while [[ "$ENABLE_NC_ACCESS" != "yes" && "$ENABLE_NC_ACCESS" != "no" ]]
 do
 read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
-if [ $ENABLE_NC_ACCESS = no ]; then
+if [ "$ENABLE_NC_ACCESS" = "no" ]; then
 	echo "JRA via Nextcloud won't be enabled."
-elif [ $ENABLE_NC_ACCESS = yes ]; then
+elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
 	echo "JRA via Nextcloud will be enabled."
 fi
 done
 #Jigasi
-while [[ $ENABLE_TRANSCRIPT != yes && $ENABLE_TRANSCRIPT != no ]]
+while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
 do
 read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
-if [ $ENABLE_TRANSCRIPT = no ]; then
+if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
 	echo "Jigasi Transcription won't be enabled."
-elif [ $ENABLE_TRANSCRIPT = yes ]; then
+elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
 	echo "Jigasi Transcription will be enabled."
 fi
 done
@@ -539,7 +537,7 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
     hiddenDomain: \'recorder.$DOMAIN\',|" $MEET_CONF
 
 #Dropbox feature
-if [ $ENABLE_DB = "yes" ]; then
+if [ "$ENABLE_DB" = "yes" ]; then
 DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
 DB_END=$((DB_STR + 10))
 sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
@@ -548,7 +546,7 @@ sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 fi
 
 #LocalRecording
-if [ $ENABLE_LAR = "yes" ]; then
+if [ "$ENABLE_LAR" = "yes" ]; then
 echo "# Enabling local recording (audio only)."
 LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
 LR_END=$((LR_STR + 18))
@@ -682,11 +680,11 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 fi
 #nginx -tlsv1/1.1
-if [ $DROP_TLS1 = "yes" ] && [ $DIST = "bionic" ];then
+if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "bionic" ];then
 	echo "Dropping TLSv1/1.1 in favor of v1.3"
 	sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
 	#sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
-elif [ $DROP_TLS1 = "yes" ] && [ ! $DIST = "bionic" ];then
+elif [ "$DROP_TLS1" = "yes" ] && [ ! "$DIST" = "bionic" ];then
 	echo "Only dropping TLSv1/1.1"
 	sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
 	#sed -i "s|TLSv1 TLSv1.1||" $WS_CONF
@@ -724,9 +722,9 @@ sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
 sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
 
 #Disable/enable welcome page
-if [ $ENABLE_WELCP = yes ]; then
+if [ "$ENABLE_WELCP" = "yes" ]; then
 	sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" $MEET_CONF
-elif [ $ENABLE_WELCP = no ]; then
+elif [ "$ENABLE_WELCP" = "no" ]; then
 	sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" $MEET_CONF
 fi
 #Set displayname as not required since jibri can't set it up.
@@ -748,19 +746,19 @@ else
 	echo "No webserver found please report."
 fi
 #Brandless  Mode
-if [ $ENABLE_BLESSM = yes ]; then
+if [ "$ENABLE_BLESSM" = "yes" ]; then
 	echo "Custom brandless mode will be enabled."
 	sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
 	bash $PWD/jm-bm.sh
 fi
 #JRA via Nextcloud
-if [ $ENABLE_NC_ACCESS = yes ]; then
+if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
 	echo "Jigasi Transcription will be enabled."
 	bash $PWD/jra_nextcloud.sh
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 #Jigasi Transcript
-if [ $ENABLE_TRANSCRIPT = yes ]; then
+if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
 	echo "Jigasi Transcription will be enabled."
 	bash $PWD/jigasi.sh
 fi
