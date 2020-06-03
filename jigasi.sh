@@ -208,6 +208,15 @@ sed -i "/xmpp.acc.ANONYMOUS_AUTH/ s|# ||" $JIG_SIP_PROP
 
 prosodyctl register transcript auth.$DOMAIN jigasi
 
+#Temp fix Jigasi Transcript
+if [ grep -x "sleep" /etc/init.d/jicofo ]; then
+	echo "Jicofo delay already present."
+	else
+	echo "Adding Jicofo delay..."
+	sed -i "/\/lib\/lsb\/init-functions/i sleep 20" /etc/init.d/jicofo
+	systemctl daemon-reload
+fi
+
 systemctl restart 	prosody \
 					jicofo \
 					jibri* \
