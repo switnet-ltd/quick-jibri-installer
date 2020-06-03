@@ -14,9 +14,27 @@ echo '
 ########################################################################
                     by Software, IT & Networks Ltd
 '
+while [[ -z "$NC_DOMAIN" ]]
+do
 read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
+if [ -z "$NC_DOMAIN" ]; then
+	echo "-- This field is mandatory."
+fi
+done
+while [[ -z "$NC_USER" ]]
+do
 read -p "Nextcloud user: " -r NC_USER
+if [ -z "$NC_USER" ]; then
+	echo "-- This field is mandatory."
+fi
+done
+while [[ -z "$NC_PASS" ]]
+do
 read -p "Nextcloud user password: " -r NC_PASS
+if [ -z "$NC_PASS" ]; then
+	echo "-- This field is mandatory."
+fi
+done
 #Enable HSTS
 while [[ "$ENABLE_HSTS" != "yes" && "$ENABLE_HSTS" != "no" ]]
 do
