@@ -209,7 +209,7 @@ sed -i "/xmpp.acc.ANONYMOUS_AUTH/ s|# ||" $JIG_SIP_PROP
 prosodyctl register transcript auth.$DOMAIN jigasi
 
 #Temp fix Jigasi Transcript
-if [ grep -x "sleep" /etc/init.d/jicofo ]; then
+if grep -q "sleep" /etc/init.d/jicofo; then
 	echo "Jicofo delay already present."
 	else
 	echo "Adding Jicofo delay..."
