@@ -171,6 +171,7 @@ apt-get -y install \
 				htop \
 				letsencrypt \
 				linux-image-generic-hwe-$(lsb_release -r|awk '{print$2}') \
+                                linux-modules-extra-virtual-hwe-$(lsb_release -r|awk '{print$2}') \
 				unzip \
 				wget
 
