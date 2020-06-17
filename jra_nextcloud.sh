@@ -197,6 +197,7 @@ echo "Done!
 
 #nginx - configuration
 cat << NC_NGINX > $NC_NGINX_CONF
+#nextcloud config
 upstream php-handler {
     #server 127.0.0.1:9000;
     server unix:/run/php/php${PHPVER}-fpm.sock;
