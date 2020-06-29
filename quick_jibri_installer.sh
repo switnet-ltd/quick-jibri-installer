@@ -141,6 +141,42 @@ echo "$(lsb_release -sc), even when it's compatible and functional.
 We suggest to use the next (LTS) release, for longer support and security reasons."
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
+#Check resources
+echo "Verifying System Resources:"
+if [ "$(nproc --all)" -lt 4 ];then
+  echo "Warning: The system do not meet the minimum requirements for Jibri to run."
+  echo "Warning: We recommend 4 cores/threads for Jibri!"
+  CPU_MIN="N"
+else
+  echo "CPU Cores/Threads: OK ($(nproc --all))"
+  CPU_MIN="Y"
+fi
+### Test RAM size (8GB min) ###
+mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
+if [ ${mem_available} -lt 7700000 ]; then
+  echo "Warning: The system do not meet the minimum requirements for Jibri to run."
+  echo "Warning: We recommend 8GB RAM for Jibri!"
+  MEM_MIN="N"
+else
+  echo "Memory: OK ($((mem_available/1024)) MiB)"
+  MEM_MIN="Y"
+fi
+if [ $CPU_MIN="Y" ] && [ $MEM_MIN="Y" ];then
+    echo "All requirements seems meet!"
+    echo "We hope you have a nice recording/streaming session"
+else
+    echo "Seems CPU/RAM requirements are NOT meet!"
+    echo "Even when you can use the videconference sessions, we advice to increase the resoruces in order to user Jibri."
+    while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
+    do
+    read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
+    if [ "$CONTINUE_LOW_RES" = "no" ]; then
+            echo "See you next time with more resources!..."
+    elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
+            echo "Please keep in mind that trying to use Jibri with low resources might fail."
+    fi
+    done
+fi
 #Prosody repository
 echo "Add Prosody repo"
 if [ "$PROSODY_REPO" = "main" ]; then
