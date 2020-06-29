@@ -172,6 +172,7 @@ else
     read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
     if [ "$CONTINUE_LOW_RES" = "no" ]; then
             echo "See you next time with more resources!..."
+            exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
             echo "Please keep in mind that trying to use Jibri with low resources might fail."
     fi
