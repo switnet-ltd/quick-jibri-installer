@@ -141,12 +141,57 @@ echo "$(lsb_release -sc), even when it's compatible and functional.
 We suggest to use the next (LTS) release, for longer support and security reasons."
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
+#Check resources
+echo "Verifying System Resources:"
+if [ "$(nproc --all)" -lt 4 ];then
+  echo "Warning: The system do not meet the minimum requirements for Jibri to run."
+  echo "Warning: We recommend 4 cores/threads for Jibri!"
+  CPU_MIN="N"
+else
+  echo "CPU Cores/Threads: OK ($(nproc --all))"
+  CPU_MIN="Y"
+fi
+### Test RAM size (8GB min) ###
+mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
+if [ ${mem_available} -lt 7700000 ]; then
+  echo "Warning: The system do not meet the minimum requirements for Jibri to run."
+  echo "Warning: We recommend 8GB RAM for Jibri!"
+  MEM_MIN="N"
+else
+  echo "Memory: OK ($((mem_available/1024)) MiB)"
+  MEM_MIN="Y"
+fi
+if [ $CPU_MIN="Y" ] && [ $MEM_MIN="Y" ];then
+    echo "All requirements seems meet!"
+    echo "We hope you have a nice recording/streaming session"
+else
+    echo "Seems CPU/RAM requirements are NOT meet!"
+    echo "Even when you can use the videconference sessions, we advice to increase the resoruces in order to user Jibri."
+    while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
+    do
+    read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
+    if [ "$CONTINUE_LOW_RES" = "no" ]; then
+            echo "See you next time with more resources!..."
+            exit
+    elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
+            echo "Please keep in mind that trying to use Jibri with low resources might fail."
+    fi
+    done
+fi
+#Prosody repository
+echo "Add Prosody repo"
+if [ "$PROSODY_REPO" = "main" ]; then
+	echo "Prosody repository already installed"
+else
+	echo "deb http://packages.prosody.im/debian $(lsb_release -sc) main" > /etc/apt/sources.list.d/prosody.list
+	wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
+fi
 # Jitsi-Meet Repo
-echo "Add Jitsi key"
-if [ "$JITSI_REPO" = "stable" ]; then
+echo "Add Jitsi repo"
+if [ "$JITSI_REPO" = "unstable" ]; then
 	echo "Jitsi stable repository already installed"
 else
-	echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
+	echo 'deb http://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 fi
 #Default to LE SSL?
@@ -155,7 +200,7 @@ do
 read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)"$'\n' -r LE_SSL
 if [ $LE_SSL = yes ]; then
 	echo "We'll defaul to Let's Encrypt SSL cers."
-elif [ $LE_SSL = no ]; then
+else
 	echo "We'll let you choose later on for it."
 fi
 done
@@ -260,7 +305,7 @@ echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
 
 echo '
 ########################################################################
-                    Please Setup Your Instalation
+                    Please Setup Your Installation
 ########################################################################
 '
 # MEET / JIBRI SETUP
@@ -306,14 +351,14 @@ fi
 done
 #SSL LE
 if [ "$LE_SSL" = "yes" ]; then
-	ENABLE_SSL=yes
+    ENABLE_SSL=yes
 else
         while [[ "$ENABLE_SSL" != "yes" && "$ENABLE_SSL" != "no" ]]
         do
         read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
         if [ "$ENABLE_SSL" = "no" ]; then
 	    echo "Please run letsencrypt.sh manually post-installation."
-        elif [ "$ENABLE_SSL" = "yes" ]; then
+        else
             echo "SSL will be enabled."
         fi
         done
@@ -360,7 +405,7 @@ done
 #Enable static avatar
 while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
-read -p "> Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
+read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
 if [ "$ENABLE_SA" = "no" ]; then
 	echo "Static avatar won't be enabled"
 elif [ "$ENABLE_SA" = "yes" ]; then
@@ -700,12 +745,23 @@ fi
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #Setup secure rooms
+SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+SRP_END=$((SRP_STR + 10))
+sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+
 cat << P_SR >> $PROSODY_FILE
-VirtualHost "$DOMAIN"
-    authentication = "internal_plain"
 
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
+
+    speakerstats_component = "speakerstats.$DOMAIN"
+	conference_duration_component = "conferenceduration.$DOMAIN"
+
+	modules_enabled = {
+		"muc_size";
+		"speakerstats";
+		"conference_duration";
+	}
     c2s_require_encryption = false
 P_SR
 #Secure room initial user
