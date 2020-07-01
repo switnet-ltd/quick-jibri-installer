@@ -101,7 +101,15 @@ fi
 var_dlim() {
     grep -n $1 add-jibri-node.sh|head -n1|cut -d ":" -f1
 }
-
+add_prosody_repo() {
+echo "Add Prosody repo"
+if [ "$PROSODY_REPO" = "main" ]; then
+	echo "Prosody repository already installed"
+else
+	echo "deb http://packages.prosody.im/debian $(lsb_release -sc) main" > /etc/apt/sources.list.d/prosody.list
+	wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
+fi
+}
 clear
 echo '
 ########################################################################
@@ -183,13 +191,7 @@ else
     done
 fi
 #Prosody repository
-echo "Add Prosody repo"
-if [ "$PROSODY_REPO" = "main" ]; then
-	echo "Prosody repository already installed"
-else
-	echo "deb http://packages.prosody.im/debian $(lsb_release -sc) main" > /etc/apt/sources.list.d/prosody.list
-	wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
-fi
+#add_prosody_repo
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
 if [ "$JITSI_REPO" = "unstable" ]; then
