@@ -161,7 +161,7 @@ else
   echo "Memory: OK ($((mem_available/1024)) MiB)"
   MEM_MIN="Y"
 fi
-if [ $CPU_MIN="Y" ] && [ $MEM_MIN="Y" ];then
+if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     echo "All requirements seems meet!"
     echo "We hope you have a nice recording/streaming session"
 else
