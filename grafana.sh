@@ -113,3 +113,5 @@ for d in "${ds[@]}"; do
         \"pluginId\":\"influxdb\",\"value\":\"$grafana_datasource\"}]}" \
     $grafana_host/api/dashboards/import; echo ""
 done
+
+echo "Go check on http://$PUBLIC_IP:3000 to review configuration and dashboards."
