@@ -50,7 +50,7 @@ done
 DISTRO_RELEASE="$(lsb_release -sc)"
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 PHPVER="7.4"
-MDBVER="10.4"
+PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+" -f1)"
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
@@ -86,16 +86,6 @@ if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" =
 		apt-get -yq2 install $1
 fi
 }
-add_mariadb() {
-	if [ "$(dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-		echo "MariaDB already installed"
-	else
-		echo "# Adding MariaDB $MDBVER repository"
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com C74CD1D8
-		echo "deb [arch=amd64] http://ftp.ddg.lth.se/mariadb/repo/$MDBVER/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/mariadb.list
-		apt-get update -q2
-	fi
-}
 add_php74() {
 	if [ "$(dpkg-query -W -f='${Status}' "php$PHPVER-fpm" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 		echo "PHP $PHPVER already installed"
@@ -107,15 +97,13 @@ add_php74() {
 	fi
 }
 #Prevent root folder permission issues
-cp $PWD/files/patch_425_3dty.patch /tmp
 cp $PWD/files/jra-nc-app-ef.json /tmp
 
-exit_ifinstalled mariadb-server
+exit_ifinstalled postgresql-$PSGVER
 
 ## Install software requirements
-# MariaDB
-add_mariadb
-install_ifnot mariadb-server-$MDBVER
+# PostgresSQL
+install_ifnot postgresql-$PSGVER
 
 # PHP 7.4
 add_php74
@@ -129,7 +117,7 @@ apt-get install -y \
 			php$PHPVER-json \
 			php$PHPVER-ldap \
 			php$PHPVER-mbstring \
-			php$PHPVER-mysql \
+			php$PHPVER-pgsql \
 			php$PHPVER-soap \
 			php$PHPVER-xml \
 			php$PHPVER-xmlrpc \
@@ -182,18 +170,15 @@ systemctl restart php$PHPVER-fpm.service
 # Create MySQL user
 #--------------------------------------------------
 
-echo -e "\n---- Creating the MariaDB User  ----"
+echo -e "\n---- Creating the PgSQL DB & User  ----"
 
-mysql -u root <<DB
+sudo -u postgres psql <<DB
 CREATE DATABASE nextcloud_db;
-CREATE USER ${NC_DB_USER}@localhost IDENTIFIED BY '${NC_DB_PASSWD}';
-GRANT ALL PRIVILEGES ON ${NC_DB}.* TO '${NC_DB_USER}'@'localhost';
-FLUSH PRIVILEGES;
+CREATE USER ${NC_DB_USER} WITH ENCRYPTED PASSWORD '${NC_DB_PASSWD}';
+GRANT ALL PRIVILEGES ON DATABASE ${NC_DB} TO ${NC_DB_USER};
 DB
 echo "Done!
 "
-#Tune MariaDB
-#mysql_secure_installation
 
 #nginx - configuration
 cat << NC_NGINX > $NC_NGINX_CONF
@@ -376,17 +361,11 @@ mv nextcloud $NC_PATH
 chown -R www-data:www-data $NC_PATH
 chmod -R 755 $NC_PATH
 
-if $(dpkg --compare-versions "$NCVERSION" "le" "18.0.3"); then 
-echo "
--> Patching #425 (scssphp/src/Compiler.php)..."
-sudo -u www-data patch -d "$NC_PATH/3rdparty/leafo/scssphp/src/" -p0  < /tmp/patch_425_3dty.patch
-fi
-
 echo "
 Database installation...
 "
 sudo -u www-data php $NC_PATH/occ maintenance:install \
---database=mysql \
+--database=pgsql \
 --database-name="$NC_DB" \
 --database-user="$NC_DB_USER" \
 --database-pass="$NC_DB_PASSWD" \
