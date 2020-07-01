@@ -190,6 +190,8 @@ else
     fi
     done
 fi
+#Prosody repository
+#add_prosody_repo
 # Jitsi-Meet Repo
 echo "Add Jitsi key"
 if [ "$JITSI_REPO" = "stable" ]; then
