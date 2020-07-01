@@ -144,8 +144,10 @@ fi
 #Check resources
 echo "Verifying System Resources:"
 if [ "$(nproc --all)" -lt 4 ];then
-  echo "Warning!: The system do not meet the minimum requirements for Jibri to run."
-  echo ">> We recommend 4 cores/threads for Jibri!"
+  echo "
+Warning!: The system do not meet the minimum requirements for Jibri to run.
+>> We recommend 4 cores/threads for Jibri!
+"
   CPU_MIN="N"
 else
   echo "CPU Cores/Threads: OK ($(nproc --all))"
@@ -154,8 +156,10 @@ fi
 ### Test RAM size (8GB min) ###
 mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
 if [ ${mem_available} -lt 7700000 ]; then
-  echo "Warning!: The system do not meet the minimum requirements for Jibri to run."
-  echo ">> We recommend 8GB RAM for Jibri!"
+  echo "
+Warning!: The system do not meet the minimum requirements for Jibri to run.
+>> We recommend 8GB RAM for Jibri!
+"
   MEM_MIN="N"
 else
   echo "Memory: OK ($((mem_available/1024)) MiB)"
