@@ -95,13 +95,13 @@ systemctl restart jitsi-videobridge2
 curl 'http://admin:admin@localhost:3000/api/datasources' -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' \
 --data-binary \
-'{"name":"InfluxDB","type":"influxdb","url":"http://localhost","access":"proxy","isDefault":true,"database":"jitsi"}'
+'{"name":"InfluxDB","type":"influxdb","url":"http://localhost:8086","access":"proxy","isDefault":true,"database":"jitsi"}'
 
 # Add Grafana Dashboard
 ### Please edit grafana_* variables to match your Grafana setup:
 grafana_host="http://localhost:3000"
 grafana_cred="admin:admin"
-grafana_datasource="jitsi"
+grafana_datasource="InfluxDB"
 ds=(11969);
 for d in "${ds[@]}"; do
   echo -n "Processing $d: "
