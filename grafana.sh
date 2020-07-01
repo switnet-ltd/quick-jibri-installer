@@ -11,22 +11,24 @@ MAIN_TEL="/etc/telegraf/telegraf.conf"
 TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
 PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 
-#
-apt update && apt install -y gnupg2 curl wget
+# Min requirements
+apt update && apt install -y gnupg2 curl wget jq
+
+# InfluxDB Repo
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt update && apt install influxdb -y
 systemctl enable --now influxdb
 systemctl status influxdb
 
-#
+# Grafana Repo
 curl -s https://packages.grafana.com/gpg.key | sudo apt-key add -
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
 apt update && apt install grafana -y
 systemctl enable --now grafana-server
 systemctl status grafana-server
 
-#
+# Telegraf Repo
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt update && apt install telegraf -y
@@ -84,7 +86,7 @@ systemctl enable --now telegraf
 systemctl status telegraf
 
 
-sed -i "s|JVB_OPTS=\"--apis.*|JVB_OPTS=\"--apis=rest,xmpp\"" /etc/jitsi/videobridge/config
+sed -i "s|JVB_OPTS=\"--apis.*|JVB_OPTS=\"--apis=rest,xmpp\"|" /etc/jitsi/videobridge/config
 sed -i "s|TRANSPORT=muc|TRANSPORT=muc,colibri|" /etc/jitsi/videobridge/sip-communicator.properties
 
 systemctl restart jitsi-videobridge2
@@ -93,7 +95,7 @@ systemctl restart jitsi-videobridge2
 curl 'http://admin:admin@localhost:3000/api/datasources' -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' \
 --data-binary \
-'{"name":"InfluxDB","type":"datasource","url":"http://localhost","access":"proxy","isDefault":true,"database":"jitsi"}'
+'{"name":"InfluxDB","type":"influxdb","url":"http://localhost","access":"proxy","isDefault":true,"database":"jitsi"}'
 
 # Add Grafana Dashboard
 ### Please edit grafana_* variables to match your Grafana setup:
