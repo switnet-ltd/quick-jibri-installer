@@ -4,11 +4,14 @@
 # https://community.jitsi.org/t/how-to-to-setup-grafana-dashboards-to-monitor-jitsi-my-comprehensive-tutorial-for-the-beginner/
 # by Woodworker_Life
 # Woodworker_Life © - 2020
+# Jitsi Metrics - Grafana dashboard by mephisto
+# https://grafana.com/grafana/dashboards/11969
 # SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
 
 MAIN_TEL="/etc/telegraf/telegraf.conf"
 TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
+GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 
 # Min requirements
@@ -85,22 +88,28 @@ JITSI_TELEGRAF
 systemctl enable --now telegraf
 systemctl status telegraf
 
-
+# Setup videobridge  options
 sed -i "s|JVB_OPTS=\"--apis.*|JVB_OPTS=\"--apis=rest,xmpp\"|" /etc/jitsi/videobridge/config
 sed -i "s|TRANSPORT=muc|TRANSPORT=muc,colibri|" /etc/jitsi/videobridge/sip-communicator.properties
-
 systemctl restart jitsi-videobridge2
 
+# Grafana Setup
+# Reset Grafana admin password
+curl -X PUT -H "Content-Type: application/json" -d '{
+  "oldPassword": "admin",
+  "newPassword": "$GRAFANA_PASS",
+  "confirmNew": "$GRAFANA_PASS"
+}' http://admin:admin@localhost:3000/api/user/password
+
 # Create InfluxDB datasource
-curl 'http://admin:admin@localhost:3000/api/datasources' -X \
+curl 'http://admin:$GRAFANA_PASS@localhost:3000/api/datasources' -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' \
 --data-binary \
 '{"name":"InfluxDB","type":"influxdb","url":"http://localhost:8086","access":"proxy","isDefault":true,"database":"jitsi"}'
 
 # Add Grafana Dashboard
-### Please edit grafana_* variables to match your Grafana setup:
 grafana_host="http://localhost:3000"
-grafana_cred="admin:admin"
+grafana_cred="admin:$GRAFANA_PASS"
 grafana_datasource="InfluxDB"
 ds=(11969);
 for d in "${ds[@]}"; do
@@ -114,4 +123,6 @@ for d in "${ds[@]}"; do
     $grafana_host/api/dashboards/import; echo ""
 done
 
-echo "Go check on http://$PUBLIC_IP:3000 to review configuration and dashboards."
+echo "
+Go check on http://$PUBLIC_IP:3000 to review configuration and dashboards.
+"
