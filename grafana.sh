@@ -151,8 +151,7 @@ curl -X PUT -H "Content-Type: application/json" -d "{
   \"oldPassword\": \"admin\",
   \"newPassword\": \"$GRAFANA_PASS\",
   \"confirmNew\": \"$GRAFANA_PASS\"
-}" http://admin:admin@localhost:3000/api/user/password
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
+}" http://admin:admin@localhost:3000/grafana/api/user/password
 
 echo "
 # Create InfluxDB datasource
@@ -166,13 +165,12 @@ POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 	"access":"proxy",
 	"isDefault":true,
 	"database":"jitsi"
-}' http://admin:$GRAFANA_PASS@localhost:3000/api/datasources
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
+}' http://admin:$GRAFANA_PASS@localhost:3000/grafana/api/datasources
 
 echo "
 # Add Grafana Dashboard
 "
-grafana_host="http://localhost:3000"
+grafana_host="http://localhost:3000/grafana"
 grafana_cred="admin:$GRAFANA_PASS"
 grafana_datasource="InfluxDB"
 ds=(11969);
@@ -186,7 +184,6 @@ for d in "${ds[@]}"; do
         \"pluginId\":\"influxdb\",\"value\":\"$grafana_datasource\"}]}" \
     $grafana_host/api/dashboards/import; echo ""
 done
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 echo "
 Go check:
