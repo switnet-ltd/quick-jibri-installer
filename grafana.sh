@@ -9,6 +9,20 @@
 # SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
 
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo ./grafana.sh [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
+
 MAIN_TEL="/etc/telegraf/telegraf.conf"
 TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
 GRAFANA_INI="/etc/grafana/grafana.ini"
@@ -138,6 +152,7 @@ curl -X PUT -H "Content-Type: application/json" -d "{
   \"newPassword\": \"$GRAFANA_PASS\",
   \"confirmNew\": \"$GRAFANA_PASS\"
 }" http://admin:admin@localhost:3000/api/user/password
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 echo "
 # Create InfluxDB datasource
@@ -152,6 +167,7 @@ POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 	"isDefault":true,
 	"database":"jitsi"
 }' http://admin:$GRAFANA_PASS@localhost:3000/api/datasources
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 echo "
 # Add Grafana Dashboard
@@ -170,6 +186,7 @@ for d in "${ds[@]}"; do
         \"pluginId\":\"influxdb\",\"value\":\"$grafana_datasource\"}]}" \
     $grafana_host/api/dashboards/import; echo ""
 done
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 echo "
 Go check:
