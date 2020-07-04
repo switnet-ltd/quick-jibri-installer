@@ -17,26 +17,27 @@ PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 # Min requirements
 apt update && apt install -y gnupg2 curl wget jq
 
-# InfluxDB Repo
+echo "# Setup InfluxDB Packages"
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt update && apt install influxdb -y
 systemctl enable --now influxdb
 systemctl status influxdb
 
-# Grafana Repo
+echo "#  Setup Grafana Packages"
 curl -s https://packages.grafana.com/gpg.key | sudo apt-key add -
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
 apt update && apt install grafana -y
 systemctl enable --now grafana-server
 systemctl status grafana-server
 
-# Telegraf Repo
+echo "# Setup Telegraf Packages"
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt update && apt install telegraf -y
 mv /etc/telegraf/telegraf.conf /etc/telegraf/telegraf.conf.original
 
+echo "# Setup Telegraf config files"
 cat << TELEGRAF > $MAIN_TEL
 [global_tags]
 
@@ -88,12 +89,12 @@ JITSI_TELEGRAF
 systemctl enable --now telegraf
 systemctl status telegraf
 
-# Setup videobridge  options
+echo "# Setup videobridge  options"
 sed -i "s|JVB_OPTS=\"--apis.*|JVB_OPTS=\"--apis=rest,xmpp\"|" /etc/jitsi/videobridge/config
 sed -i "s|TRANSPORT=muc|TRANSPORT=muc,colibri|" /etc/jitsi/videobridge/sip-communicator.properties
 systemctl restart jitsi-videobridge2
 
-# Grafana Setup
+echo "# Setup Grafana credentials."
 # Reset Grafana admin password
 curl -X PUT -H "Content-Type: application/json" -d '{
   "oldPassword": "admin",
@@ -101,13 +102,13 @@ curl -X PUT -H "Content-Type: application/json" -d '{
   "confirmNew": "$GRAFANA_PASS"
 }' http://admin:admin@localhost:3000/api/user/password
 
-# Create InfluxDB datasource
+echo "# Create InfluxDB datasource"
 curl "http://admin:$GRAFANA_PASS@localhost:3000/api/datasources" -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' \
 --data-binary \
 '{"name":"InfluxDB","type":"influxdb","url":"http://localhost:8086","access":"proxy","isDefault":true,"database":"jitsi"}'
 
-# Add Grafana Dashboard
+echo "# Add Grafana Dashboard"
 grafana_host="http://localhost:3000"
 grafana_cred="admin:$GRAFANA_PASS"
 grafana_datasource="InfluxDB"
