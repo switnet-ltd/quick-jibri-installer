@@ -14,7 +14,7 @@ TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
 GRAFANA_INI="/etc/grafana/grafana.ini"
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
-GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
+GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*" < /dev/urandom | fold -w 14 | head -n1)"
 
 # Min requirements
 apt update && apt install -y gnupg2 curl wget jq
@@ -25,7 +25,7 @@ echo "
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt update && apt install influxdb -y
-systemctl enable --now influxdb
+systemctl enable influxdb
 systemctl status influxdb
 
 echo "
@@ -34,7 +34,7 @@ echo "
 curl -s https://packages.grafana.com/gpg.key | sudo apt-key add -
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
 apt update && apt install grafana -y
-systemctl enable --now grafana-server
+systemctl enable grafana-server
 systemctl status grafana-server
 
 echo "
@@ -137,15 +137,21 @@ curl -X PUT -H "Content-Type: application/json" -d "{
   \"oldPassword\": \"admin\",
   \"newPassword\": \"$GRAFANA_PASS\",
   \"confirmNew\": \"$GRAFANA_PASS\"
-}" http://admin:admin@http://localhost:3000/api/user/password
+}" http://admin:admin@localhost:3000/api/user/password
 
 echo "
 # Create InfluxDB datasource
 "
-curl "http://admin:$GRAFANA_PASS@http://localhost:3000/api/datasources" -X \
-POST -H 'Content-Type: application/json;charset=UTF-8' \
---data-binary \
-'{"name":"InfluxDB","type":"influxdb","url":"http://localhost:8086","access":"proxy","isDefault":true,"database":"jitsi"}'
+curl -X \
+POST -H 'Content-Type: application/json;charset=UTF-8' -d \
+'{
+	"name":"InfluxDB",
+	"type":"influxdb",
+	"url":"http://localhost:8086",
+	"access":"proxy",
+	"isDefault":true,
+	"database":"jitsi"
+}' http://admin:$GRAFANA_PASS@localhost:3000/api/datasources
 
 echo "
 # Add Grafana Dashboard
