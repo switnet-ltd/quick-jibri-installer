@@ -23,6 +23,11 @@ if [ "$MODE" = "debug" ]; then
 set -x
 fi
 
+run_service() {
+systemclt enable $1
+systemctl restart $1
+systemctl status $1
+}
 MAIN_TEL="/etc/telegraf/telegraf.conf"
 TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
 GRAFANA_INI="/etc/grafana/grafana.ini"
@@ -39,8 +44,7 @@ echo "
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt update && apt install influxdb -y
-systemctl enable influxdb
-systemctl status influxdb
+run_service influxdb
 
 echo "
 #  Setup Grafana Packages
@@ -48,8 +52,7 @@ echo "
 curl -s https://packages.grafana.com/gpg.key | sudo apt-key add -
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
 apt update && apt install grafana -y
-systemctl enable grafana-server
-systemctl status grafana-server
+run_service grafana-server
 
 echo "
 # Setup Telegraf Packages
@@ -110,9 +113,7 @@ cat << JITSI_TELEGRAF > $TEL_JIT
 
 JITSI_TELEGRAF
 
-systemctl enable telegraf
-systemctl restart telegraf
-systemctl status telegraf
+run_service telegraf
 
 echo "
 # Setup videobridge  options
@@ -132,6 +133,7 @@ sed -i "s|;enforce_domain =.*|enforce_domain = false|" $GRAFANA_INI
 sed -i "s|;root_url =.*|root_url = http://$DOMAIN:3000/grafana/|" $GRAFANA_INI
 sed -i "s|;serve_from_sub_path =.*|serve_from_sub_path = true|" $GRAFANA_INI
 systemctl restart grafana-server
+systemctl status grafana-server
 
 if [ -f $WS_CONF ]; then
 	sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
@@ -151,7 +153,7 @@ curl -X PUT -H "Content-Type: application/json" -d "{
   \"oldPassword\": \"admin\",
   \"newPassword\": \"$GRAFANA_PASS\",
   \"confirmNew\": \"$GRAFANA_PASS\"
-}" http://admin:admin@localhost:3000/grafana/api/user/password
+}" http://admin:admin@localhost:3000/api/user/password
 
 echo "
 # Create InfluxDB datasource
@@ -165,12 +167,12 @@ POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 	"access":"proxy",
 	"isDefault":true,
 	"database":"jitsi"
-}' http://admin:$GRAFANA_PASS@localhost:3000/grafana/api/datasources
+}' http://admin:$GRAFANA_PASS@localhost:3000/api/datasources
 
 echo "
 # Add Grafana Dashboard
 "
-grafana_host="http://localhost:3000/grafana"
+grafana_host="http://localhost:3000"
 grafana_cred="admin:$GRAFANA_PASS"
 grafana_datasource="InfluxDB"
 ds=(11969);
