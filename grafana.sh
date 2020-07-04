@@ -114,7 +114,7 @@ sed -i "s|;protocol =.*|protocol = http|" $GRAFANA_INI
 sed -i "s|;http_addr =.*|http_addr = localhost|" $GRAFANA_INI
 sed -i "s|;http_port =.*|http_port = 3000|" $GRAFANA_INI
 sed -i "s|;domain =.*|domain = $DOMAIN|" $GRAFANA_INI
-sed -i "s|;enforce_domain =.*|enforce_domain = true|" $GRAFANA_INI
+sed -i "s|;enforce_domain =.*|enforce_domain = false|" $GRAFANA_INI
 sed -i "s|;root_url =.*|root_url = http://$DOMAIN:3000/grafana/|" $GRAFANA_INI
 sed -i "s|;serve_from_sub_path =.*|serve_from_sub_path = true|" $GRAFANA_INI
 systemctl restart grafana-server
@@ -123,7 +123,8 @@ if [ -f $WS_CONF ]; then
 	sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
 	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" $WS_CONF
 	sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
-	systemctl reload nginx
+	sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+	systemctl restart nginx
 else
 	echo "No app configuration done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
@@ -136,12 +137,12 @@ curl -X PUT -H "Content-Type: application/json" -d "{
   \"oldPassword\": \"admin\",
   \"newPassword\": \"$GRAFANA_PASS\",
   \"confirmNew\": \"$GRAFANA_PASS\"
-}" http://admin:admin@localhost:3000/api/user/password
+}" http://admin:admin@http://localhost:3000/api/user/password
 
 echo "
 # Create InfluxDB datasource
 "
-curl "http://admin:$GRAFANA_PASS@localhost:3000/api/datasources" -X \
+curl "http://admin:$GRAFANA_PASS@http://localhost:3000/api/datasources" -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' \
 --data-binary \
 '{"name":"InfluxDB","type":"influxdb","url":"http://localhost:8086","access":"proxy","isDefault":true,"database":"jitsi"}'
@@ -166,7 +167,9 @@ done
 
 echo "
 Go check:
-    http://$DOMAIN/grafana/
+
+>>    http://$DOMAIN/grafana/
+
 (emphasis on the trailing \"/\") to review configuration and dashboards.
 
 User: admin
