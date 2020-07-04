@@ -15,7 +15,6 @@ GRAFANA_INI="/etc/grafana/grafana.ini"
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
-PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 
 # Min requirements
 apt update && apt install -y gnupg2 curl wget jq
