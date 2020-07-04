@@ -125,4 +125,8 @@ done
 
 echo "
 Go check on http://$PUBLIC_IP:3000 to review configuration and dashboards.
+User: admin
+Password: $GRAFANA_PASS
+
+Please save it somewhere safe.
 "
