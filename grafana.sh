@@ -102,7 +102,7 @@ curl -X PUT -H "Content-Type: application/json" -d '{
 }' http://admin:admin@localhost:3000/api/user/password
 
 # Create InfluxDB datasource
-curl 'http://admin:$GRAFANA_PASS@localhost:3000/api/datasources' -X \
+curl "http://admin:$GRAFANA_PASS@localhost:3000/api/datasources" -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' \
 --data-binary \
 '{"name":"InfluxDB","type":"influxdb","url":"http://localhost:8086","access":"proxy","isDefault":true,"database":"jitsi"}'
