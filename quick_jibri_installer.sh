@@ -462,6 +462,17 @@ elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
 	echo "Jigasi Transcription will be enabled."
 fi
 done
+#Grafana
+while [[ "$ENABLE_GRAFANA_DSH" != "yes" && "$ENABLE_GRAFANA_DSH" != "no" ]]
+do
+read -p "> Do you want to setup Grafana Dashboard: (yes or no)
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
+if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
+	echo "Grafana Dashboard won't be enabled."
+elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
+	echo "Grafana Dashboard will be enabled."
+fi
+done
 #Start configuration
 echo '
 ########################################################################
@@ -817,6 +828,11 @@ if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
 	bash $PWD/jigasi.sh
 fi
 {
+#Grafana Dashboard
+if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
+	echo "Grafana Dashboard will be enabled."
+	bash $PWD/grafana.sh
+fi
 #Prevent Jibri conecction issue
 sed -i "/127.0.0.1/a \\
 127.0.0.1       $DOMAIN" /etc/hosts
