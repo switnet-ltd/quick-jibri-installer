@@ -331,6 +331,11 @@ LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
 MOD_LIST_FILE="/usr/lib/prosody/modules/mod_listusers.lua"
 ENABLE_SA="yes"
+#Sysadmin email
+while [[ -z $SYSADMIN_EMAIL ]]
+do
+read -p "Set sysadmin email (this is a mandatory field):"$'\n' -r SYSADMIN_EMAIL
+done
 #Language
 echo "## Setting up Jitsi Meet language ##
 You can define the language, for a complete list of the supported languages
@@ -341,10 +346,6 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 Jitsi Meet web interface will be set to use such language.
 "
 read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r LANG
-while [[ -z $SYSADMIN_EMAIL ]]
-do
-read -p "Set sysadmin email (this is a mandatory field):"$'\n' -r SYSADMIN_EMAIL
-done
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
