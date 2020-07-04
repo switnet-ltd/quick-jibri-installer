@@ -133,7 +133,6 @@ sed -i "s|;enforce_domain =.*|enforce_domain = false|" $GRAFANA_INI
 sed -i "s|;root_url =.*|root_url = http://$DOMAIN:3000/grafana/|" $GRAFANA_INI
 sed -i "s|;serve_from_sub_path =.*|serve_from_sub_path = true|" $GRAFANA_INI
 systemctl restart grafana-server
-systemctl status grafana-server
 
 if [ -f $WS_CONF ]; then
 	sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
@@ -149,11 +148,12 @@ fi
 echo "
 # Setup Grafana credentials.
 "
-curl -X PUT -H "Content-Type: application/json" -d "{
+curl -X PUT -H "Content-Type: application/json;charset=UTF-8" -d \
+"{
   \"oldPassword\": \"admin\",
   \"newPassword\": \"$GRAFANA_PASS\",
   \"confirmNew\": \"$GRAFANA_PASS\"
-}" http://admin:admin@localhost:3000/api/user/password
+}" http://admin:admin@localhost:3000/api/user/password; echo ""
 
 echo "
 # Create InfluxDB datasource
@@ -161,13 +161,13 @@ echo "
 curl -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 '{
-	"name":"InfluxDB",
-	"type":"influxdb",
-	"url":"http://localhost:8086",
-	"access":"proxy",
-	"isDefault":true,
-	"database":"jitsi"
-}' http://admin:$GRAFANA_PASS@localhost:3000/api/datasources
+	"name": "InfluxDB",
+	"type": "influxdb",
+	"url": "http://localhost:8086",
+	"access": "proxy",
+	"isDefault": true,
+	"database": "jitsi"
+}' http://admin:$GRAFANA_PASS@localhost:3000/api/datasources; echo ""
 
 echo "
 # Add Grafana Dashboard
@@ -181,10 +181,16 @@ for d in "${ds[@]}"; do
   j=$(curl -s -k -u "$grafana_cred" $grafana_host/api/gnet/dashboards/$d | jq .json)
   curl -s -k -u "$grafana_cred" -XPOST -H "Accept: application/json" \
     -H "Content-Type: application/json" \
-    -d "{\"dashboard\":$j,\"overwrite\":true, \
-        \"inputs\":[{\"name\":\"DS_INFLUXDB\",\"type\":\"datasource\", \
-        \"pluginId\":\"influxdb\",\"value\":\"$grafana_datasource\"}]}" \
-    $grafana_host/api/dashboards/import; echo ""
+    -d "{
+    \"dashboard\": $j,
+    \"overwrite\": true,
+    \"inputs\": [{
+        \"name\": \"DS_INFLUXDB\",
+        \"type\": \"datasource\",
+        \"pluginId\": \"influxdb\",
+        \"value\": \"$grafana_datasource\"
+        }]
+    }" $grafana_host/api/dashboards/import; echo ""
 done
 
 echo "
