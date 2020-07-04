@@ -11,6 +11,9 @@
 
 MAIN_TEL="/etc/telegraf/telegraf.conf"
 TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
+GRAFANA_INI="/etc/grafana/grafana.ini"
+DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 
@@ -106,17 +109,35 @@ sed -i "s|TRANSPORT=muc|TRANSPORT=muc,colibri|" /etc/jitsi/videobridge/sip-commu
 systemctl restart jitsi-videobridge2
 
 echo "
+# Setup Grafana nginx domain
+"
+sed -i "s|;protocol =.*|protocol = http|" $GRAFANA_INI
+sed -i "s|;http_addr =.*|http_addr = localhost|" $GRAFANA_INI
+sed -i "s|;http_port =.*|http_port = 3000|" $GRAFANA_INI
+sed -i "s|;domain =.*|domain = $DOMAIN|" $GRAFANA_INI
+sed -i "s|;enforce_domain =.*|enforce_domain = true|" $GRAFANA_INI
+sed -i "s|;root_url =.*|root_url = http://$DOMAIN:3000/grafana/|" $GRAFANA_INI
+sed -i "s|;serve_from_sub_path =.*|serve_from_sub_path = true|" $GRAFANA_INI
+systemctl restart grafana-server
+
+if [ -f $WS_CONF ]; then
+	sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
+	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" $WS_CONF
+	sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
+	systemctl reload nginx
+else
+	echo "No app configuration done to server file, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+fi
+
+echo "
 # Setup Grafana credentials.
 "
-# Reset Grafana admin password
-#grafana-cli admin reset-admin-password $GRAFANA_PASS
-set -x
 curl -X PUT -H "Content-Type: application/json" -d "{
   \"oldPassword\": \"admin\",
   \"newPassword\": \"$GRAFANA_PASS\",
   \"confirmNew\": \"$GRAFANA_PASS\"
 }" http://admin:admin@localhost:3000/api/user/password
-set +x
 
 echo "
 # Create InfluxDB datasource
@@ -145,9 +166,13 @@ for d in "${ds[@]}"; do
 done
 
 echo "
-Go check on http://$PUBLIC_IP:3000 to review configuration and dashboards.
+Go check:
+    http://$DOMAIN/grafana/
+(emphasis on the trailing \"/\") to review configuration and dashboards.
+
 User: admin
 Password: $GRAFANA_PASS
 
 Please save it somewhere safe.
 "
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
