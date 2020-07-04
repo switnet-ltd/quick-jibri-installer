@@ -144,8 +144,15 @@ sed -i "s|;domain =.*|domain = $DOMAIN|" $GRAFANA_INI
 sed -i "s|;enforce_domain =.*|enforce_domain = false|" $GRAFANA_INI
 sed -i "s|;root_url =.*|root_url = http://$DOMAIN:3000/grafana/|" $GRAFANA_INI
 sed -i "s|;serve_from_sub_path =.*|serve_from_sub_path = true|" $GRAFANA_INI
+
 systemctl restart grafana-server
-systemctl status grafana-server
+echo "Waiting for Grafana to load..."
+secs=$((10))
+while [ $secs -gt 0 ]; do
+   echo -ne "$secs\033[0K\r"
+   sleep 1
+   : $((secs--))
+done
 
 if [ -f $WS_CONF ]; then
 	sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
