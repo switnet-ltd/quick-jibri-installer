@@ -23,6 +23,18 @@ if [ "$MODE" = "debug" ]; then
 set -x
 fi
 
+if ! [ $(id -u) = 0 ]; then
+   echo "You need to be root or have sudo privileges!"
+   exit 0
+fi
+
+clear
+echo '
+########################################################################
+                      Grafana Dashboard addon
+########################################################################
+                    by Software, IT & Networks Ltd
+'
 run_service() {
 systemclt enable $1
 systemctl restart $1
@@ -33,7 +45,7 @@ TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
 GRAFANA_INI="/etc/grafana/grafana.ini"
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
-GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*" < /dev/urandom | fold -w 14 | head -n1)"
+GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 
 # Min requirements
 apt update && apt install -y gnupg2 curl wget jq
@@ -158,7 +170,7 @@ curl -X PUT -H "Content-Type: application/json;charset=UTF-8" -d \
 echo "
 # Create InfluxDB datasource
 "
-curl -X \
+curl -s -k -u "admin:$GRAFANA_PASS" -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 '{
 	"name": "InfluxDB",
@@ -167,7 +179,7 @@ POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 	"access": "proxy",
 	"isDefault": true,
 	"database": "jitsi"
-}' http://admin:$GRAFANA_PASS@localhost:3000/api/datasources; echo ""
+}' http://localhost:3000/api/datasources; echo ""
 
 echo "
 # Add Grafana Dashboard
