@@ -39,7 +39,7 @@ echo '
                     by Software, IT & Networks Ltd
 '
 run_service() {
-systemclt enable $1
+systemctl enable $1
 systemctl restart $1
 systemctl status $1
 }
