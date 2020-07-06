@@ -1,12 +1,15 @@
 #!/bin/bash
-# Grafana Installer
+# Grafana Installer for Jitsi Meet
+#
 # Based on:
-# https://community.jitsi.org/t/how-to-to-setup-grafana-dashboards-to-monitor-jitsi-my-comprehensive-tutorial-for-the-beginner/
-# by Woodworker_Life
-# Woodworker_Life © - 2020
-# Jitsi Metrics - Grafana dashboard by mephisto
-# https://grafana.com/grafana/dashboards/11969
+# - https://community.jitsi.org/t/38696
+# by Igor Kerstges
+# - https://grafana.com/grafana/dashboards/11969
+# by "mephisto"
+#
+# Igor Kerstges © - 2020
 # SwITNet Ltd © - 2020, https://switnet.net/
+#
 # GPLv3 or later.
 
 while getopts m: option
