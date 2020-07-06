@@ -144,6 +144,7 @@ sed -i "s|;domain =.*|domain = $DOMAIN|" $GRAFANA_INI
 sed -i "s|;enforce_domain =.*|enforce_domain = false|" $GRAFANA_INI
 sed -i "s|;root_url =.*|root_url = http://$DOMAIN:3000/grafana/|" $GRAFANA_INI
 sed -i "s|;serve_from_sub_path =.*|serve_from_sub_path = true|" $GRAFANA_INI
+sed -i "s|;allow_sign_up =.*|allow_sign_up = false|" $GRAFANA_INI
 
 systemctl restart grafana-server
 echo "Waiting for Grafana to load..."
@@ -168,7 +169,7 @@ fi
 echo "
 # Setup Grafana credentials.
 "
-curl -k -u "admin:admin" -X \
+curl -s -k -u "admin:admin" -X \
 PUT -H "Content-Type: application/json;charset=UTF-8" -d \
 "{
   \"oldPassword\": \"admin\",
@@ -179,7 +180,7 @@ PUT -H "Content-Type: application/json;charset=UTF-8" -d \
 echo "
 # Create InfluxDB datasource
 "
-curl -k -u "admin:$GRAFANA_PASS" -X \
+curl -s -k -u "admin:$GRAFANA_PASS" -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 '{
 	"name": "InfluxDB",
@@ -200,7 +201,7 @@ ds=(11969);
 for d in "${ds[@]}"; do
   echo -n "Processing $d: "
   j=$(curl -s -k -u "$grafana_cred" $grafana_host/api/gnet/dashboards/$d | jq .json)
-  curl -k -u "$grafana_cred" -XPOST -H "Accept: application/json" \
+  curl -s -k -u "$grafana_cred" -XPOST -H "Accept: application/json" \
     -H "Content-Type: application/json" \
     -d "{
     \"dashboard\": $j,
