@@ -29,9 +29,10 @@ Please check more details on our wiki.
 * Enabled Jitsi Electron app detection server side.
 * Standalone SSL Certbot/LE implementation
 * Jigasi Transcript - Speech to Text powered by Google API
-* (New) JRA (Jibri Recordings Access) via Nextcloud
-* (New) Customized brandless mode
-* (New) Improved recurring updater
+* JRA (Jibri Recordings Access) via Nextcloud
+* Customized brandless mode
+* Improved recurring updater
+* (New) Grafana Dashboard
 
 
 ## Optional custom changes
