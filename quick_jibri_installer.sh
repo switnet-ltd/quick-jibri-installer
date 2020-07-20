@@ -22,11 +22,13 @@ fi
 # SYSTEM SETUP
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
 CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
+CERTBOT_REL_FILE="http://ppa.launchpad.net/certbcertbot/ubuntu/dists/$(lsb_release -sc)/Release"
 APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
+HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
 
 if [ $DIST = flidas ]; then
 DIST="xenial"
@@ -79,24 +81,6 @@ else
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 }
-update_certbot() {
-	if [ "$CERTBOT_REPO" = "certbot" ]; then
-	echo "
-Cerbot repository already on the system!
-Checking for updates...
-"
-	apt-get -q2 update
-	apt-get -yq2 dist-upgrade
-else
-	echo "
-Adding cerbot (formerly letsencrypt) PPA repository for latest updates
-"
-	echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
-	apt-get -q2 update
-	apt-get -yq2 dist-upgrade
-fi
-}
 # sed limiters for add-jibri-node.sh variables
 var_dlim() {
     grep -n $1 add-jibri-node.sh|head -n1|cut -d ":" -f1
@@ -135,12 +119,14 @@ if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
-if [ "$DIST" = "xenial" ] || [ "$DIST" = "bionic" ]; then
-	echo "OS: $(lsb_release -sd)
-Good, this is a supported platform!"
+if [ "$DIST" = "xenial" ] || \
+   [ "$DIST" = "bionic" ] || \
+   [ "$DIST" = "focal" ]; then
+	echo "OS: $(lsb_release -sd)"
+	echo "Good, this is a supported platform!"
 else
-	echo "OS: $(lsb_release -sd)
-Sorry, this platform is not supported... exiting"
+	echo "OS: $(lsb_release -sd)"
+	echo "Sorry, this platform is not supported... exiting"
 	exit
 fi
 #Suggest 18.04 LTS release over 16.04
@@ -223,10 +209,18 @@ apt-get -y install \
 				git \
 				htop \
 				letsencrypt \
-				linux-image-generic-hwe-$(lsb_release -r|awk '{print$2}') \
-                                linux-modules-extra-virtual-hwe-$(lsb_release -r|awk '{print$2}') \
 				unzip \
 				wget
+
+echo "# Check and Install HWE kernel if possible..."
+if [ "$HWE_VIR_MOD" == "1" ]; then
+    apt-get -y install \
+    linux-image-generic-hwe-$(lsb_release -sr) \
+    linux-modules-extra-virtual-hwe-$(lsb_release -sr)
+    else
+    apt-get -y install \
+    linux-modules-extra-$(uname -r)
+fi
 
 check_serv
 
@@ -505,7 +499,30 @@ echo '
 #Disabled 'til fixed upstream
 #bash /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
 
-update_certbot
+echo "#Set and upgrade certbot PPA if posssible..."
+if [ "$CERTBOT_REPO" = "certbot" ]; then
+	echo "
+Cerbot repository already on the system!
+Checking for updates...
+"
+	apt-get -q2 update
+	apt-get -yq2 dist-upgrade
+else
+	if [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
+		echo "
+Adding cerbot (formerly letsencrypt) PPA repository for latest updates
+"
+		echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
+		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
+		apt-get -q2 update
+		apt-get -yq2 dist-upgrade
+	fi
+	if [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
+		echo "
+Certbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...
+"
+	fi
+fi
 
 else
 echo "SSL setup will be skipped."
