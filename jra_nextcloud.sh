@@ -359,6 +359,7 @@ fi
 
 echo "
   Latest version to be installed: $STABLEVERSION
+  (This might take sometime, please be patient...)
 "
 curl -s $NC_REPO/$STABLEVERSION.zip > /tmp/$STABLEVERSION.zip
 unzip -q /tmp/$STABLEVERSION.zip
