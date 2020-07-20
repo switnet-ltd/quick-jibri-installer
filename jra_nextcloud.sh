@@ -49,6 +49,7 @@ fi
 done
 DISTRO_RELEASE="$(lsb_release -sc)"
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+PHP_REPO=$(apt-cache policy | grep http | grep php | head -n 1 | awk '{print $2}' | cut -d "/" -f5)
 PHPVER="7.4"
 PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+" -f1)"
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
@@ -87,10 +88,12 @@ if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" =
 fi
 }
 add_php74() {
-	if [ "$(dpkg-query -W -f='${Status}' "php$PHPVER-fpm" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+	if [ "$PHP_REPO" = "php" ]; then
 		echo "PHP $PHPVER already installed"
+		apt-get -q2 update
+		apt-get -yq2 dist-upgrade
 	else
-		echo "# Adding PHP $PHPVER Repository"
+		echo "# Adding Ondrej PHP $PHPVER PPA Repository"
 		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com E5267A6C
 		echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php7x.list
 		apt-get update -q2
@@ -108,23 +111,24 @@ install_ifnot postgresql-$PSGVER
 # PHP 7.4
 add_php74
 apt-get install -y \
-			php$PHPVER-fpm \
-			php$PHPVER-bz2 \
-			php$PHPVER-curl \
-			php$PHPVER-gd \
-			php$PHPVER-gmp \
-			php$PHPVER-intl \
-			php$PHPVER-json \
-			php$PHPVER-ldap \
-			php$PHPVER-mbstring \
-			php$PHPVER-pgsql \
-			php$PHPVER-soap \
-			php$PHPVER-xml \
-			php$PHPVER-xmlrpc \
-			php$PHPVER-zip \
-			php-imagick \
-			php-redis \
-			redis-server
+            php$PHPVER-fpm \
+            php$PHPVER-bcmath \
+            php$PHPVER-bz2 \
+            php$PHPVER-curl \
+            php$PHPVER-gd \
+            php$PHPVER-gmp \
+            php$PHPVER-intl \
+            php$PHPVER-json \
+            php$PHPVER-ldap \
+            php$PHPVER-mbstring \
+            php$PHPVER-pgsql \
+            php$PHPVER-soap \
+            php$PHPVER-xml \
+            php$PHPVER-xmlrpc \
+            php$PHPVER-zip \
+            php-imagick \
+            php-redis \
+            redis-server
 
 #System related
 install_ifnot smbclient
@@ -423,6 +427,7 @@ Fixing possible missing tables...
 "
 echo "y"|sudo -u www-data php $NC_PATH/occ db:convert-filecache-bigint
 sudo -u www-data php $NC_PATH/occ db:add-missing-indices
+sudo -u www-data php $NC_PATH/occ db:add-missing-columns
 
 echo "
 Adding trusted domain...
