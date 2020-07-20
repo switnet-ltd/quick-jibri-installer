@@ -21,8 +21,6 @@ fi
 
 # SYSTEM SETUP
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
-CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
-CERTBOT_REL_FILE="http://ppa.launchpad.net/certbcertbot/ubuntu/dists/$(lsb_release -sc)/Release"
 APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
@@ -325,6 +323,9 @@ LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
 MOD_LIST_FILE="/usr/lib/prosody/modules/mod_listusers.lua"
 ENABLE_SA="yes"
+CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
+CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
+GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
 #Sysadmin email
 while [[ -z $SYSADMIN_EMAIL ]]
 do
@@ -447,6 +448,10 @@ elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
 fi
 done
 #Jigasi
+if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
+	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
+thus, Jigasi Transcript can't be enable."
+elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
 while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
 do
 read -p "> Do you want to setup Jigasi Transcription: (yes or no)
@@ -457,6 +462,10 @@ elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
 	echo "Jigasi Transcription will be enabled."
 fi
 done
+else
+	echo "No valid option for Jigasi.Please report this to
+https://github.com/switnet-ltd/quick-jibri-installer/issues "
+fi
 #Grafana
 while [[ "$ENABLE_GRAFANA_DSH" != "yes" && "$ENABLE_GRAFANA_DSH" != "no" ]]
 do
@@ -507,8 +516,7 @@ Checking for updates...
 "
 	apt-get -q2 update
 	apt-get -yq2 dist-upgrade
-else
-	if [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
+elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
 		echo "
 Adding cerbot (formerly letsencrypt) PPA repository for latest updates
 "
@@ -516,12 +524,10 @@ Adding cerbot (formerly letsencrypt) PPA repository for latest updates
 		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
 		apt-get -q2 update
 		apt-get -yq2 dist-upgrade
-	fi
-	if [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
+elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
 		echo "
 Certbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...
 "
-	fi
 fi
 
 else
@@ -847,7 +853,7 @@ if [ "$ENABLE_BLESSM" = "yes" ]; then
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo "Jigasi Transcription will be enabled."
+	echo "JRA via Nextcloud will be enabled."
 	bash $PWD/jra_nextcloud.sh
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
