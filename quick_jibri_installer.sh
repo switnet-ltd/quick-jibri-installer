@@ -449,19 +449,19 @@ fi
 done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
-	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
-thus, Jigasi Transcript can't be enable."
+	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),"
+	echo "thus, Jigasi Transcript can't be enable."
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
-while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
-do
+	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
+	do
 read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
-if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
-	echo "Jigasi Transcription won't be enabled."
-elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-	echo "Jigasi Transcription will be enabled."
-fi
-done
+	if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
+		echo "Jigasi Transcription won't be enabled."
+	elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
+		echo "Jigasi Transcription will be enabled."
+	fi
+	done
 else
 	echo "No valid option for Jigasi.Please report this to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
