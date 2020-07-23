@@ -92,6 +92,9 @@ else
 	wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
 fi
 }
+dpkg-compare() {
+dpkg --compare-versions $(dpkg-query -f='${Version}' --show $1) $2 $3
+}
 clear
 echo '
 ########################################################################
@@ -175,7 +178,7 @@ else
     done
 fi
 #Prosody repository
-#add_prosody_repo
+add_prosody_repo
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
 if [ "$JITSI_REPO" = "unstable" ]; then
@@ -556,6 +559,7 @@ restart_services() {
 
 # Configure Jibri
 ## PROSODY
+if dpkg-compare prosody lt 0.11.0 ; then
 cat  << MUC-JIBRI >> $PROSODY_FILE
 
 -- internal muc component, meant to enable pools of jibri and jigasi clients
@@ -567,7 +571,7 @@ Component "internal.auth.$DOMAIN" "muc"
     muc_room_cache_size = 1000
 
 MUC-JIBRI
-
+fi
 cat  << REC-JIBRI >> $PROSODY_FILE
 
 VirtualHost "recorder.$DOMAIN"
@@ -577,12 +581,17 @@ VirtualHost "recorder.$DOMAIN"
   authentication = "internal_plain"
 
 REC-JIBRI
+#Enable Jibri withelist
+sed -i "s|       -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_SYS
 
 #Fix Jibri conectivity issues
+if dpkg-compare prosody lt 0.11.0 ; then
 sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
 sed -i "/c2s_require_encryption = false/a \\
 \\
 consider_bosh_secure = true" $PROSODY_SYS
+fi
+
 if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
 fi
@@ -790,21 +799,35 @@ SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":
 SRP_END=$((SRP_STR + 10))
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
 
+if dpkg-compare prosody gt 0.11.0 ; then
+#Temporary fix? - https://community.jitsi.org/t/27752/112
+sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
+sed -i"s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
+#EO_TF
 cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
-
+    c2s_require_encryption = false
     speakerstats_component = "speakerstats.$DOMAIN"
-	conference_duration_component = "conferenceduration.$DOMAIN"
+    conference_duration_component = "conferenceduration.$DOMAIN"
 
-	modules_enabled = {
-		"muc_size";
-		"speakerstats";
-		"conference_duration";
-	}
+    modules_enabled = {
+      "speakerstats";
+      "conference_duration";
+      "muc_lobby_rooms";
+    }
+    lobby_muc = "lobby.qj.$DOMAIN"
+    main_muc = "conference.$DOMAIN"
+P_SR
+	else
+cat << P_SR >> $PROSODY_FILE
+
+VirtualHost "guest.$DOMAIN"
+    authentication = "anonymous"
     c2s_require_encryption = false
 P_SR
+fi
 #Secure room initial user
 if [ "$ENABLE_SC" = "yes" ]; then
 echo "Secure rooms are being enabled..."
