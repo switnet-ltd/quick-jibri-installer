@@ -95,6 +95,14 @@ fi
 dpkg-compare() {
 dpkg --compare-versions $(dpkg-query -f='${Version}' --show $1) $2 $3
 }
+wait_seconds() {
+secs=$(($1))
+while [ $secs -gt 0 ]; do
+   echo -ne "$secs\033[0K\r"
+   sleep 1
+   : $((secs--))
+done
+}
 clear
 echo '
 ########################################################################
@@ -162,7 +170,9 @@ else
 fi
 if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     echo "All requirements seems meet!"
-    echo "We hope you have a nice recording/streaming session"
+    echo "
+    - We hope you have a nice recording/streaming session
+    "
 else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
     echo "Even when you can use the videconference sessions, we advice to increase the resoruces in order to user Jibri."
@@ -180,9 +190,11 @@ fi
 #Prosody repository
 add_prosody_repo
 # Jitsi-Meet Repo
-echo "Add Jitsi repo"
+echo "
+Add Jitsi repo
+"
 if [ "$JITSI_REPO" = "unstable" ]; then
-	echo "Jitsi stable repository already installed"
+	echo "Jitsi unstable repository already installed"
 else
 	echo 'deb http://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
@@ -582,15 +594,15 @@ VirtualHost "recorder.$DOMAIN"
 
 REC-JIBRI
 #Enable Jibri withelist
-sed -i "s|       -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_SYS
+sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
 
 #Fix Jibri conectivity issues
-if dpkg-compare prosody lt 0.11.0 ; then
+#if dpkg-compare prosody lt 0.11.0 ; then
 sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
 sed -i "/c2s_require_encryption = false/a \\
 \\
 consider_bosh_secure = true" $PROSODY_SYS
-fi
+#fi
 
 if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
@@ -793,6 +805,7 @@ fi
 
 # Disable "Blur my background" until new notice
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
+#Setup prosody conf file==================================
 
 #Setup secure rooms
 SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
@@ -800,11 +813,7 @@ SRP_END=$((SRP_STR + 10))
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
 
 if dpkg-compare prosody gt 0.11.0 ; then
-#Temporary fix? - https://community.jitsi.org/t/27752/112
-sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
-sed -i"s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
-#EO_TF
-cat << P_SR >> $PROSODY_FILE
+    cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
@@ -821,13 +830,15 @@ VirtualHost "guest.$DOMAIN"
     main_muc = "conference.$DOMAIN"
 P_SR
 	else
-cat << P_SR >> $PROSODY_FILE
+    cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
 P_SR
+
 fi
+#======================
 #Secure room initial user
 if [ "$ENABLE_SC" = "yes" ]; then
 echo "Secure rooms are being enabled..."
@@ -861,6 +872,15 @@ restart_services
 
 enable_letsencrypt
 
+if dpkg-compare prosody gt 0.11.0 && [ "S" = "" ]; then
+echo "Let's try wait 15s"
+wait_seconds 15
+#Temporary fix? - https://community.jitsi.org/t/27752/112
+sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
+sed -i"s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
+#EO_TF
+fi
+
 #SSL workaround
 if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
 	ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
@@ -877,6 +897,7 @@ fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
 	echo "JRA via Nextcloud will be enabled."
+	sed -i "s|NC_DOMAIN=.*|NC_DOMAIN=\"$NC_DOMAIN\"|" jitsi-updater.sh
 	bash $PWD/jra_nextcloud.sh
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
@@ -892,8 +913,12 @@ if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 	bash $PWD/grafana.sh
 fi
 #Prevent Jibri conecction issue
+if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
 sed -i "/127.0.0.1/a \\
 127.0.0.1       $DOMAIN" /etc/hosts
+else
+  echo "Local host already in place..."
+fi
 
 echo "
 ########################################################################
@@ -905,11 +930,6 @@ apt-get -y autoremove
 apt-get autoclean
 
 echo "Rebooting in..."
-secs=$((15))
-while [ $secs -gt 0 ]; do
-   echo -ne "$secs\033[0K\r"
-   sleep 1
-   : $((secs--))
-done
+wait_seconds 15
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 reboot
