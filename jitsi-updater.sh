@@ -26,6 +26,11 @@ ENABLE_BLESSM="TBD"
 CHD_LST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
 DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
+NC_DOMAIN="TBD"
+JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
+if [ -f $JITSI_MEET_PROXY ];then
+PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
+fi
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages |sort -u|awk '{print $2}'|sed 's|jigasi||'|paste -s -d ' ')"
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
@@ -153,6 +158,22 @@ fi
 
 printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
+
+
+if [ ! "$NC_DOMAIN" = "TBD" ];
+printf "${Purple}========== Enable $NC_DOMAIN for sync client ==========${Color_Off}\n"
+    if [ -z $PREAD_PROXY ]; then
+        echo "
+  Setting up Nextcloud domain on Jitsi Meet turn proxy
+"
+        sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" $JITSI_MEET_PROXY
+        sed -i "/server {/i \ \ \ \ \ \ $DOMAIN      web;" $JITSI_MEET_PROXY
+        sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN web;" $JITSI_MEET_PROXY
+        sed -i "/server {/i \ \ }" $JITSI_MEET_PROXY
+      else
+        echo "$NC_DOMAIN seems to be on place, skipping..."
+    fi
+fi
 
 restart_services
 
