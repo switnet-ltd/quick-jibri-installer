@@ -189,6 +189,7 @@ else
 fi
 #Prosody repository
 add_prosody_repo
+
 # Jitsi-Meet Repo
 echo "
 Add Jitsi repo
@@ -341,6 +342,7 @@ ENABLE_SA="yes"
 CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
 CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
 GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
+
 #Sysadmin email
 while [[ -z $SYSADMIN_EMAIL ]]
 do
@@ -490,6 +492,17 @@ if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
 	echo "-- Grafana Dashboard won't be enabled."
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 	echo "-- Grafana Dashboard will be enabled."
+fi
+done
+#Grafana
+while [[ "$ENABLE_GRAFANA_DSH" != "yes" && "$ENABLE_GRAFANA_DSH" != "no" ]]
+do
+read -p "> Do you want to setup Grafana Dashboard: (yes or no)
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
+if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
+	echo "Grafana Dashboard won't be enabled."
+elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
+	echo "Grafana Dashboard will be enabled."
 fi
 done
 #Start configuration
