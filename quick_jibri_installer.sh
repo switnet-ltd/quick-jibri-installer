@@ -193,10 +193,10 @@ add_prosody_repo
 echo "
 Add Jitsi repo
 "
-if [ "$JITSI_REPO" = "unstable" ]; then
-	echo "Jitsi unstable repository already installed"
+if [ "$JITSI_REPO" = "stable" ]; then
+	echo "Jitsi stable repository already installed"
 else
-	echo 'deb http://download.jitsi.org unstable/' > /etc/apt/sources.list.d/jitsi-unstable.list
+	echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 fi
 #Default to LE SSL?
@@ -457,9 +457,9 @@ do
 read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
 if [ "$ENABLE_NC_ACCESS" = "no" ]; then
-	echo "JRA via Nextcloud won't be enabled."
+	echo "-- JRA via Nextcloud won't be enabled."
 elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo "JRA via Nextcloud will be enabled."
+	echo "-- JRA via Nextcloud will be enabled."
 fi
 done
 #Jigasi
@@ -472,9 +472,9 @@ elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ];
 read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
 	if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
-		echo "Jigasi Transcription won't be enabled."
+		echo "-- Jigasi Transcription won't be enabled."
 	elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-		echo "Jigasi Transcription will be enabled."
+		echo "-- Jigasi Transcription will be enabled."
 	fi
 	done
 else
@@ -487,9 +487,9 @@ do
 read -p "> Do you want to setup Grafana Dashboard: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
 if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
-	echo "Grafana Dashboard won't be enabled."
+	echo "-- Grafana Dashboard won't be enabled."
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-	echo "Grafana Dashboard will be enabled."
+	echo "-- Grafana Dashboard will be enabled."
 fi
 done
 #Start configuration
@@ -878,7 +878,7 @@ echo "Let's try wait 15s"
 wait_seconds 15
 #Temporary fix? - https://community.jitsi.org/t/27752/112
 sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
-sed -i"s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
+sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
 #EO_TF
 fi
 
