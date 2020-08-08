@@ -56,6 +56,7 @@ sed -i "s|.leftwatermark{|.leftwatermark{display:none;|" $CSS_FILE
 fi
 
 #Customize room title
+sed -i  "s|\([[:space:]]\)APP_NAME:.*| APP_NAME: \'$APP_NAME\',|" $INT_CONF
 sed -i "s|Jitsi Meet|$APP_NAME|g" $TITLE_FILE
 sed -i "s| powered by the Jitsi Videobridge||g" $TITLE_FILE
 sed -i "21,32 s|Jitsi Meet|$APP_NAME|g" $INT_CONF
