@@ -140,7 +140,7 @@ else
 fi
 #Suggest 18.04 LTS release over 16.04
 if [ "$DIST" = "xenial" ]; then
-echo "$(lsb_release -sc), even when it's compatible and functional.
+echo "  > $(lsb_release -sc), even when it's compatible and functional.
 We suggest to use the next (LTS) release, for longer support and security reasons."
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
@@ -466,8 +466,8 @@ fi
 done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
-	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),"
-	echo "thus, Jigasi Transcript can't be enable."
+	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
+	thus, Jigasi Transcript can't be enable."
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
 	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
 	do
@@ -803,7 +803,7 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 fi
 #nginx -tlsv1/1.1
-if [ "$DROP_TLS1" = "yes" ] && [ ! "$DIST" = "xenial" ];then
+if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
 	echo "Dropping TLSv1/1.1 in favor of v1.3"
 	sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
 	#sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF

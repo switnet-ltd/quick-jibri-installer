@@ -33,6 +33,8 @@ Please check more details on our wiki.
 * Customized brandless mode
 * Improved recurring updater
 * (New) Grafana Dashboard
+* (New) Lobby Rooms
+* (New) Conference Duration
 
 
 ## Optional custom changes
