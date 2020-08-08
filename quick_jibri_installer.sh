@@ -911,7 +911,6 @@ fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
 	echo "JRA via Nextcloud will be enabled."
-	sed -i "s|NC_DOMAIN=.*|NC_DOMAIN=\"$NC_DOMAIN\"|" jitsi-updater.sh
 	bash $PWD/jra_nextcloud.sh
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
