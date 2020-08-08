@@ -171,7 +171,7 @@ echo "opcache.validate_timestamps=1"
 systemctl restart php$PHPVER-fpm.service
 
 #--------------------------------------------------
-# Create MySQL user
+# Create DB user
 #--------------------------------------------------
 
 echo -e "\n---- Creating the PgSQL DB & User  ----"
@@ -186,6 +186,7 @@ echo "Done!
 
 #nginx - configuration
 cat << NC_NGINX > $NC_NGINX_CONF
+#nextcloud config
 upstream php-handler {
     #server 127.0.0.1:9000;
     server unix:/run/php/php${PHPVER}-fpm.sock;
@@ -346,7 +347,7 @@ if [ "$ENABLE_HSTS" = "yes" ]; then
 sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
-if [ "$DISTRO_RELEASE" = "bionic" ] && [ -z $PREAD_PROXY ]; then
+if [ ! "$DISTRO_RELEASE" = "xenial" ] && [ -z $PREAD_PROXY ]; then
 echo "
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "

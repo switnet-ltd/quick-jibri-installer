@@ -21,8 +21,6 @@ fi
 
 # SYSTEM SETUP
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
-CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
-CERTBOT_REL_FILE="http://ppa.launchpad.net/certbcertbot/ubuntu/dists/$(lsb_release -sc)/Release"
 APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
@@ -94,6 +92,17 @@ else
 	wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
 fi
 }
+dpkg-compare() {
+dpkg --compare-versions $(dpkg-query -f='${Version}' --show $1) $2 $3
+}
+wait_seconds() {
+secs=$(($1))
+while [ $secs -gt 0 ]; do
+   echo -ne "$secs\033[0K\r"
+   sleep 1
+   : $((secs--))
+done
+}
 clear
 echo '
 ########################################################################
@@ -161,7 +170,9 @@ else
 fi
 if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     echo "All requirements seems meet!"
-    echo "We hope you have a nice recording/streaming session"
+    echo "
+    - We hope you have a nice recording/streaming session
+    "
 else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
     echo "Even when you can use the videconference sessions, we advice to increase the resoruces in order to user Jibri."
@@ -177,9 +188,12 @@ else
     done
 fi
 #Prosody repository
-#add_prosody_repo
+add_prosody_repo
+
 # Jitsi-Meet Repo
-echo "Add Jitsi key"
+echo "
+Add Jitsi repo
+"
 if [ "$JITSI_REPO" = "stable" ]; then
 	echo "Jitsi stable repository already installed"
 else
@@ -192,7 +206,7 @@ do
 read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)"$'\n' -r LE_SSL
 if [ $LE_SSL = yes ]; then
 	echo "We'll defaul to Let's Encrypt SSL certs."
-elif [ $LE_SSL = no ]; then
+else
 	echo "We'll let you choose later on for it."
 fi
 done
@@ -305,7 +319,7 @@ echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
 
 echo '
 ########################################################################
-                    Please Setup Your Instalation
+                    Please Setup Your Installation
 ########################################################################
 '
 # MEET / JIBRI SETUP
@@ -325,6 +339,10 @@ LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
 MOD_LIST_FILE="/usr/lib/prosody/modules/mod_listusers.lua"
 ENABLE_SA="yes"
+CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
+CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
+GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
+
 #Sysadmin email
 while [[ -z $SYSADMIN_EMAIL ]]
 do
@@ -352,14 +370,14 @@ fi
 done
 #SSL LE
 if [ "$LE_SSL" = "yes" ]; then
-	ENABLE_SSL=yes
+    ENABLE_SSL=yes
 else
         while [[ "$ENABLE_SSL" != "yes" && "$ENABLE_SSL" != "no" ]]
         do
         read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
         if [ "$ENABLE_SSL" = "no" ]; then
 	    echo "Please run letsencrypt.sh manually post-installation."
-        elif [ "$ENABLE_SSL" = "yes" ]; then
+        else
             echo "SSL will be enabled."
         fi
         done
@@ -406,7 +424,7 @@ done
 #Enable static avatar
 while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
-read -p "> Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
+read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
 if [ "$ENABLE_SA" = "no" ]; then
 	echo "Static avatar won't be enabled"
 elif [ "$ENABLE_SA" = "yes" ]; then
@@ -441,20 +459,39 @@ do
 read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
 if [ "$ENABLE_NC_ACCESS" = "no" ]; then
-	echo "JRA via Nextcloud won't be enabled."
+	echo "-- JRA via Nextcloud won't be enabled."
 elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo "JRA via Nextcloud will be enabled."
+	echo "-- JRA via Nextcloud will be enabled."
 fi
 done
 #Jigasi
-while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
-do
+if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
+	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),"
+	echo "thus, Jigasi Transcript can't be enable."
+elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
+	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
+	do
 read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
-if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
-	echo "Jigasi Transcription won't be enabled."
-elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-	echo "Jigasi Transcription will be enabled."
+	if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
+		echo "-- Jigasi Transcription won't be enabled."
+	elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
+		echo "-- Jigasi Transcription will be enabled."
+	fi
+	done
+else
+	echo "No valid option for Jigasi.Please report this to
+https://github.com/switnet-ltd/quick-jibri-installer/issues "
+fi
+#Grafana
+while [[ "$ENABLE_GRAFANA_DSH" != "yes" && "$ENABLE_GRAFANA_DSH" != "no" ]]
+do
+read -p "> Do you want to setup Grafana Dashboard: (yes or no)
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
+if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
+	echo "-- Grafana Dashboard won't be enabled."
+elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
+	echo "-- Grafana Dashboard will be enabled."
 fi
 done
 #Grafana
@@ -507,8 +544,7 @@ Checking for updates...
 "
 	apt-get -q2 update
 	apt-get -yq2 dist-upgrade
-else
-	if [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
+elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
 		echo "
 Adding cerbot (formerly letsencrypt) PPA repository for latest updates
 "
@@ -516,12 +552,10 @@ Adding cerbot (formerly letsencrypt) PPA repository for latest updates
 		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
 		apt-get -q2 update
 		apt-get -yq2 dist-upgrade
-	fi
-	if [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
+elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
 		echo "
 Certbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...
 "
-	fi
 fi
 
 else
@@ -550,6 +584,7 @@ restart_services() {
 
 # Configure Jibri
 ## PROSODY
+if dpkg-compare prosody lt 0.11.0 ; then
 cat  << MUC-JIBRI >> $PROSODY_FILE
 
 -- internal muc component, meant to enable pools of jibri and jigasi clients
@@ -561,7 +596,7 @@ Component "internal.auth.$DOMAIN" "muc"
     muc_room_cache_size = 1000
 
 MUC-JIBRI
-
+fi
 cat  << REC-JIBRI >> $PROSODY_FILE
 
 VirtualHost "recorder.$DOMAIN"
@@ -571,12 +606,17 @@ VirtualHost "recorder.$DOMAIN"
   authentication = "internal_plain"
 
 REC-JIBRI
+#Enable Jibri withelist
+sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
 
 #Fix Jibri conectivity issues
+#if dpkg-compare prosody lt 0.11.0 ; then
 sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
 sed -i "/c2s_require_encryption = false/a \\
 \\
 consider_bosh_secure = true" $PROSODY_SYS
+#fi
+
 if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
 fi
@@ -763,11 +803,11 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 fi
 #nginx -tlsv1/1.1
-if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "bionic" ];then
+if [ "$DROP_TLS1" = "yes" ] && [ ! "$DIST" = "xenial" ];then
 	echo "Dropping TLSv1/1.1 in favor of v1.3"
 	sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
 	#sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
-elif [ "$DROP_TLS1" = "yes" ] && [ ! "$DIST" = "bionic" ];then
+elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
 	echo "Only dropping TLSv1/1.1"
 	sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
 	#sed -i "s|TLSv1 TLSv1.1||" $WS_CONF
@@ -778,16 +818,41 @@ fi
 
 # Disable "Blur my background" until new notice
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
+#Setup prosody conf file==================================
 
 #Setup secure rooms
-cat << P_SR >> $PROSODY_FILE
-VirtualHost "$DOMAIN"
-    authentication = "internal_plain"
+SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+SRP_END=$((SRP_STR + 10))
+sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+
+if dpkg-compare prosody gt 0.11.0 ; then
+    cat << P_SR >> $PROSODY_FILE
+
+VirtualHost "guest.$DOMAIN"
+    authentication = "anonymous"
+    c2s_require_encryption = false
+    speakerstats_component = "speakerstats.$DOMAIN"
+    conference_duration_component = "conferenceduration.$DOMAIN"
+    lobby_muc = "lobby.$DOMAIN"
+    main_muc = "conference.$DOMAIN"
+	
+    modules_enabled = {
+      "speakerstats";
+      "conference_duration";
+      "muc_lobby_rooms";
+    }
+
+P_SR
+	else
+    cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
 P_SR
+
+fi
+#======================
 #Secure room initial user
 if [ "$ENABLE_SC" = "yes" ]; then
 echo "Secure rooms are being enabled..."
@@ -821,6 +886,15 @@ restart_services
 
 enable_letsencrypt
 
+if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
+echo "Let's try wait 15s"
+wait_seconds 15
+#Temporary fix? - https://community.jitsi.org/t/27752/112
+sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
+sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
+#EO_TF
+fi
+
 #SSL workaround
 if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
 	ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
@@ -836,7 +910,8 @@ if [ "$ENABLE_BLESSM" = "yes" ]; then
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo "Jigasi Transcription will be enabled."
+	echo "JRA via Nextcloud will be enabled."
+	sed -i "s|NC_DOMAIN=.*|NC_DOMAIN=\"$NC_DOMAIN\"|" jitsi-updater.sh
 	bash $PWD/jra_nextcloud.sh
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
@@ -852,8 +927,12 @@ if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 	bash $PWD/grafana.sh
 fi
 #Prevent Jibri conecction issue
+if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
 sed -i "/127.0.0.1/a \\
 127.0.0.1       $DOMAIN" /etc/hosts
+else
+  echo "Local host already in place..."
+fi
 
 echo "
 ########################################################################
@@ -865,11 +944,6 @@ apt-get -y autoremove
 apt-get autoclean
 
 echo "Rebooting in..."
-secs=$((15))
-while [ $secs -gt 0 ]; do
-   echo -ne "$secs\033[0K\r"
-   sleep 1
-   : $((secs--))
-done
+wait_seconds 15
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 reboot
