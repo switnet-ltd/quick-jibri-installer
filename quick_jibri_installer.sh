@@ -820,14 +820,15 @@ VirtualHost "guest.$DOMAIN"
     c2s_require_encryption = false
     speakerstats_component = "speakerstats.$DOMAIN"
     conference_duration_component = "conferenceduration.$DOMAIN"
-
+    lobby_muc = "lobby.$DOMAIN"
+    main_muc = "conference.$DOMAIN"
+	
     modules_enabled = {
       "speakerstats";
       "conference_duration";
       "muc_lobby_rooms";
     }
-    lobby_muc = "lobby.qj.$DOMAIN"
-    main_muc = "conference.$DOMAIN"
+
 P_SR
 	else
     cat << P_SR >> $PROSODY_FILE
@@ -872,7 +873,7 @@ restart_services
 
 enable_letsencrypt
 
-if dpkg-compare prosody gt 0.11.0 && [ "S" = "" ]; then
+if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
 echo "Let's try wait 15s"
 wait_seconds 15
 #Temporary fix? - https://community.jitsi.org/t/27752/112

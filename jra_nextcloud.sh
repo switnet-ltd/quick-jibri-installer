@@ -171,7 +171,7 @@ echo "opcache.validate_timestamps=1"
 systemctl restart php$PHPVER-fpm.service
 
 #--------------------------------------------------
-# Create MySQL user
+# Create DB user
 #--------------------------------------------------
 
 echo -e "\n---- Creating the PgSQL DB & User  ----"
