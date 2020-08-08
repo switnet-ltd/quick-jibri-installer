@@ -467,7 +467,7 @@ done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
 	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
-	thus, Jigasi Transcript can't be enable."
+    thus, Jigasi Transcript can't be enable."
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
 	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
 	do
