@@ -67,18 +67,20 @@ fi
 
 read -p "Set your etherpad docker admin password: " -r ETHERPAD_ADMIN_PASS
 
+
 # Install required packages
 install_ifnot docker-ce
 install_ifnot postgresql-$PSGVER
 
 # Create DB
+echo -e "> Creating postgresql database for cotainer...\n"
 sudo -u postgres psql <<DB
 CREATE DATABASE ${ETHERPAD_DB_NAME};
 CREATE USER ${ETHERPAD_DB_USER} WITH ENCRYPTED PASSWORD '${ETHERPAD_DB_PASS}';
 GRANT ALL PRIVILEGES ON DATABASE ${ETHERPAD_DB_NAME} TO ${ETHERPAD_DB_USER};
 DB
-echo "Done!
-"
+echo "  -- Your etherpad db password is: $ETHERPAD_DB_PASS"
+echo -e "     Please save it somewhere safe.\n"
 
 # Check fot docker if not running then execute
 if [ ! "$(docker ps -q -f name=etherpad)" ]; then
@@ -87,10 +89,9 @@ if [ ! "$(docker ps -q -f name=etherpad)" ]; then
         docker rm etherpad
     fi
     # run your container
-    docker run -d \
+    docker run -d --restart always \
 	--name etherpad         \
-	-p 9001:9001            \
-	-e 'IP=127.0.0.1'            \
+	-p 127.0.0.1:9001:9001            \
 	-e 'ADMIN_PASSWORD=$ETHERPAD_ADMIN_PASS' \
 	-e 'DB_TYPE=postgres'   \
 	-e 'DB_HOST=localhost'   \
@@ -98,15 +99,15 @@ if [ ! "$(docker ps -q -f name=etherpad)" ]; then
 	-e 'DB_NAME=$ETHERPAD_DB_NAME'   \
 	-e 'DB_USER=$ETHERPAD_DB_USER' \
 	-e 'DB_PASS=$ETHERPAD_DB_PASS' \
-	etherpad/etherpad
+	-i -t etherpad/etherpad
 fi
 
 # Tune webserver for Jitsi App control
 
 if [ $(grep -c "etherpad" $WS_CONF) != 0 ]; then
-    echo "Webserver seems configured, skipping..."
+    echo "> Webserver seems configured, skipping..."
 elif [ -f $WS_CONF ]; then
-    echo "Configuring webserver file..."
+    echo "> Setting up webserver configuration file..."
 	sed -i "/Anything that didn't match above/i \ \ \ \ location \^\~\ \/etherpad\/ {" $WS_CONF
 	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:9001\/;" $WS_CONF
 	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_set_header X-Forwarded-For \$remote_addr;" $WS_CONF
@@ -115,23 +116,23 @@ elif [ -f $WS_CONF ]; then
 	sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
 	sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
 else
-	echo "No etherpad config done to server file, please report to:
+	echo "> No etherpad config done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
     
 # Configure config.js
 if [ $(grep -c "etherpad_base" $WS_CONF) != 0 ]; then
-    echo "$MEET_CONF seems configured, skipping..."
+    echo -e "> $MEET_CONF seems configured, skipping...\n"
 else
-    echo "Setting etherpad domain at $MEET_CONF..."
+    echo -e "> Setting etherpad domain at $MEET_CONF...\n"
     sed -i "/ domain: '$DOMAIN'/a\ \ \ \ \ \ \ \ etherpad_base: \'https://$DOMAIN/etherpad/p/\'," $MEET_CONF
 fi
 
-echo "Checking nginx configuration..."
+echo "> Checking nginx configuration..."
 nginx -t 2>/dev/null
 
 if [ $? = 0 ]; then
-	echo "Docker configuration seems fine, enabling it..."
+	echo -e "  -- Docker configuration seems fine, enabling it."
 	systemctl reload nginx
 else
 	echo "Please check your configuration, something may be wrong."
