@@ -459,9 +459,9 @@ do
 read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
 if [ "$ENABLE_NC_ACCESS" = "no" ]; then
-	echo "-- JRA via Nextcloud won't be enabled."
+	echo -e "-- JRA via Nextcloud won't be enabled.\n"
 elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo "-- JRA via Nextcloud will be enabled."
+	echo -e "-- JRA via Nextcloud will be enabled.\n"
 fi
 done
 #Jigasi
@@ -474,9 +474,9 @@ elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ];
 read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
 	if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
-		echo "-- Jigasi Transcription won't be enabled."
+		echo -e "-- Jigasi Transcription won't be enabled.\n"
 	elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-		echo "-- Jigasi Transcription will be enabled."
+		echo -e "-- Jigasi Transcription will be enabled.\n"
 	fi
 	done
 else
@@ -489,9 +489,9 @@ do
 read -p "> Do you want to setup Grafana Dashboard: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
 if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
-	echo "-- Grafana Dashboard won't be enabled."
+	echo -e "-- Grafana Dashboard won't be enabled.\n"
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-	echo "-- Grafana Dashboard will be enabled."
+	echo -e "-- Grafana Dashboard will be enabled. \n"
 fi
 done
 #Docker Etherpad
@@ -500,9 +500,9 @@ do
 read -p "> Do you want to setup Docker Etherpad: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_DOCKERPAD
 if [ "$ENABLE_DOCKERPAD" = "no" ]; then
-	echo "Docker Etherpad won't be enabled."
+	echo -e "-- Docker Etherpad won't be enabled.\n"
 elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-	echo "Docker Etherpad will be enabled."
+	echo -e "-- Docker Etherpad will be enabled.\n"
 fi
 done
 #Start configuration
