@@ -431,16 +431,16 @@ elif [ "$ENABLE_SA" = "yes" ]; then
 	echo "Static avatar will be enabled"
 fi
 done
-#Enable local audio recording
-while [[ "$ENABLE_LAR" != "yes" && "$ENABLE_LAR" != "no" ]]
-do
-read -p "> Do you want to enable local audio recording option?: (yes or no)"$'\n' -r ENABLE_LAR
-if [ "$ENABLE_LAR" = "no" ]; then
-	echo "Local audio recording option won't be enabled"
-elif [ "$ENABLE_LAR" = "yes" ]; then
-	echo "Local audio recording option will be enabled"
-fi
-done
+# #Enable local audio recording - disabling
+#while [[ "$ENABLE_LAR" != "yes" && "$ENABLE_LAR" != "no" ]]
+#do
+#read -p "> Do you want to enable local audio recording option?: (yes or no)"$'\n' -r ENABLE_LAR
+#if [ "$ENABLE_LAR" = "no" ]; then
+#	echo "Local audio recording option won't be enabled"
+#elif [ "$ENABLE_LAR" = "yes" ]; then
+#	echo "Local audio recording option will be enabled"
+#fi
+#done
 #Secure room initial user
 while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
 do
