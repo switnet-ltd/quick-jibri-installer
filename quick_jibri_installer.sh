@@ -494,15 +494,15 @@ elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 	echo "-- Grafana Dashboard will be enabled."
 fi
 done
-#Grafana
-while [[ "$ENABLE_GRAFANA_DSH" != "yes" && "$ENABLE_GRAFANA_DSH" != "no" ]]
+#Docker Etherpad
+while [[ "$ENABLE_DOCKERPAD" != "yes" && "$ENABLE_DOCKERPAD" != "no" ]]
 do
-read -p "> Do you want to setup Grafana Dashboard: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
-if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
-	echo "Grafana Dashboard won't be enabled."
-elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-	echo "Grafana Dashboard will be enabled."
+read -p "> Do you want to setup Docker Etherpad: (yes or no)
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_DOCKERPAD
+if [ "$ENABLE_DOCKERPAD" = "no" ]; then
+	echo "Docker Etherpad won't be enabled."
+elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
+	echo "Docker Etherpad will be enabled."
 fi
 done
 #Start configuration
@@ -924,6 +924,11 @@ fi
 if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 	echo "Grafana Dashboard will be enabled."
 	bash $PWD/grafana.sh
+fi
+#Docker Etherpad
+if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
+	echo "Docker Etherpad will be enabled."
+	bash $PWD/etherpad.sh
 fi
 #Prevent Jibri conecction issue
 if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
