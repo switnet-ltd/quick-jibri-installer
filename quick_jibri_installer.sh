@@ -141,7 +141,7 @@ fi
 #Suggest 18.04 LTS release over 16.04
 if [ "$DIST" = "xenial" ]; then
 echo "  > $(lsb_release -sc), even when it's compatible and functional.
-We suggest to use the next (LTS) release, for longer support and security reasons."
+    We suggest to use the next (LTS) release, for longer support and security reasons."
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 #Check resources
@@ -810,7 +810,7 @@ if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
 elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
 	echo "Only dropping TLSv1/1.1"
 	sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
-	#sed -i "s|TLSv1 TLSv1.1||" $WS_CONF
+	sed -i "s| TLSv1.3||" $WS_CONF
 else
 	echo "No TLSv1/1.1 dropping was done. Please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
