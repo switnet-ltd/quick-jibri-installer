@@ -1,6 +1,6 @@
 #!/bin/bash
 # Etherpad Installer for Jitsi Meet
-# SwITNet Ltd  Â© - 2020, https://switnet.net/
+# SwITNet Ltd © - 2020, https://switnet.net/
 #
 # GPLv3 or later.
 
@@ -51,59 +51,117 @@ DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}'
 MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
 WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+" -f1)"
-ETHERPAD_DB_USER="dockerpad"
+NODE_JS_REPO="$(check_apt_policy node_10)"
+ETHERPAD_USER="etherpad-lite"
+ETHERPAD_HOME="/opt/$ETHERPAD_USER"
+ETHERPAD_DB_USER="meetpad"
 ETHERPAD_DB_NAME="etherpad"
 ETHERPAD_DB_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
-DOCKER_CE_REPO="$(check_apt_policy docker)"
+ETHERPAD_SYSTEMD="/etc/systemd/system/etherpad-lite.service"
 
-echo "Add Docker repo"
-if [ "$DOCKER_CE_REPO" = "stable" ]; then
-	echo "Docker repository already installed"
+# NodeJS
+echo "Addin NodeJS repo..."
+
+if [ "$NODE_JS_REPO" = "main" ]; then
+	echo "NodeJS repository already installed"
 else
-	echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker-ce.list
-	wget -qO - https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-	apt -q2 update
+		curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+		apt-get update
 fi
 
 read -p "Set your etherpad docker admin password: " -r ETHERPAD_ADMIN_PASS
 
-
 # Install required packages
-install_ifnot docker-ce
+install_ifnot jq
+install_ifnot nodejs
 install_ifnot postgresql-$PSGVER
 
 # Create DB
-echo -e "> Creating postgresql database for cotainer...\n"
+echo -e "> Creating postgresql database for etherpad...\n"
 sudo -u postgres psql <<DB
 CREATE DATABASE ${ETHERPAD_DB_NAME};
 CREATE USER ${ETHERPAD_DB_USER} WITH ENCRYPTED PASSWORD '${ETHERPAD_DB_PASS}';
 GRANT ALL PRIVILEGES ON DATABASE ${ETHERPAD_DB_NAME} TO ${ETHERPAD_DB_USER};
 DB
-echo "  -- Your etherpad db password is: $ETHERPAD_DB_PASS"
-echo -e "     Please save it somewhere safe.\n"
 
-# Check fot docker if not running then execute
-if [ ! "$(docker ps -q -f name=etherpad)" ]; then
-    if [ "$(docker ps -aq -f status=exited -f name=etherpad)" ]; then
-        # cleanup
-        docker rm etherpad
-    fi
-    # run your container
-    docker run -d --restart always \
-	--name etherpad         \
-	-p 127.0.0.1:9001:9001            \
-	-e 'ADMIN_PASSWORD=$ETHERPAD_ADMIN_PASS' \
-	-e 'DB_TYPE=postgres'   \
-	-e 'DB_HOST=localhost'   \
-	-e 'DB_PORT=5432'       \
-	-e 'DB_NAME=$ETHERPAD_DB_NAME'   \
-	-e 'DB_USER=$ETHERPAD_DB_USER' \
-	-e 'DB_PASS=$ETHERPAD_DB_PASS' \
-	-i -t etherpad/etherpad
-fi
+echo "  -- Your etherpad db password is: $ETHERPAD_DB_PASS"
+echo -e "     Please save it somewhere safe."
+
+#Set system users
+adduser --system --home=${ETHERPAD_HOME} --group ${ETHERPAD_USER}
+sudo -u $ETHERPAD_USER git clone -b master https://github.com/ether/etherpad-lite.git $ETHERPAD_HOME/
+
+  #Issue: https://github.com/ether/etherpad-lite/issues/3460
+  cat <<< "$(jq  'del(.devDependencies)'< $ETHERPAD_HOME/src/package.json)" > $ETHERPAD_HOME/src/package.json
+
+bash $ETHERPAD_HOME/bin/installDeps.sh
+
+cp $ETHERPAD_HOME/settings.json $ETHERPAD_HOME/settings.json.backup
+
+cat << SETTINGS_JSON > $ETHERPAD_HOME/settings.json
+{
+ "title": "Conference Etherpad",
+
+  "favicon": "favicon.ico",
+
+  "skinName": "colibris"
+
+  "ip": "0.0.0.0",
+
+  "port": 9001,
+
+  "showSettingsInAdminPage": true,
+
+  "ssl" : {
+            "key"  : "/etc/letsencrypt/live/$DOMAIN/privkey.pem",
+            "cert" : "/etc/letsencrypt/live/$DOMAIN/fullchain.pem",
+          },
+
+  "dbType" : "postgres",
+  "dbSettings" : {
+    "user"    : "$ETHERPAD_DB_USER",
+    "host"    : "localhost",
+    "password": "$ETHERPAD_DB_PASS",
+    "database": "$ETHERPAD_DB_NAME",
+    "charset" : "utf8mb4"
+  }
+
+  "defaultPadText" : "Welcome to Etherpad!\n\nThis pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!\n\nGet involved with Etherpad at https:\/\/etherpad.org\n",
+
+  "users": {
+    "admin": {
+      // 1) "password" can be replaced with "hash" if you install ep_hash_auth
+      // 2) please note that if password is null, the user will not be created
+      "password": "$ETHERPAD_ADMIN_PASS",
+      "is_admin": true
+    }
+  }
+}
+SETTINGS_JSON
+
+cat << SYSTEMD > $ETHERPAD_SYSTEMD
+[Unit]
+Description=Etherpad-lite, the collaborative editor.
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=$ETHERPAD_USER
+Group=$ETHERPAD_USER
+WorkingDirectory=$ETHERPAD_HOME
+Environment=NODE_ENV=production
+ExecStart=$ETHERPAD_HOME/bin/run.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+SYSTEMD
+
+#Systemd services
+systemctl enable etherpad-lite
+systemctl restart etherpad-lite
 
 # Tune webserver for Jitsi App control
-
 if [ $(grep -c "etherpad" $WS_CONF) != 0 ]; then
     echo "> Webserver seems configured, skipping..."
 elif [ -f $WS_CONF ]; then
