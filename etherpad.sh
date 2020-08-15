@@ -76,6 +76,10 @@ install_ifnot jq
 install_ifnot nodejs
 install_ifnot postgresql-$PSGVER
 
+# Link LE certs on Etherpad directory
+#chmod 755 /etc/letsencrypt/live
+#ln -s /etc/letsencrypt/live/$DOMAIN $ETHERPAD_HOME/
+
 # Create DB
 echo -e "> Creating postgresql database for etherpad...\n"
 sudo -u postgres psql <<DB
@@ -101,22 +105,16 @@ cp $ETHERPAD_HOME/settings.json $ETHERPAD_HOME/settings.json.backup
 cat << SETTINGS_JSON > $ETHERPAD_HOME/settings.json
 {
  "title": "Conference Etherpad",
-
   "favicon": "favicon.ico",
-
-  "skinName": "colibris"
-
+  "skinName": "colibris",
   "ip": "0.0.0.0",
-
   "port": 9001,
-
   "showSettingsInAdminPage": true,
-
-  "ssl" : {
-            "key"  : "/etc/letsencrypt/live/$DOMAIN/privkey.pem",
-            "cert" : "/etc/letsencrypt/live/$DOMAIN/fullchain.pem",
-          },
-
+//  "ssl" : {
+//            "key"  : "$ETHERPAD_HOME/$DOMAIN/privkey.pem",
+//            "cert" : "$ETHERPAD_HOME/$DOMAIN/fullchain.pem",
+//            "ca"   : "$ETHERPAD_HOME/$DOMAIN/chain.pem"
+//          },
   "dbType" : "postgres",
   "dbSettings" : {
     "user"    : "$ETHERPAD_DB_USER",
@@ -124,10 +122,8 @@ cat << SETTINGS_JSON > $ETHERPAD_HOME/settings.json
     "password": "$ETHERPAD_DB_PASS",
     "database": "$ETHERPAD_DB_NAME",
     "charset" : "utf8mb4"
-  }
-
+  },
   "defaultPadText" : "Welcome to Etherpad!\n\nThis pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!\n\nGet involved with Etherpad at https:\/\/etherpad.org\n",
-
   "users": {
     "admin": {
       // 1) "password" can be replaced with "hash" if you install ep_hash_auth
@@ -147,7 +143,7 @@ After=syslog.target network.target
 [Service]
 Type=simple
 User=$ETHERPAD_USER
-Group=$ETHERPAD_USER
+Group=Group=$ETHERPAD_USER
 WorkingDirectory=$ETHERPAD_HOME
 Environment=NODE_ENV=production
 ExecStart=$ETHERPAD_HOME/bin/run.sh
