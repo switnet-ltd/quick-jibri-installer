@@ -126,13 +126,13 @@ fi
 # We divide them on UI changes and branding changes, feel free to adapt
 # to your needs.
 #
-# Please keep in mind that fees to support for customization changes
-# may apply.
+# Please keep in mind that fees for support customization changes may
+# apply.
 ########################################################################
 #                     User interface changes                           #
 ########################################################################
 printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
-if [[ -z $AVATAR ]]; then
+if [[ -z "$AVATAR" ]]; then
 	echo "Moving on..."
 else
 	echo "Setting Static Avatar"
@@ -149,7 +149,7 @@ else
 fi
 
 printf "${Purple}========== Re-enable Localrecording  ==========${Color_Off}\n"
-if [ $LOC_REC = on ]; then
+if [ "$LOC_REC" = "on" ]; then
         echo "Setting LocalRecording..."
         sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
 else
@@ -160,9 +160,9 @@ printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 
-if [ ! "$NC_DOMAIN" = "TBD" ];
+if [  "$NC_DOMAIN" != "TBD" ]; then
 printf "${Purple}========== Enable $NC_DOMAIN for sync client ==========${Color_Off}\n"
-    if [ -z $PREAD_PROXY ]; then
+    if [ -z "$PREAD_PROXY" ]; then
         echo "
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "
