@@ -27,6 +27,7 @@ DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
+CR=`echo $'\n> '`
 
 if [ $DIST = flidas ]; then
 DIST="xenial"
@@ -104,7 +105,7 @@ while [ $secs -gt 0 ]; do
 done
 }
 clear
-echo '
+echo -e '
 ########################################################################
                     Welcome to Jitsi/Jibri Installer
 ########################################################################
@@ -119,8 +120,8 @@ Featuring:
 
 Learn more about these at,
 Main repository: https://github.com/switnet-ltd/quick-jibri-installer
-Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki
-'
+Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki\n' \
+&& \
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 #Check if user is root
@@ -495,16 +496,16 @@ elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 fi
 done
 #Docker Etherpad
-while [[ "$ENABLE_DOCKERPAD" != "yes" && "$ENABLE_DOCKERPAD" != "no" ]]
-do
-read -p "> Do you want to setup Docker Etherpad: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_DOCKERPAD
-if [ "$ENABLE_DOCKERPAD" = "no" ]; then
-	echo -e "-- Docker Etherpad won't be enabled.\n"
-elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-	echo -e "-- Docker Etherpad will be enabled.\n"
-fi
-done
+#while [[ "$ENABLE_DOCKERPAD" != "yes" && "$ENABLE_DOCKERPAD" != "no" ]]
+#do
+#read -p "> Do you want to setup Docker Etherpad: (yes or no)
+#( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_DOCKERPAD
+#if [ "$ENABLE_DOCKERPAD" = "no" ]; then
+#	echo -e "-- Docker Etherpad won't be enabled.\n"
+#elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
+#	echo -e "-- Docker Etherpad will be enabled.\n"
+#fi
+#done
 #Start configuration
 echo '
 ########################################################################
