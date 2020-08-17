@@ -13,7 +13,7 @@
             "enable_sharing": false,
             "filesystem_check_changes": 1,
             "encoding_compatibility": false,
-            "readonly": false
+            "readonly": false,
             "enable_sharing": true
         },
         "applicable_users": [],
