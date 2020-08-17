@@ -175,7 +175,6 @@ systemctl restart php$PHPVER-fpm.service
 #--------------------------------------------------
 
 echo -e "\n---- Creating the PgSQL DB & User  ----"
-
 sudo -u postgres psql <<DB
 CREATE DATABASE nextcloud_db;
 CREATE USER ${NC_DB_USER} WITH ENCRYPTED PASSWORD '${NC_DB_PASSWD}';
@@ -347,7 +346,7 @@ if [ "$ENABLE_HSTS" = "yes" ]; then
 sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
-if [ ! "$DISTRO_RELEASE" = "xenial" ] && [ -z $PREAD_PROXY ]; then
+if [ "$DISTRO_RELEASE" != "xenial" ] && [ -z $PREAD_PROXY ]; then
 echo "
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "

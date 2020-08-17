@@ -148,12 +148,10 @@ else
 	sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
 fi
 
-printf "${Purple}========== Re-enable Localrecording  ==========${Color_Off}\n"
-if [ "$LOC_REC" = "on" ]; then
-        echo "Setting LocalRecording..."
-        sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
-else
-        echo "Moving on..."
+printf "${Purple}========== Disable Localrecording  ==========${Color_Off}\n"
+if [ "$LOC_REC" != "on" ]; then
+        echo "Removing localrecording..."
+        sed -i "s|'localrecording',||" $INT_CONF
 fi
 
 printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
