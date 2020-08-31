@@ -224,6 +224,7 @@ apt-get -y install \
 				git \
 				htop \
 				letsencrypt \
+				net-tools \
 				unzip \
 				wget
 
@@ -895,6 +896,10 @@ sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY
 sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
 #EO_TF
 fi
+
+# Fix prosody not able to read SSL Certs
+chown -R root:prosody /etc/prosody/certs/
+chmod -R 650 /etc/prosody/certs/
 
 #SSL workaround
 if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
