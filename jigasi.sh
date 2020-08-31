@@ -287,15 +287,6 @@ sed -i "/ALWAYS_TRUST_MODE_ENABLED/ s|# ||" $JIG_SIP_PROP
 
 prosodyctl register jigasi auth.$DOMAIN $JIG_TRANSC_PASWD
 
-#Temp fix Jigasi Transcript
-if grep -q "sleep" /etc/init.d/jicofo; then
-	echo "Jicofo delay already present."
-	else
-	echo "Adding Jicofo delay..."
-	sed -i "/\/lib\/lsb\/init-functions/i sleep 20" /etc/init.d/jicofo
-	systemctl daemon-reload
-fi
-
 #Set Brewery
 cat << JIG_JIC >> $JIC_SIP_PROP
 org.jitsi.jicofo.jigasi.BREWERY=JigasiBreweryRoom@internal.auth.$DOMAIN
