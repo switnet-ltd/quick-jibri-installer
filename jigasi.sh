@@ -26,7 +26,11 @@ JIGASI_CONFIG=/etc/jitsi/jigasi/config
 GC_API_JSON=/opt/gc-sdk/GCTranscriptAPI.json
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 MEET_CONF=/etc/jitsi/meet/${DOMAIN}-config.js
+JIG_SIP_CONF=/etc/jitsi/jigasi/config
 JIG_SIP_PROP=/etc/jitsi/jigasi/sip-communicator.properties
+JIC_SIP_PROP=/etc/jitsi/jicofo/sip-communicator.properties
+JIG_TRANSC_PASWD="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 8 | head -n1)"
+JIG_TRANSC_PASWD_B64="$(echo -n "$JIG_TRANSC_PASWD" | base64)"
 DIST=$(lsb_release -sc)
 CHECK_GC_REPO=$(apt-cache policy | grep http | grep cloud-sdk | head -n1 | awk '{print $3}' | awk -F '/' '{print $1}')
 
@@ -162,7 +166,7 @@ sleep 2
 export GOOGLE_APPLICATION_CREDENTIALS=$GC_API_JSON
 
 echo "Installing Jigasi, your SIP credentials will be asked. (mandatory)"
-apt-get -y install jigasi=1.0-235
+apt-get -y install jigasi
 apt-mark hold jigasi
 
 cat  << JIGASI_CONF >> $JIGASI_CONFIG
@@ -183,7 +187,84 @@ sed -i "/transcribingEnabled/ s|false|true|" $MEET_CONF
 #changed from conference to internal.auth from jibri
 sed -i "s|siptest|siptest@internal.auth.$DOMAIN|" $JIG_SIP_PROP
 
-#Enable transcript / disable sip
+#Disable component in favor of MUC
+if [ $(grep -c nocomponent $JIG_SIP_CONF) != 0 ]; then
+    echo "Jigasi component is already disabled."
+else
+    echo "Disabling jigasi component in favor of MUC"
+    sed -i "s|JIGASI_OPTS=.*|JIGASI_OPTS=\"--nocomponent=true\"|" $JIG_SIP_CONF
+fi
+
+#Setup XMPP
+cat << ACC1_XMPP >> $JIG_SIP_PROP
+
+# XMPP account used for control
+net.java.sip.communicator.impl.protocol.jabber.acc1=acc1
+net.java.sip.communicator.impl.protocol.jabber.acc1.ACCOUNT_UID=Jabber:jigasi@auth.$DOMAIN@$DOMAIN
+net.java.sip.communicator.impl.protocol.jabber.acc1.USER_ID=jigasi@auth.$DOMAIN
+net.java.sip.communicator.impl.protocol.jabber.acc1.IS_SERVER_OVERRIDDEN=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.SERVER_ADDRESS=$DOMAIN
+net.java.sip.communicator.impl.protocol.jabber.acc1.SERVER_PORT=5222
+net.java.sip.communicator.impl.protocol.jabber.acc1.PASSWORD=$JIG_TRANSC_PASWD_B64
+net.java.sip.communicator.impl.protocol.jabber.acc1.AUTO_GENERATE_RESOURCE=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.RESOURCE_PRIORITY=30
+net.java.sip.communicator.impl.protocol.jabber.acc1.IS_CARBON_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.DEFAULT_ENCRYPTION=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.IS_USE_ICE=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.IS_ACCOUNT_DISABLED=false
+net.java.sip.communicator.impl.protocol.jabber.acc1.IS_PREFERRED_PROTOCOL=false
+net.java.sip.communicator.impl.protocol.jabber.acc1.AUTO_DISCOVER_JINGLE_NODES=false
+net.java.sip.communicator.impl.protocol.jabber.acc1.PROTOCOL=Jabber
+net.java.sip.communicator.impl.protocol.jabber.acc1.IS_USE_UPNP=false
+net.java.sip.communicator.impl.protocol.jabber.acc1.USE_DEFAULT_STUN_SERVER=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.ENCRYPTION_PROTOCOL.DTLS-SRTP=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.ENCRYPTION_PROTOCOL_STATUS.DTLS-SRTP=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.VIDEO_CALLING_DISABLED=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.OVERRIDE_ENCODINGS=true
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.G722/8000=705
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.GSM/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.H263-1998/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.H264/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.PCMA/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.PCMU/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.SILK/12000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.SILK/16000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.SILK/24000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.SILK/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.VP8/90000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.iLBC/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.opus/48000=750
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.speex/16000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.speex/32000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.speex/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.Encodings.telephone-event/8000=0
+net.java.sip.communicator.impl.protocol.jabber.acc1.BREWERY=JigasiBreweryRoom@internal.auth.$DOMAIN
+net.java.sip.communicator.impl.protocol.jabber.acc1.DOMAIN_BASE=$DOMAIN
+
+org.jitsi.jigasi.MUC_SERVICE_ADDRESS=conference.$DOMAIN
+org.jitsi.jigasi.BREWERY_ENABLED=true
+
+org.jitsi.jigasi.HEALTH_CHECK_SIP_URI=""
+org.jitsi.jigasi.HEALTH_CHECK_INTERVAL=300000
+org.jitsi.jigasi.HEALTH_CHECK_TIMEOUT=600000
+
+org.jitsi.jigasi.xmpp.acc.IS_SERVER_OVERRIDDEN=true
+#org.jitsi.jigasi.xmpp.acc.SERVER_ADDRESS=$DOMAIN
+
+org.jitsi.jigasi.xmpp.acc.VIDEO_CALLING_DISABLED=true
+org.jitsi.jigasi.xmpp.acc.JINGLE_NODES_ENABLED=false
+org.jitsi.jigasi.xmpp.acc.AUTO_DISCOVER_STUN=false
+org.jitsi.jigasi.xmpp.acc.IM_DISABLED=true
+org.jitsi.jigasi.xmpp.acc.SERVER_STORED_INFO_DISABLED=true
+org.jitsi.jigasi.xmpp.acc.IS_FILE_TRANSFER_DISABLED=true
+
+org.jitsi.jigasi.xmpp.acc.USER_ID=jigasi@auth.$DOMAIN
+org.jitsi.jigasi.xmpp.acc.PASS=$JIG_TRANSC_PASWD
+org.jitsi.jigasi.xmpp.acc.ANONYMOUS_AUTH=false
+org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
+ACC1_XMPP
+
+#Enable transcription config
 sed -i "/ENABLE_TRANSCRIPTION/ s|#||" $JIG_SIP_PROP
 sed -i "/ENABLE_TRANSCRIPTION/ s|false|true|" $JIG_SIP_PROP
 sed -i "/ENABLE_SIP/ s|#||" $JIG_SIP_PROP
@@ -196,17 +277,15 @@ sed -i "/SAVE_TXT/ s|# ||" $JIG_SIP_PROP
 sed -i "/SEND_TXT/ s|# ||" $JIG_SIP_PROP
 #sed -i "/SEND_TXT/ s|false|true|" $JIG_SIP_PROP
 
+#Allow to connect other than same server only.
+sed -i \
+"/xmpp.acc.SERVER_ADDRESS/ s|org.jitsi.jigasi.xmpp.acc.SERVER_ADDRESS=.*|org.jitsi.jigasi.xmpp.acc.SERVER_ADDRESS=$DOMAIN|" \
+$JIG_SIP_PROP
+
 #Remember to study how to use LE or what's needed #ToDo
 sed -i "/ALWAYS_TRUST_MODE_ENABLED/ s|# ||" $JIG_SIP_PROP
 
-#Jigasi credentials
-sed -i "/xmpp.acc.USER_ID/ s|# ||" $JIG_SIP_PROP
-sed -i "/xmpp.acc.USER_ID/ s|SOME_USER\@SOME_DOMAIN|transcript\@auth.$DOMAIN|" $JIG_SIP_PROP
-sed -i "/xmpp.acc.PASS/ s|# ||" $JIG_SIP_PROP
-sed -i "/xmpp.acc.PASS/ s|SOME_PASS|jigasi|" $JIG_SIP_PROP
-sed -i "/xmpp.acc.ANONYMOUS_AUTH/ s|# ||" $JIG_SIP_PROP
-
-prosodyctl register transcript auth.$DOMAIN jigasi
+prosodyctl register jigasi auth.$DOMAIN $JIG_TRANSC_PASWD
 
 #Temp fix Jigasi Transcript
 if grep -q "sleep" /etc/init.d/jicofo; then
@@ -217,10 +296,15 @@ if grep -q "sleep" /etc/init.d/jicofo; then
 	systemctl daemon-reload
 fi
 
+#Set Brewery
+cat << JIG_JIC >> $JIC_SIP_PROP
+org.jitsi.jicofo.jigasi.BREWERY=JigasiBreweryRoom@internal.auth.$DOMAIN
+JIG_JIC
+
 systemctl restart 	prosody \
-					jicofo \
-					jibri* \
-					jitsi-videobridge*
+                    jicofo \
+                    jibri* \
+                    jitsi-videobridge2
 echo "
 To test, you need to enable subtitles beforehand then invite \
 \"jitsi_meet_transcribe\" to the meeting (no quotes).
@@ -234,5 +318,3 @@ Full transcript files are available at:
 echo "
 Happy transcripting!
 "
-
-#APP.conference._room.dial("jitsi_meet_transcribe");
