@@ -296,10 +296,6 @@ systemctl restart 	prosody \
                     jicofo \
                     jibri* \
                     jitsi-videobridge2
-echo "
-To test, you need to enable subtitles beforehand then invite \
-\"jitsi_meet_transcribe\" to the meeting (no quotes).
-"
 
 echo "
 Full transcript files are available at:
