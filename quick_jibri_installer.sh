@@ -820,7 +820,7 @@ fi
 
 # Disable "Blur my background" until new notice
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
-#Setup prosody conf file==================================
+#================== Setup prosody conf file =================
 
 #Setup secure rooms
 SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
@@ -838,7 +838,7 @@ VirtualHost "guest.$DOMAIN"
     lobby_muc = "lobby.$DOMAIN"
     main_muc = "conference.$DOMAIN"
     muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
-	
+
     modules_enabled = {
       "speakerstats";
       "conference_duration";
