@@ -837,6 +837,7 @@ VirtualHost "guest.$DOMAIN"
     conference_duration_component = "conferenceduration.$DOMAIN"
     lobby_muc = "lobby.$DOMAIN"
     main_muc = "conference.$DOMAIN"
+    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
 	
     modules_enabled = {
       "speakerstats";
@@ -891,9 +892,10 @@ enable_letsencrypt
 if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
 echo "Let's try wait 15s"
 wait_seconds 15
-#Temporary fix? - https://community.jitsi.org/t/27752/112
+#Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
 sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
 sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
+sed -i "s|        muc_lobby_whitelist = { \"recorder.|--        muc_lobby_whitelist = { \"recorder.|" $PROSODY_FILE
 #EO_TF
 fi
 
