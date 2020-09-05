@@ -167,7 +167,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=$GC_API_JSON
 
 echo "Installing Jigasi, your SIP credentials will be asked. (mandatory)"
 apt-get -y install jigasi
-apt-mark hold jigasi
+#apt-mark hold jigasi
 
 cat  << JIGASI_CONF >> $JIGASI_CONFIG
 
