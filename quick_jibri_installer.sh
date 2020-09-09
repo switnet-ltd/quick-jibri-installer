@@ -823,7 +823,7 @@ echo "Disable \"Blur my background\" until new notice"
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 # Applying best practives for interface config.js
-echo "> Setting up custom interface_config.js acording to best practices."
+echo -e "\n> Setting up custom interface_config.js acording to best practices.\n"
 cp "$INT_CONF" "$INT_CONF_ETC"
 
 #Tune webserver for interface_config.js
