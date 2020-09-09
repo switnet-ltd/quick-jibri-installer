@@ -515,6 +515,7 @@ echo '
 '
 JibriBrewery=JibriBrewery
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
+INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
 WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 ssl_wa() {
@@ -818,8 +819,26 @@ else
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
-# Disable "Blur my background" until new notice
+echo "Disable \"Blur my background\" until new notice"
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
+
+# Applying best practives for interface config.js
+echo "> Setting up custom interface_config.js acording to best practices."
+cp "$INT_CONF" "$INT_CONF_ETC"
+
+#Tune webserver for interface_config.js
+if [ -f $WS_CONF ]; then
+	sed -i "/external_api.js/i \\\n" $WS_CONF
+	sed -i "/external_api.js/i \ \ \ \ location = \/interface_config.js {" $WS_CONF
+	sed -i "/external_api.js/i \ \ \ \ \ \ \ \ alias \/etc\/jitsi\/meet\/$DOMAIN-interface_config.js;" $WS_CONF
+	sed -i "/external_api.js/i \ \ \ \ }" $WS_CONF
+	sed -i "/external_api.js/i \\\n" $WS_CONF
+	systemctl reload nginx
+else
+	echo "No interface_config.js configuration done to server file, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+fi
+
 #================== Setup prosody conf file =================
 
 #Setup secure rooms

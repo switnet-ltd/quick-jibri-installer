@@ -7,6 +7,7 @@
 CSS_FILE="/usr/share/jitsi-meet/css/all.css"
 TITLE_FILE="/usr/share/jitsi-meet/title.html"
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
+INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
 BUNDLE_JS="/usr/share/jitsi-meet/libs/app.bundle.min.js"
 #
 JM_IMG_PATH="/usr/share/jitsi-meet/images"
@@ -56,17 +57,20 @@ sed -i "s|.leftwatermark{|.leftwatermark{display:none;|" $CSS_FILE
 fi
 
 #Customize room title
-sed -i  "s|\([[:space:]]\)APP_NAME:.*| APP_NAME: \'$APP_NAME\',|" $INT_CONF
 sed -i "s|Jitsi Meet|$APP_NAME|g" $TITLE_FILE
 sed -i "s| powered by the Jitsi Videobridge||g" $TITLE_FILE
-sed -i "21,32 s|Jitsi Meet|$APP_NAME|g" $INT_CONF
 sed -i "/appNotInstalled/ s|{{app}}|$MOVILE_APP_NAME|" /usr/share/jitsi-meet/lang/*
 
 #Custom UI changes
-echo "
-Please note that brandless mode will also overwrite support links.
-"
-sed -i "s|Fellow Jitster|$PART_USER|g" $INT_CONF
-sed -i "s|'me'|'$LOCAL_USER'|" $INT_CONF
-sed -i "s|LIVE_STREAMING_HELP_LINK: .*|LIVE_STREAMING_HELP_LINK: '#',|g" $INT_CONF
-sed -i "s|SUPPORT_URL: .*|SUPPORT_URL: '#',|g" $INT_CONF
+if [ -f "$INT_CONF_ETC" ]; then
+    echo "Static interface_config.js exists, skipping modification..."
+else
+    echo "This setup doesn't have a static interface_config.js, checking changes..."
+	echo -e "\nPlease note that brandless mode will also overwrite support links.\n"
+	sed -i "21,32 s|Jitsi Meet|$APP_NAME|g" $INT_CONF
+	sed -i  "s|\([[:space:]]\)APP_NAME:.*| APP_NAME: \'$APP_NAME\',|" $INT_CONF
+	sed -i "s|Fellow Jitster|$PART_USER|g" $INT_CONF
+	sed -i "s|'me'|'$LOCAL_USER'|" $INT_CONF
+	sed -i "s|LIVE_STREAMING_HELP_LINK: .*|LIVE_STREAMING_HELP_LINK: '#',|g" $INT_CONF
+	sed -i "s|SUPPORT_URL: .*|SUPPORT_URL: '#',|g" $INT_CONF
+fi

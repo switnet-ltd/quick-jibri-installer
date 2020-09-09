@@ -32,6 +32,7 @@ if [ -f $JITSI_MEET_PROXY ];then
 PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
+INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
 jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages |sort -u|awk '{print $2}'|sed 's|jigasi||'|paste -s -d ' ')"
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f $apt_repo/google-chrome.list ]; then
@@ -131,32 +132,38 @@ fi
 ########################################################################
 #                     User interface changes                           #
 ########################################################################
-printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
-if [[ -z "$AVATAR" ]]; then
-	echo "Moving on..."
+
+if [ -f "$INT_CONF_ETC" ]; then
+    echo "Static interface_config.js exists, skipping modification..."
 else
-	echo "Setting Static Avatar"
-	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
-	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+    echo "This setup doesn't have a static interface_config.js, checking changes..."
+	printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
+	if [[ -z "$AVATAR" ]]; then
+		echo "Moving on..."
+	else
+		echo "Setting Static Avatar"
+		sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
+		sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+	fi
+
+	printf "${Purple}========== Setting Support Link  ==========${Color_Off}\n"
+	if [[ -z $support ]]; then
+		echo "Moving on..."
+	else
+		echo "Setting Support custom link"
+		sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
+	fi
+
+	printf "${Purple}========== Disable Localrecording  ==========${Color_Off}\n"
+	if [ "$LOC_REC" != "on" ]; then
+			echo "Removing localrecording..."
+			sed -i "s|'localrecording',||" $INT_CONF
+	fi
+
+	printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
+	sed -i "s|'videobackgroundblur', ||" $INT_CONF
+
 fi
-
-printf "${Purple}========== Setting Support Link  ==========${Color_Off}\n"
-if [[ -z $support ]]; then
-	echo "Moving on..."
-else
-	echo "Setting Support custom link"
-	sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
-fi
-
-printf "${Purple}========== Disable Localrecording  ==========${Color_Off}\n"
-if [ "$LOC_REC" != "on" ]; then
-        echo "Removing localrecording..."
-        sed -i "s|'localrecording',||" $INT_CONF
-fi
-
-printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
-sed -i "s|'videobackgroundblur', ||" $INT_CONF
-
 
 if [  "$NC_DOMAIN" != "TBD" ]; then
 printf "${Purple}========== Enable $NC_DOMAIN for sync client ==========${Color_Off}\n"
