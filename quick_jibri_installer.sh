@@ -176,7 +176,7 @@ if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     "
 else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
-    echo "Even when you can use the videconference sessions, we advice to increase the resoruces in order to user Jibri."
+    echo "Even when you can use the videconference sessions, we advice to increase the resources in order to user Jibri."
     while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
     do
     read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
