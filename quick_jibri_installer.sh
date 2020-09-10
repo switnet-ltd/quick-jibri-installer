@@ -894,7 +894,7 @@ restart_services
 enable_letsencrypt
 
 if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
-echo "Let's try wait 15s"
+echo "Waiting prosody restart, wait 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
 sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
