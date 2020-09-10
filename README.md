@@ -14,7 +14,7 @@ Please check more details on our wiki.
 * Clean VM/VPS/Server using Ubuntu LTS
 * Valid domain with DNS record, **mandatory** for SSL certs via Let's Encrypt.
 * Ports open for ACME (SSL) interaction & validation.
-* Minimum recommended for video recording: 8 GB RAM / 2 Cores.
+* Minimum recommended for video recording: 8 GB RAM / 4 Cores.
 * Webcam
 
 ### Jigasi Transcript
@@ -30,8 +30,9 @@ Please check more details on our wiki.
 * Standalone SSL Certbot/LE implementation
 * Jigasi Transcript - Speech to Text powered by Google API
 * JRA (Jibri Recordings Access) via Nextcloud
-* Customized brandless mode
 * Improved recurring updater
+* Customized brandless mode
+  * (New) Setting up custom interfaces_config.js
 * (New) Grafana Dashboard
 * (New) Lobby Rooms - Secure Rooms
 * (New) Conference Duration - Secure Rooms
@@ -47,11 +48,11 @@ Please check more details on our wiki.
 ## Custom changes
 * Start with video muted by default
 * Start with audio muted but moderator
-
 * Set displayname as not required since jibri can't set it up.
+* Disabled BETA Blur my background
 
 ## Documentation
-* Please check our wiki for further documentation.
+* Please check our [wiki](https://github.com/switnet-ltd/quick-jibri-installer/wiki) for further documentation.
 
 Please note: This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 
