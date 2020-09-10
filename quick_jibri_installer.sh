@@ -404,14 +404,14 @@ elif [ "$ENABLE_BLESSM" = "yes" ]; then
 	echo "Brandless mode will be set."
 fi
 done
-echo "We'll take a minute to localize some UI excerpts if you need."
+echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
 #Participant
-echo "> Do you want to translate 'Participant' to your own language?"
+echo -e "\n> Do you want to translate 'Participant' to your own language?" && \
 read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
 #Me
-echo "> Do you want to translate 'me' to your own language?
+echo -e" \n> Do you want to translate 'me' to your own language?
 This must be a really small word to present one self.
-Some suggestions might be: yo (Spanish) | je (French) | ich (German)"
+Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
 read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
 #Welcome Page
 while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
@@ -814,30 +814,15 @@ elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
 	echo "Only dropping TLSv1/1.1"
 	sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
 	sed -i "s| TLSv1.3||" $WS_CONF
+elif [ "$DROP_TLS1" = "no" ];then
+	echo "No TLSv1/1.1 dropping was done."
 else
-	echo "No TLSv1/1.1 dropping was done. Please report to
+echo "No contidion meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
 echo "Disable \"Blur my background\" until new notice"
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
-
-# Applying best practives for interface config.js
-echo -e "\n> Setting up custom interface_config.js acording to best practices.\n"
-cp "$INT_CONF" "$INT_CONF_ETC"
-
-#Tune webserver for interface_config.js
-if [ -f $WS_CONF ]; then
-	sed -i "/external_api.js/i \\\n" $WS_CONF
-	sed -i "/external_api.js/i \ \ \ \ location = \/interface_config.js {" $WS_CONF
-	sed -i "/external_api.js/i \ \ \ \ \ \ \ \ alias \/etc\/jitsi\/meet\/$DOMAIN-interface_config.js;" $WS_CONF
-	sed -i "/external_api.js/i \ \ \ \ }" $WS_CONF
-	sed -i "/external_api.js/i \\\n" $WS_CONF
-	systemctl reload nginx
-else
-	echo "No interface_config.js configuration done to server file, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
-fi
 
 #================== Setup prosody conf file =================
 
@@ -934,6 +919,22 @@ if [ "$ENABLE_BLESSM" = "yes" ]; then
 	echo "Custom brandless mode will be enabled."
 	sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
 	bash $PWD/jm-bm.sh
+fi
+# Applying best practives for interface config.js
+echo -e "\n> Setting up custom interface_config.js acording to best practices.\n"
+cp "$INT_CONF" "$INT_CONF_ETC"
+
+#Tune webserver for interface_config.js
+if [ -f $WS_CONF ]; then
+	sed -i "/external_api.js/i \\\n" $WS_CONF
+	sed -i "/external_api.js/i \ \ \ \ location = \/interface_config.js {" $WS_CONF
+	sed -i "/external_api.js/i \ \ \ \ \ \ \ \ alias \/etc\/jitsi\/meet\/$DOMAIN-interface_config.js;" $WS_CONF
+	sed -i "/external_api.js/i \ \ \ \ }" $WS_CONF
+	sed -i "/external_api.js/i \\\n" $WS_CONF
+	systemctl reload nginx
+else
+	echo "No interface_config.js configuration done to server file, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
