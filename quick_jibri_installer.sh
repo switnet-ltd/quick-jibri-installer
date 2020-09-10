@@ -406,10 +406,10 @@ fi
 done
 echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
 #Participant
-echo -e "\n> Do you want to translate 'Participant' to your own language?" && \
+echo -e "> Do you want to translate 'Participant' to your own language?" && \
 read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
 #Me
-echo -e" \n> Do you want to translate 'me' to your own language?
+echo -e "\n> Do you want to translate 'me' to your own language?
 This must be a really small word to present one self.
 Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
 read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
@@ -921,7 +921,7 @@ if [ "$ENABLE_BLESSM" = "yes" ]; then
 	bash $PWD/jm-bm.sh
 fi
 # Applying best practives for interface config.js
-echo -e "\n> Setting up custom interface_config.js acording to best practices.\n"
+echo -e "\n> Setting up custom interface_config.js according to best practices."
 cp "$INT_CONF" "$INT_CONF_ETC"
 
 #Tune webserver for interface_config.js
