@@ -32,7 +32,7 @@ Please check more details on our wiki.
 * JRA (Jibri Recordings Access) via Nextcloud
 * Improved recurring updater
 * Customized brandless mode
-  * (New) Setting up custom interfaces_config.js
+  * (New) Setting up custom interface_config.js
 * (New) Grafana Dashboard
 * (New) Lobby Rooms - Secure Rooms
 * (New) Conference Duration - Secure Rooms
