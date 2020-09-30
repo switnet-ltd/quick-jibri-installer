@@ -940,24 +940,41 @@ fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
 	echo "JRA via Nextcloud will be enabled."
-	bash $PWD/jra_nextcloud.sh
+	if [ "$MODE" = "debug" ]; then
+	    bash $PWD/jra_nextcloud.sh -m debug
+	else
+	    bash $PWD/jra_nextcloud.sh
+	fi
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 #Jigasi Transcript
 if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
 	echo "Jigasi Transcription will be enabled."
-	bash $PWD/jigasi.sh
+	# ToDo: Analyze behavior on debug
+	#if [ "$MODE" = "debug" ]; then
+	#    bash $PWD/jigasi.sh -m debug
+	#else
+	    bash $PWD/jigasi.sh
+	#fi
 fi
 {
 #Grafana Dashboard
 if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 	echo "Grafana Dashboard will be enabled."
-	bash $PWD/grafana.sh
+	if [ "$MODE" = "debug" ]; then
+	    bash $PWD/grafana.sh -m debug
+	else
+	    bash $PWD/grafana.sh
+	fi
 fi
 #Docker Etherpad
 if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
 	echo "Docker Etherpad will be enabled."
-	bash $PWD/etherpad.sh
+	if [ "$MODE" = "debug" ]; then
+	    bash $PWD/etherpad.sh -m debug
+	else
+	    bash $PWD/etherpad.sh
+	fi
 fi
 #Prevent Jibri conecction issue
 if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
