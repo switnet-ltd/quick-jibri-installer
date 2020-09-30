@@ -30,13 +30,13 @@ if ! [ $(id -u) = 0 ]; then
    exit 0
 fi
 
-JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
-SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
-HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
-
 echo "Checking for updates...."
 apt -q2 update
 apt -yq2 install apt-show-versions
+
+JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
+SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
+HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
 
 echo -e "\n# Check repository\n"
 if [ -z $JITSI_REPO ]; then
