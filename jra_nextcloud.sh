@@ -2,6 +2,20 @@
 # JRA (Jibri Recordings Access) via Nextcloud
 # SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo ./jra_nextcloud.sh [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
+
 if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
@@ -71,6 +85,17 @@ JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f $JITSI_MEET_PROXY ];then
 PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
+
+echo -e "\n# Check for jitsi-meet/jibri\n"
+if [ "$(dpkg-query -W -f='${Status}' jibri 2>/dev/null | grep -c "ok installed")" == "1" ] || \
+   [ -f /etc/prosody/conf.d/$DOMAIN.conf ]; then
+    echo "jibri is installed, checking version:"
+    apt-show-versions jibri
+else
+    echo "Wait!, jibri or jitsi-meet is not installed on this system using apt, exiting..."
+    exit
+fi
+
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " This instance already has $1 installed, exiting..."
@@ -128,7 +153,8 @@ apt-get install -y \
             php$PHPVER-zip \
             php-imagick \
             php-redis \
-            redis-server
+            redis-server \
+            unzip
 
 #System related
 install_ifnot smbclient
@@ -175,6 +201,7 @@ systemctl restart php$PHPVER-fpm.service
 #--------------------------------------------------
 
 echo -e "\n---- Creating the PgSQL DB & User  ----"
+cd /tmp
 sudo -u postgres psql <<DB
 CREATE DATABASE nextcloud_db;
 CREATE USER ${NC_DB_USER} WITH ENCRYPTED PASSWORD '${NC_DB_PASSWD}';
