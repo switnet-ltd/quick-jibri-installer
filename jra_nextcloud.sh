@@ -42,11 +42,12 @@ if [ -z "$NC_USER" ]; then
 	echo "-- This field is mandatory."
 fi
 done
-while [[ -z "$NC_PASS" ]]
+while [ -z "$NC_PASS" ]  || [ ${#NC_PASS} -lt 6 ]
 do
 read -p "Nextcloud user password: " -r NC_PASS
-if [ -z "$NC_PASS" ]; then
-	echo "-- This field is mandatory."
+
+if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt 6 ]; then
+	echo -e "-- This field is mandatory. \nPlease make sure it's at least 6 caracters.\n"
 fi
 done
 #Enable HSTS
