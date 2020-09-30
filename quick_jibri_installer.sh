@@ -26,7 +26,6 @@ NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
-HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
 CR=`echo $'\n> '`
 
 if [ $DIST = flidas ]; then
@@ -229,6 +228,7 @@ apt-get -y install \
 				wget
 
 echo "# Check and Install HWE kernel if possible..."
+HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
 if [ "$HWE_VIR_MOD" == "1" ]; then
     apt-get -y install \
     linux-image-generic-hwe-$(lsb_release -sr) \
@@ -334,6 +334,7 @@ PROSODY_SYS=/etc/prosody/prosody.cfg.lua
 JICOFO_SIP=/etc/jitsi/jicofo/sip-communicator.properties
 MEET_CONF=/etc/jitsi/meet/$DOMAIN-config.js
 CONF_JSON=/etc/jitsi/jibri/config.json
+JIBRI_CONF=/etc/jitsi/jibri/jibri.conf
 DIR_RECORD=/var/jbrecord
 REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
@@ -482,7 +483,7 @@ read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 	fi
 	done
 else
-	echo "No valid option for Jigasi.Please report this to
+	echo "No valid option for Jigasi. Please report this to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 #Grafana
