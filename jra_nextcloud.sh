@@ -463,6 +463,7 @@ Adding trusted domain...
 sudo -u www-data php $NC_PATH/occ config:system:set trusted_domains 0 --value=$NC_DOMAIN
 
 echo "Setting JRA domain on jitsi-updater.sh"
+cd ~/quick-jibri-installer
 sed -i "s|NC_DOMAIN=.*|NC_DOMAIN=\"$NC_DOMAIN\"|" jitsi-updater.sh
 
 echo "Quick Nextcloud installation complete!"
