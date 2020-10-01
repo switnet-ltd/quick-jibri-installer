@@ -199,6 +199,7 @@ if [ "$JITSI_REPO" = "stable" ]; then
 else
 	echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
+	JITSI_REPO="stable"
 fi
 #Default to LE SSL?
 while [[ $LE_SSL != yes && $LE_SSL != no ]]
@@ -333,7 +334,6 @@ PROSODY_FILE=/etc/prosody/conf.d/$DOMAIN.cfg.lua
 PROSODY_SYS=/etc/prosody/prosody.cfg.lua
 JICOFO_SIP=/etc/jitsi/jicofo/sip-communicator.properties
 MEET_CONF=/etc/jitsi/meet/$DOMAIN-config.js
-CONF_JSON=/etc/jitsi/jibri/config.json
 JIBRI_CONF=/etc/jitsi/jibri/jibri.conf
 DIR_RECORD=/var/jbrecord
 REC_DIR=/home/jibri/finalize_recording.sh
@@ -736,41 +736,76 @@ REC_DIR
 chown jibri:jibri $REC_DIR
 chmod +x $REC_DIR
 
-## JSON Config
-cp $CONF_JSON ${CONF_JSON}.orig
-cat << CONF_JSON > $CONF_JSON
-{
-    "recording_directory":"$DIR_RECORD",
-    "finalize_recording_script_path": "$REC_DIR",
-    "xmpp_environments": [
-        {
-            "name": "$JB_NAME",
-            "xmpp_server_hosts": [
-                "$DOMAIN"
-            ],
-            "xmpp_domain": "$DOMAIN",
-            "control_login": {
-                "domain": "auth.$DOMAIN",
-                "username": "jibri",
-                "password": "$JB_AUTH_PASS"
-            },
-            "control_muc": {
-                "domain": "internal.auth.$DOMAIN",
-                "room_name": "$JibriBrewery",
-                "nickname": "Live"
-            },
-            "call_login": {
-                "domain": "recorder.$DOMAIN",
-                "username": "recorder",
-                "password": "$JB_REC_PASS"
-            },
+## New Jibri Config (2020)
+mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
+cat << NEW_CONF > $JIBRI_CONF
+// New XMPP environment config.
+jibri {
+    recording {
+         recordings-directory = $DIR_RECORD
+         finalize-script = $REC_DIR
+    }
+    api {
+        xmpp {
+            environments = [
+                {
+				// A user-friendly name for this environment
+				name = "$JB_NAME"
 
-            "room_jid_domain_string_to_strip_from_start": "conference.",
-            "usage_timeout": "0"
+				// A list of XMPP server hosts to which we'll connect
+				xmpp-server-hosts = [ "$DOMAIN" ]
+
+				// The base XMPP domain
+				xmpp-domain = "$DOMAIN"
+
+				// The MUC we'll join to announce our presence for
+				// recording and streaming services
+				control-muc {
+					domain = "internal.auth.$DOMAIN"
+					room-name = "$JibriBrewery"
+					nickname = "Live"
+				}
+
+				// The login information for the control MUC
+				control-login {
+					domain = "auth.$DOMAIN"
+					username = "jibri"
+					password = "$JB_AUTH_PASS"
+				}
+
+				// An (optional) MUC configuration where we'll
+				// join to announce SIP gateway services
+			//	sip-control-muc {
+			//		domain = "domain"
+			//		room-name = "room-name"
+			//		nickname = "nickname"
+			//	}
+
+				// The login information the selenium web client will use
+				call-login {
+					domain = "recorder.$DOMAIN"
+					username = "recorder"
+					password = "$JB_REC_PASS"
+				}
+
+				// The value we'll strip from the room JID domain to derive
+				// the call URL
+				strip-from-room-domain = "conference."
+
+				// How long Jibri sessions will be allowed to last before
+				// they are stopped.  A value of 0 allows them to go on
+				// indefinitely
+				usage-timeout = 0 hour
+
+				// Whether or not we'll automatically trust any cert on
+				// this XMPP domain
+				trust-all-xmpp-certs = true
+                }
+            ]
         }
-    ]
+    }
 }
-CONF_JSON
+NEW_CONF
 
 #Setting varibales for add-jibri-node.sh
 sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jibri-node.sh
