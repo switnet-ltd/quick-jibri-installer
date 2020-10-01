@@ -100,7 +100,7 @@ elif [ ! -f $CONF_JSON ] && \
    [ -f ${JIBRI_CONF}-dpkg-file ]; then
     echo -e "\n> This jibri seems to be running the lastest configuration already.\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
-elif [ -f ${CONF_JSON}_disabled ] && \
+elif [ -f ${CONF_JSON} ] && \
    [ -f $JIBRI_CONF ]; then
     echo -e "\n> This jibri config seems to be candidate for upgrading.\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
