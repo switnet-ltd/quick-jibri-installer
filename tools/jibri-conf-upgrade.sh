@@ -90,6 +90,9 @@ fi
 #Read missing variables
 if [ -f $CONF_JSON ]; then
     echo "Reading current config.json file..."
+    if [ -z $DOMAIN ]; then
+        DOMAIN=$(jq .xmpp_environments[0].xmpp_domain $CONF_JSON|cut -d '"' -f2)
+    fi
     JB_NAME=$(jq .xmpp_environments[0].name $CONF_JSON|cut -d '"' -f2)
     JB_AUTH_PASS=$(jq .xmpp_environments[0].control_login.password $CONF_JSON|cut -d '"' -f2)
     JB_REC_PASS=$(jq .xmpp_environments[0].call_login.password $CONF_JSON|cut -d '"' -f2)
@@ -100,11 +103,14 @@ else
 fi
 
 check_read_vars "Jibri Name" $JB_NAME
+check_read_vars "(Main server) Domain" $DOMAIN
 check_read_vars "Control login passwd" $JB_AUTH_PASS
 check_read_vars "Call login passwd" $JB_REC_PASS
+check_read_vars "Jibri Node nickname" $JB_NICKN
 
 if [ "$MODE" = "debug" ]; then
 echo "$JB_NAME"
+echo "$DOMAIN"
 echo "$JB_AUTH_PASS"
 echo "$JB_REC_PASS"
 echo "$JB_NICKN"
