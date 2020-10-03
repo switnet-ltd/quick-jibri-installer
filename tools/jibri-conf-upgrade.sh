@@ -93,6 +93,7 @@ if [ -f $CONF_JSON ]; then
     JB_NAME=$(jq .xmpp_environments[0].name $CONF_JSON|cut -d '"' -f2)
     JB_AUTH_PASS=$(jq .xmpp_environments[0].control_login.password $CONF_JSON|cut -d '"' -f2)
     JB_REC_PASS=$(jq .xmpp_environments[0].call_login.password $CONF_JSON|cut -d '"' -f2)
+    JB_NICKN=$(jq .xmpp_environments[0].control_muc.nickname $CONF_JSON|cut -d '"' -f2)
 else
     echo "Can't find the instance config.json file, exiting..."
     exit
@@ -106,6 +107,7 @@ if [ "$MODE" = "debug" ]; then
 echo "$JB_NAME"
 echo "$JB_AUTH_PASS"
 echo "$JB_REC_PASS"
+echo "$JB_NICKN"
 fi
 
 #Backup and setup new conf file
@@ -138,7 +140,7 @@ jibri {
 				control-muc {
 					domain = "internal.auth.$DOMAIN"
 					room-name = "$JibriBrewery"
-					nickname = "Live"
+					nickname = "$JB_NICKN"
 				}
 
 				// The login information for the control MUC
