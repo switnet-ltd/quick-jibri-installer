@@ -61,7 +61,7 @@ apt -y install --only-upgrade jibri
 
 echo -e "\n# -- Test kernel modules --\n"
 if [ -z $SND_AL_MODULE ]; then
-    echo -e "No module snd_aloop detected.\nIf you just installed a new kernel, \
+    echo -e "No module snd_aloop detected. <== IMPORTANT!\nIf you just installed a new kernel, \
 please try rebooting.\nFor now wait 'til the end of the recommended kernel installation."
   echo "# Check and Install HWE kernel if possible..."
   if [ "$HWE_VIR_MOD" == "1" ]; then
