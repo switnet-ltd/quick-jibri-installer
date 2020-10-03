@@ -146,6 +146,17 @@ apt-get -y install \
 				unzip \
 				wget
 
+echo "# Check and Install HWE kernel if possible..."
+HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
+if [ "$HWE_VIR_MOD" == "1" ]; then
+    apt-get -y install \
+    linux-image-generic-hwe-$(lsb_release -sr) \
+    linux-modules-extra-virtual-hwe-$(lsb_release -sr)
+    else
+    apt-get -y install \
+    linux-modules-extra-$(uname -r)
+fi
+
 check_snd_driver
 
 echo "
@@ -247,7 +258,7 @@ jibri {
 				control-muc {
 					domain = "internal.auth.$DOMAIN"
 					room-name = "$JibriBrewery"
-					nickname = "Live"
+					nickname = "Live-$ADDUP"
 				}
 
 				// The login information for the control MUC
