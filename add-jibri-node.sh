@@ -366,6 +366,9 @@ echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 #Create ssh key
 sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
+#Temp Workaround
+echo "Please manually accept the connection by executing: ssh $MJS_USER@$MAIN_SRV_DOMAIN ...then exit"
+su $NJN_USER
 
 echo -e "\n---- Setup Log system ----"
 cat << INOT_RSYNC > /etc/jitsi/jibri/remote-jbsync.sh
