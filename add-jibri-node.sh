@@ -191,15 +191,16 @@ apt-get update -q2
 apt-get dist-upgrade -yq2
 
 apt-get -y install \
+                apt-show-versions \
                 bmon \
                 curl \
                 ffmpeg \
                 git \
                 htop \
                 inotify-tools \
+                jq \
                 rsync \
                 ssh \
-                sshpass \
                 unzip \
                 wget
 
