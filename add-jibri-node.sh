@@ -99,9 +99,9 @@ check_var JB_NAME "$JB_NAME"
 check_var JB_AUTH_PASS "$JB_AUTH_PASS"
 check_var JB_REC_PASS "$JB_REC_PASS"
 
-#Rename hostname for each jibri node
+# Rename hostname for each jibri node
 hostnamectl set-hostname "jbnode${ADDUP}.${MAIN_SRV_DOMAIN}"
-sed "1i ${PUBLIC_IP} jbnode${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
+sed -i "1i ${PUBLIC_IP} jbnode${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
 
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"

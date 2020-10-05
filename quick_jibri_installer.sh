@@ -349,6 +349,10 @@ CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{p
 CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
 GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
 
+# Rename hostname for jitsi server
+#hostnamectl set-hostname "jibri.${DOMAIN}"
+#sed -i "1i ${PUBLIC_IP} jibri.${DOMAIN}" /etc/hosts
+
 #Sysadmin email
 while [[ -z $SYSADMIN_EMAIL ]]
 do
