@@ -42,6 +42,8 @@ JibriBrewery=TBD
 JB_NAME=TBD
 JB_AUTH_PASS=TBD
 JB_REC_PASS=TBD
+MJS_USER=TBD
+MJS_USER_PASS=TBD
 THIS_SRV_DIST=$(lsb_release -sc)
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
 START=0
@@ -53,6 +55,9 @@ CHD_VER="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
+NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
+NJN_USER="jbnode${ADDUP}_${NJN_RAND_TAIL}"
+NJN_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 ### 1_VAR_DEF
 
 # sed limiters for add-jibri-node.sh variables
@@ -353,6 +358,82 @@ jibri {
     }
 }
 NEW_CONF
+
+echo -e "\n---- Create random nodesync user ----"
+useradd -m -g jibri $NJN_USER
+echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
+
+#Create ssh key
+sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
+
+echo -e "\n---- Setup Log system ----"
+cat << INOT_RSYNC > /etc/jitsi/jibri/remote-jbsync.sh
+#!/bin/bash
+
+# Log process
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3
+exec 1>/var/log/$NJN_USER/remote_jnsync.log 2>&1
+
+# Run sync
+while true; do
+  inotifywait  -t 60 -r -e modify,attrib,close_write,move,delete $DIR_RECORD
+  sudo su $NJN_USER -c "rsync -Aax  --info=progress2 --remove-source-files --exclude '.*/' $DIR_RECORD/ $MJS_USER@$MAIN_SRV_DOMAIN:$DIR_RECORD" && \\
+  find $DIR_RECORD -depth -type d -empty -not -path $DIR_RECORD -delete
+done
+INOT_RSYNC
+
+
+mkdir /var/log/$NJN_USER
+
+cat << LOG_ROT >> /etc/logrotate.d/$NJN_USER
+/var/log/$NJN_USER/*.log {
+    monthly
+    missingok
+    rotate 12
+    compress
+    notifempty
+    create 0640 root root
+    sharedscripts
+    postrotate
+        service remote_jnsync restart
+    endscript
+}
+LOG_ROT
+
+echo -e "\n---- Create systemd service file ----"
+cat << REMOTE_SYNC_SERVICE > /etc/systemd/system/remote_jnsync.service
+[Unit]
+Description = Sync Node to Main Jibri Service
+After = network.target
+
+[Service]
+PIDFile = /run/syncservice/remote_jnsync.pid
+User = root
+Group = root
+WorkingDirectory = /var
+ExecStartPre = /bin/mkdir /run/syncservice
+ExecStartPre = /bin/chown -R root:root /run/syncservice
+ExecStart = /bin/bash /etc/jitsi/jibri/remote-jbsync.sh
+ExecReload = /bin/kill -s HUP \$MAINPID
+ExecStop = /bin/kill -s TERM \$MAINPID
+ExecStopPost = /bin/rm -rf /run/syncservice
+PrivateTmp = true
+
+[Install]
+WantedBy = multi-user.target
+REMOTE_SYNC_SERVICE
+
+chmod 755 /etc/systemd/system/remote_jnsync.service
+systemctl daemon-reload
+
+systemctl enable remote_jnsync.service
+systemctl start remote_jnsync.service
+
+echo "Copying updated add-jibri-node.sh file to main server sync user..."
+cp $PWD/add-jibri-node.sh /tmp
+sudo su $NJN_USER -c "scp /tmp/add-jibri-node.sh $MJS_USER@$MAIN_SRV_DOMAIN:/home/$MJS_USER"
 
 echo "Writting last node number..."
 sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jibri-node.sh
