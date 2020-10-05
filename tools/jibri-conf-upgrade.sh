@@ -45,7 +45,9 @@ else
     exit
 fi
 
+if [ -d /etc/prosody/ ];then
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+fi
 CONF_JSON="/etc/jitsi/jibri/config.json"
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
 DIR_RECORD=/var/jbrecord
