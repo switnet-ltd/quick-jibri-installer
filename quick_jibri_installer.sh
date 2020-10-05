@@ -349,6 +349,9 @@ ENABLE_SA="yes"
 CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
 CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
 GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
+MJS_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
+MJS_USER="jbsync_$MJS_RAND_TAIL"
+MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 
 # Rename hostname for jitsi server
 #hostnamectl set-hostname "jibri.${DOMAIN}"
@@ -814,6 +817,15 @@ jibri {
     }
 }
 NEW_CONF
+#Create receiver user
+useradd -m -g jibri $MJS_USER
+echo "$MJS_USER:$MJS_USER_PASS" | chpasswd
+
+#Create ssh key and restrict connections
+sudo su $MJS_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+#sudo su $MJS_USER -c "rm ~/.ssh/id_rsa.pub"
+#sudo su $MJS_USER -c "cat ~/.ssh/authorized_keys"
+
 
 #Setting varibales for add-jibri-node.sh
 sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jibri-node.sh
@@ -823,6 +835,8 @@ sed -i "s|JB_NAME=.*|JB_NAME=\"$JB_NAME\"|" add-jibri-node.sh
 sed -i "s|JibriBrewery=.*|JibriBrewery=\"$JibriBrewery\"|" add-jibri-node.sh
 sed -i "s|JB_AUTH_PASS=.*|JB_AUTH_PASS=\"$JB_AUTH_PASS\"|" add-jibri-node.sh
 sed -i "s|JB_REC_PASS=.*|JB_REC_PASS=\"$JB_REC_PASS\"|" add-jibri-node.sh
+sed -i "s|MJS_USER=.*|MJS_USER=\"$MJS_USER\"|" add-jibri-node.sh
+sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
 echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
 
