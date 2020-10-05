@@ -91,10 +91,10 @@ fi
 echo -e "\n# Check for jitsi-meet/jibri\n"
 if [ "$(dpkg-query -W -f='${Status}' jibri 2>/dev/null | grep -c "ok installed")" == "1" ] || \
    [ -f /etc/prosody/conf.d/$DOMAIN.conf ]; then
-    echo "jibri is installed, checking version:"
+    echo "jitsi meet/jibri is installed, checking version:"
     apt-show-versions jibri
 else
-    echo "Wait!, jibri or jitsi-meet is not installed on this system using apt, exiting..."
+    echo "Wait!, jitsi-meet/jibri is not installed on this system using apt, exiting..."
     exit
 fi
 

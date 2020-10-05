@@ -193,6 +193,8 @@ apt-get -y install \
                 htop \
                 inotify-tools \
                 rsync \
+                ssh \
+                sshpass \
                 unzip \
                 wget
 

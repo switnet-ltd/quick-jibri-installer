@@ -228,6 +228,7 @@ apt-get -y install \
 				letsencrypt \
 				net-tools \
 				rsync \
+				ssh \
 				unzip \
 				wget
 
