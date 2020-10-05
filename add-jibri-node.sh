@@ -86,6 +86,50 @@ if [ ! "$THIS_SRV_DIST" = "$MAIN_SRV_DIST" ]; then
 	exit
 fi
 
+#Check system resources
+echo "Verifying System Resources:"
+if [ "$(nproc --all)" -lt 4 ];then
+  echo "
+Warning!: The system do not meet the minimum CPU requirements for Jibri to run.
+>> We recommend 4 cores/threads for Jibri!
+"
+  CPU_MIN="N"
+else
+  echo "CPU Cores/Threads: OK ($(nproc --all))"
+  CPU_MIN="Y"
+fi
+### Test RAM size (8GB min) ###
+mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
+if [ ${mem_available} -lt 7700000 ]; then
+  echo "
+Warning!: The system do not meet the minimum RAM requirements for Jibri to run.
+>> We recommend 8GB RAM for Jibri!
+"
+  MEM_MIN="N"
+else
+  echo "Memory: OK ($((mem_available/1024)) MiB)"
+  MEM_MIN="Y"
+fi
+if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
+    echo "All requirements seems meet!"
+    echo "
+    - We hope you have a nice recording/streaming session
+    "
+else
+    echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
+    echo "Even when you can use the videconference sessions, we advice to increase the resources in order to user Jibri."
+    while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
+    do
+    read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
+    if [ "$CONTINUE_LOW_RES" = "no" ]; then
+            echo "See you next time with more resources!..."
+            exit
+    elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
+            echo "Please keep in mind that trying to use Jibri with low resources might fail."
+    fi
+    done
+fi
+
 echo "
 #-----------------------------------------------------------------------
 # Checking initial necessary variables...

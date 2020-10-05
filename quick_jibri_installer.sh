@@ -144,7 +144,7 @@ echo "  > $(lsb_release -sc), even when it's compatible and functional.
     We suggest to use the next (LTS) release, for longer support and security reasons."
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
-#Check resources
+#Check system resources
 echo "Verifying System Resources:"
 if [ "$(nproc --all)" -lt 4 ];then
   echo "
