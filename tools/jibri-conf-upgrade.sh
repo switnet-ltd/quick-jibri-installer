@@ -32,7 +32,9 @@ fi
 
 echo "Checking for updates...."
 apt -q2 update
-apt install -y apt-show-versions jq
+apt install -y \
+                apt-show-versions \
+                jq
 
 echo -e "\n# Check for jibri\n"
 if [ "$(dpkg-query -W -f='${Status}' jibri 2>/dev/null | grep -c "ok installed")" == "1" ]; then

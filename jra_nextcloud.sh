@@ -22,12 +22,13 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 clear
-echo '
+echo -e '\n
 ########################################################################
                  Jibri Recordings Access via Nextcloud
 ########################################################################
                     by Software, IT & Networks Ltd
-'
+\n'
+
 while [[ -z "$NC_DOMAIN" ]]
 do
 read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
