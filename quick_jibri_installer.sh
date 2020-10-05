@@ -225,6 +225,7 @@ apt-get -y install \
 				htop \
 				letsencrypt \
 				net-tools \
+				rsync \
 				unzip \
 				wget
 
