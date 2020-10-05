@@ -218,11 +218,13 @@ apt-get update -q2
 apt-get dist-upgrade -yq2
 
 apt-get -y install \
+				apt-show-versions \
 				bmon \
 				curl \
 				ffmpeg \
 				git \
 				htop \
+				jq \
 				letsencrypt \
 				net-tools \
 				rsync \
@@ -975,7 +977,7 @@ else
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo "JRA via Nextcloud will be enabled."
+	echo -n "\nJRA via Nextcloud will be enabled."
 	if [ "$MODE" = "debug" ]; then
 	    bash $PWD/jra_nextcloud.sh -m debug
 	else
@@ -985,7 +987,7 @@ fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 #Jigasi Transcript
 if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-	echo "Jigasi Transcription will be enabled."
+	echo -e "\nJigasi Transcription will be enabled."
 	# ToDo: Analyze behavior on debug
 	#if [ "$MODE" = "debug" ]; then
 	#    bash $PWD/jigasi.sh -m debug
@@ -996,7 +998,7 @@ fi
 {
 #Grafana Dashboard
 if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-	echo "Grafana Dashboard will be enabled."
+	echo -e "\nGrafana Dashboard will be enabled."
 	if [ "$MODE" = "debug" ]; then
 	    bash $PWD/grafana.sh -m debug
 	else
@@ -1005,7 +1007,7 @@ if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 fi
 #Docker Etherpad
 if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-	echo "Docker Etherpad will be enabled."
+	echo -e "\nDocker Etherpad will be enabled."
 	if [ "$MODE" = "debug" ]; then
 	    bash $PWD/etherpad.sh -m debug
 	else
