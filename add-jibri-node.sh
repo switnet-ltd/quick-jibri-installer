@@ -52,6 +52,7 @@ REC_DIR="/home/jibri/finalize_recording.sh"
 CHD_VER="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
+PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 ### 1_VAR_DEF
 
 # sed limiters for add-jibri-node.sh variables
@@ -98,6 +99,10 @@ check_var JB_NAME "$JB_NAME"
 check_var JB_AUTH_PASS "$JB_AUTH_PASS"
 check_var JB_REC_PASS "$JB_REC_PASS"
 
+#Rename hostname for each jibri node
+hostnamectl set-hostname "jbnode${ADDUP}.${MAIN_SRV_DOMAIN}"
+sed "1i ${PUBLIC_IP} jbnode${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
+
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
 if [ -z "$JITSI_REPO" ]; then
@@ -137,14 +142,15 @@ apt-get update -q2
 apt-get dist-upgrade -yq2
 
 apt-get -y install \
-				bmon \
-				curl \
-				ffmpeg \
-				git \
-				htop \
-				linux-image-generic-hwe-"$(lsb_release -r|awk '{print$2}')" \
-				unzip \
-				wget
+                bmon \
+                curl \
+                ffmpeg \
+                git \
+                htop \
+                inotify-tools \
+                rsync \
+                unzip \
+                wget
 
 echo "# Check and Install HWE kernel if possible..."
 HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
@@ -248,22 +254,22 @@ jibri {
 				name = "$JB_NAME"
 
 				// A list of XMPP server hosts to which we'll connect
-				xmpp-server-hosts = [ "$DOMAIN" ]
+				xmpp-server-hosts = [ "$MAIN_SRV_DOMAIN" ]
 
 				// The base XMPP domain
-				xmpp-domain = "$DOMAIN"
+				xmpp-domain = "$MAIN_SRV_DOMAIN"
 
 				// The MUC we'll join to announce our presence for
 				// recording and streaming services
 				control-muc {
-					domain = "internal.auth.$DOMAIN"
+					domain = "internal.auth.$MAIN_SRV_DOMAIN"
 					room-name = "$JibriBrewery"
 					nickname = "Live-$ADDUP"
 				}
 
 				// The login information for the control MUC
 				control-login {
-					domain = "auth.$DOMAIN"
+					domain = "auth.$MAIN_SRV_DOMAIN"
 					username = "jibri"
 					password = "$JB_AUTH_PASS"
 				}
@@ -278,7 +284,7 @@ jibri {
 
 				// The login information the selenium web client will use
 				call-login {
-					domain = "recorder.$DOMAIN"
+					domain = "recorder.$MAIN_SRV_DOMAIN"
 					username = "recorder"
 					password = "$JB_REC_PASS"
 				}
