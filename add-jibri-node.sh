@@ -147,6 +147,8 @@ check_var JibriBrewery "$JibriBrewery"
 check_var JB_NAME "$JB_NAME"
 check_var JB_AUTH_PASS "$JB_AUTH_PASS"
 check_var JB_REC_PASS "$JB_REC_PASS"
+check_var MJS_USER "$MJS_USER"
+check_var MJS_USER_PASS "$MJS_USER_PASS"
 
 # Rename hostname for each jibri node
 hostnamectl set-hostname "jbnode${ADDUP}.${MAIN_SRV_DOMAIN}"
@@ -366,6 +368,7 @@ echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 
 #Create ssh key
 sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+echo "$NJN_USER:$NJN_USER_PASS"
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
 #Temp Workaround
 echo "Please manually accept the connection by executing: ssh $MJS_USER@$MAIN_SRV_DOMAIN ...then exit"
