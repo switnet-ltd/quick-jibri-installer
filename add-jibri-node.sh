@@ -206,10 +206,7 @@ else
 # Your audio driver might not be able to load.
 # We'll check the state of this Jibri with our 'test-jibri-env.sh' tool.
 #-----------------------------------------------------------------------"
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
-curl -s \
-$TEST_JIBRI_ENV \
-> /tmp/test-jibri-env.sh
+curl -s $TEST_JIBRI_ENV > /tmp/test-jibri-env.sh
 #Test tool
   if [ "$MODE" = "debug" ]; then
     bash /tmp/test-jibri-env.sh -m debug
@@ -217,6 +214,7 @@ $TEST_JIBRI_ENV \
     bash /tmp/test-jibri-env.sh
   fi
 rm /tmp/test-jibri-env.sh
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 }
 

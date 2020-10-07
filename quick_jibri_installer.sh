@@ -76,13 +76,13 @@ else
 # Your audio driver might not be able to load.
 # We'll check the state of this Jibri with our 'test-jibri-env.sh' tool.
 #-----------------------------------------------------------------------"
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
 #Test tool
   if [ "$MODE" = "debug" ]; then
     bash $PWD/tools/test-jibri-env.sh -m debug
   else
     bash $PWD/tools/test-jibri-env.sh
   fi
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 }
 # sed limiters for add-jibri-node.sh variables
