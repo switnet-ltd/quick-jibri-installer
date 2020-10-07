@@ -826,6 +826,10 @@ echo "$MJS_USER:$MJS_USER_PASS" | chpasswd
 
 #Create ssh key and restrict connections
 sudo su $MJS_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+#Allow password authentication
+sed -i "s|PasswordAuthentication .*|PasswordAuthentication yes|" /etc/ssh/sshd_config
+systemctl restart sshd
+
 #sudo su $MJS_USER -c "rm ~/.ssh/id_rsa.pub"
 #sudo su $MJS_USER -c "cat ~/.ssh/authorized_keys"
 
