@@ -62,7 +62,7 @@ Installing nginx webserver!
 fi
 }
 check_snd_driver() {
-# ALSA - Loopback
+echo -e "\n# Checking ALSA - Loopback module..."
 echo "snd-aloop" | tee -a /etc/modules
 modprobe snd-aloop
 if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
