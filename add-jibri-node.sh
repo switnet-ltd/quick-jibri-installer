@@ -58,6 +58,9 @@ PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
 NJN_USER="jbnode${ADDUP}_${NJN_RAND_TAIL}"
 NJN_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
+GITHUB_RAW="https://raw.githubusercontent.com"
+GIT_REPO="switnet-ltd/quick-jibri-installer"
+TEST_JIBRI_ENV="$GITHUB_RAW/$GIT_REPO/unstable/tools/test-jibri-env.sh"
 ### 1_VAR_DEF
 
 # sed limiters for add-jibri-node.sh variables
@@ -67,12 +70,12 @@ var_dlim() {
 
 check_var() {
 	if [ -z "$2" ]; then
-		echo "$1 is not defined, please check. Exiting..."
+		echo -e "Check if variable $1 is set: \xE2\x9C\x96 \nExiting..."
 		exit
 	else
-		echo "$1 is set to: $2"
+		echo -e "Check if variable $1 is set: \xE2\x9C\x94"
 	fi
-	}
+}
 
 if [ -z "$LAST" ]; then
 	echo "There is an error on the LAST definition, please report."
@@ -168,25 +171,6 @@ else
 	echo "Jitsi $JITSI_REPO repository already installed"
 fi
 
-check_snd_driver() {
-modprobe snd-aloop
-echo "snd-aloop" >> /etc/modules
-if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
-	echo "
-#-----------------------------------------------------------------------
-# Audio driver seems - OK.
-#-----------------------------------------------------------------------"
-else
-	echo "
-#-----------------------------------------------------------------------
-# Your audio driver might not be able to load, once the installation
-# is complete and server restarted, please run: \`lsmod | grep snd_aloop'
-# to make sure it did. If not, any feedback for your setup is welcome.
-#-----------------------------------------------------------------------"
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
-fi
-}
-
 # Requirements
 echo "We'll start by installing system requirements this may take a while please be patient..."
 apt-get update -q2
@@ -196,6 +180,7 @@ apt-get -y install \
                 apt-show-versions \
                 bmon \
                 curl \
+                expect \
                 ffmpeg \
                 git \
                 htop \
@@ -205,6 +190,35 @@ apt-get -y install \
                 ssh \
                 unzip \
                 wget
+
+check_snd_driver() {
+# ALSA - Loopback
+echo "snd-aloop" | tee -a /etc/modules
+modprobe snd-aloop
+if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
+	echo "
+#-----------------------------------------------------------------------
+# Audio driver seems - OK.
+#-----------------------------------------------------------------------"
+else
+	echo "
+#-----------------------------------------------------------------------
+# Your audio driver might not be able to load.
+# We'll check the state of this Jibri with our 'test-jibri-env.sh' tool.
+#-----------------------------------------------------------------------"
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
+curl -s \
+$TEST_JIBRI_ENV \
+> /tmp/test-jibri-env.sh
+#Test tool
+  if [ "$MODE" = "debug" ]; then
+    bash /tmp/test-jibri-env.sh -m debug
+  else
+    bash /tmp/test-jibri-env.sh
+  fi
+rm /tmp/test-jibri-env.sh
+fi
+}
 
 echo "# Check and Install HWE kernel if possible..."
 HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
@@ -216,8 +230,6 @@ if [ "$HWE_VIR_MOD" == "1" ]; then
     apt-get -y install \
     linux-modules-extra-$(uname -r)
 fi
-
-check_snd_driver
 
 echo "
 #--------------------------------------------------
@@ -368,11 +380,29 @@ echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 
 #Create ssh key
 sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
-echo "$NJN_USER:$NJN_USER_PASS"
+echo "Remote pass: $MJS_USER_PASS"
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
+sudo su $NJN_USER -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
 #Temp Workaround
-echo "Please manually accept the connection by executing: ssh $MJS_USER@$MAIN_SRV_DOMAIN ...then exit"
-su $NJN_USER
+#cat << CONFIRM_SSH_LOGIN > /tmp/${NJN_USER}_login
+##!/usr/local/bin/expect
+#spawn  sftp  -b cmdFile user@yourserver.com
+#expect "password:"
+#send "shhh!\n";
+#interact
+#set -x
+#expect {
+  #spawn ssh $MJS_USER@$MAIN_SRV_DOMAIN
+  #"(Are you sure you want to continue connecting yes/no)?" { send "yes\r"; exp_continue }
+#}
+#set +x
+#read -n 1 -s -r -p "Press any key to continue..."$'\n'
+#exit
+#CONFIRM_SSH_LOGIN
+#sudo -u $NJN_USER bash /tmp/${NJN_USER}_login
+#rm /tmp/${NJN_USER}_login
+#echo "Please manually accept the connection by executing: ssh $MJS_USER@$MAIN_SRV_DOMAIN ...then exit"
+#su $NJN_USER
 
 echo -e "\n---- Setup Log system ----"
 cat << INOT_RSYNC > /etc/jitsi/jibri/remote-jbsync.sh
@@ -386,7 +416,7 @@ exec 1>/var/log/$NJN_USER/remote_jnsync.log 2>&1
 # Run sync
 while true; do
   inotifywait  -t 60 -r -e modify,attrib,close_write,move,delete $DIR_RECORD
-  sudo su $NJN_USER -c "rsync -Aax  --info=progress2 --remove-source-files --exclude '.*/' $DIR_RECORD/ $MJS_USER@$MAIN_SRV_DOMAIN:$DIR_RECORD" && \\
+  sudo su $NJN_USER -c "rsync -Aax  --info=progress2 --remove-source-files --exclude '.*/' $DIR_RECORD/ $MJS_USER@$MAIN_SRV_DOMAIN:$DIR_RECORD"
   find $DIR_RECORD -depth -type d -empty -not -path $DIR_RECORD -delete
 done
 INOT_RSYNC
@@ -438,10 +468,6 @@ systemctl daemon-reload
 systemctl enable remote_jnsync.service
 systemctl start remote_jnsync.service
 
-echo "Copying updated add-jibri-node.sh file to main server sync user..."
-cp $PWD/add-jibri-node.sh /tmp
-sudo su $NJN_USER -c "scp /tmp/add-jibri-node.sh $MJS_USER@$MAIN_SRV_DOMAIN:/home/$MJS_USER"
-
 echo "Writting last node number..."
 sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
@@ -451,6 +477,12 @@ echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LET
 systemctl enable jibri
 systemctl enable jibri-xorg
 systemctl enable jibri-icewm
+
+echo "Copying updated add-jibri-node.sh file to main server sync user..."
+cp $PWD/add-jibri-node.sh /tmp
+sudo -u $NJN_USER scp /tmp/add-jibri-node.sh $MJS_USER@$MAIN_SRV_DOMAIN:/home/$MJS_USER/
+
+check_snd_driver
 
 echo "
 ########################################################################
