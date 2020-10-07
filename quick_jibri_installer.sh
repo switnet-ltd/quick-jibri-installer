@@ -62,8 +62,9 @@ Installing nginx webserver!
 fi
 }
 check_snd_driver() {
+# ALSA - Loopback
+echo "snd-aloop" | tee -a /etc/modules
 modprobe snd-aloop
-echo "snd-aloop" >> /etc/modules
 if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
 	echo "
 #-----------------------------------------------------------------------
@@ -72,11 +73,16 @@ if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; t
 else
 	echo "
 #-----------------------------------------------------------------------
-# Your audio driver might not be able to load, once the installation
-# is complete and server restarted, please run: \`lsmod | grep snd_aloop'
-# to make sure it did. If not, any feedback for your setup is welcome.
+# Your audio driver might not be able to load.
+# We'll check the state of this Jibri with our 'test-jibri-env.sh' tool.
 #-----------------------------------------------------------------------"
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
+#Test tool
+  if [ "$MODE" = "debug" ]; then
+    bash $PWD/tools/test-jibri-env.sh -m debug
+  else
+    bash $PWD/tools/test-jibri-env.sh
+  fi
 fi
 }
 # sed limiters for add-jibri-node.sh variables
@@ -283,9 +289,6 @@ elif [ "$(npm list -g esprima 2>/dev/null | grep -c "esprima")" == "1" ]; then
 	echo "Good. Esprima package is already installed"
 fi
 
-# ALSA - Loopback
-echo "snd-aloop" | tee -a /etc/modules
-check_snd_driver
 CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
@@ -1040,6 +1043,8 @@ sed -i "/127.0.0.1/a \\
 else
   echo "Local host already in place..."
 fi
+
+check_snd_driver
 
 echo "
 ########################################################################
