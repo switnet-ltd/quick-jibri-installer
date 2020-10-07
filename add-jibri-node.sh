@@ -383,26 +383,6 @@ sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N
 echo "Remote pass: $MJS_USER_PASS"
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
 sudo su $NJN_USER -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
-#Temp Workaround
-#cat << CONFIRM_SSH_LOGIN > /tmp/${NJN_USER}_login
-##!/usr/local/bin/expect
-#spawn  sftp  -b cmdFile user@yourserver.com
-#expect "password:"
-#send "shhh!\n";
-#interact
-#set -x
-#expect {
-  #spawn ssh $MJS_USER@$MAIN_SRV_DOMAIN
-  #"(Are you sure you want to continue connecting yes/no)?" { send "yes\r"; exp_continue }
-#}
-#set +x
-#read -n 1 -s -r -p "Press any key to continue..."$'\n'
-#exit
-#CONFIRM_SSH_LOGIN
-#sudo -u $NJN_USER bash /tmp/${NJN_USER}_login
-#rm /tmp/${NJN_USER}_login
-#echo "Please manually accept the connection by executing: ssh $MJS_USER@$MAIN_SRV_DOMAIN ...then exit"
-#su $NJN_USER
 
 echo -e "\n---- Setup Log system ----"
 cat << INOT_RSYNC > /etc/jitsi/jibri/remote-jbsync.sh
