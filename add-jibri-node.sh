@@ -192,7 +192,7 @@ apt-get -y install \
                 wget
 
 check_snd_driver() {
-# ALSA - Loopback
+echo -e "\n# Checking ALSA - Loopback module..."
 echo "snd-aloop" | tee -a /etc/modules
 modprobe snd-aloop
 if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
@@ -376,7 +376,8 @@ echo -e "\n---- Create random nodesync user ----"
 useradd -m -g jibri $NJN_USER
 echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 
-#Create ssh key
+echo -e "\n---- We'll connect to main server ----"
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
 echo "Remote pass: $MJS_USER_PASS"
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
@@ -456,9 +457,10 @@ systemctl enable jibri
 systemctl enable jibri-xorg
 systemctl enable jibri-icewm
 
-echo "Copying updated add-jibri-node.sh file to main server sync user..."
+echo -e "\nSending updated add-jibri-node.sh file to main server sync user..."
 cp $PWD/add-jibri-node.sh /tmp
 sudo -u $NJN_USER scp /tmp/add-jibri-node.sh $MJS_USER@$MAIN_SRV_DOMAIN:/home/$MJS_USER/
+rm $PWD/add-jibri-node.sh /tmp/add-jibri-node.sh
 
 check_snd_driver
 
