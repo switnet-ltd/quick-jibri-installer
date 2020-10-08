@@ -125,7 +125,8 @@ if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     "
 else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
-    echo "Even when you can use the videconference sessions, we advice to increase the resources in order to user Jibri."
+    echo "Since this is a Jibri node there is no point on having the necessary resources."
+    echo "We highly advice to increase the resources in order to install this Jibri node."
     while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
     do
     read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
@@ -133,7 +134,7 @@ else
             echo "See you next time with more resources!..."
             exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
-            echo "Please keep in mind that trying to use Jibri with low resources might fail."
+            echo "Please keep in mind that we might not support underpowered nodes."
     fi
     done
 fi
@@ -155,7 +156,7 @@ check_var MJS_USER_PASS "$MJS_USER_PASS"
 
 # Rename hostname for each jibri node
 hostnamectl set-hostname "jbnode${ADDUP}.${MAIN_SRV_DOMAIN}"
-sed -i "1i ${PUBLIC_IP} jbnode${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
+sed -i "1i 127.0.0.1 jbnode${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
 
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"

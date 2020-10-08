@@ -189,7 +189,38 @@ else
             echo "See you next time with more resources!..."
             exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
-            echo "Please keep in mind that trying to use Jibri with low resources might fail."
+            echo "We highly recommend to increase the server resources."
+            echo "Otherwise, please think about adding dedicated jibri nodes instead."
+    fi
+    done
+fi
+
+if [ "$CONTINUE_LOW_RES" = "yes" ]; then
+echo -e "\nThis server will likely have issues due the lack of resources.
+If you plan to enable other components such as,
+
+ - JRA via Nextcloud
+ - Jigasi Transcriber
+ - Additional Jibri Nodes
+ - others.
+
+We higly recommend to increase resources of this server.
+
+For now we advice to disable the Jibri service locally and add an external
+Jibri node once this installation has finished, using our script:
+
+ >> add-jibri-node.sh
+
+So you can add a Jibri server on a instance with enough resources.\n"
+
+    while [[ "$DISABLE_LOCAL_JIBRI" != "yes" && "$DISABLE_LOCAL_JIBRI" != "no" ]]
+    do
+    read -p "> Do you want to disable local jibri service?: (yes or no)"$'\n' -r DISABLE_LOCAL_JIBRI
+    if [ "$DISABLE_LOCAL_JIBRI" = "no" ]; then
+            echo "Please keep in mind that we might not support underpowered servers."
+            exit
+    elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
+            echo "Please think about adding dedicated jibri nodes see more at the wiki."
     fi
     done
 fi
@@ -955,6 +986,11 @@ systemctl enable jibri
 systemctl enable jibri-xorg
 systemctl enable jibri-icewm
 restart_services
+if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
+
+    systemctl stop jibri*
+    systemctl disable jibri*
+fi
 
 enable_letsencrypt
 
