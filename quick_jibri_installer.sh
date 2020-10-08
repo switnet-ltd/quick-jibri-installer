@@ -861,9 +861,6 @@ sudo su $MJS_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N
 sed -i "s|PasswordAuthentication .*|PasswordAuthentication yes|" /etc/ssh/sshd_config
 systemctl restart sshd
 
-#sudo su $MJS_USER -c "rm ~/.ssh/id_rsa.pub"
-#sudo su $MJS_USER -c "cat ~/.ssh/authorized_keys"
-
 
 #Setting varibales for add-jibri-node.sh
 sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jibri-node.sh

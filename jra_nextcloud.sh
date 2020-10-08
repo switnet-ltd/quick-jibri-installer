@@ -448,7 +448,6 @@ sudo -u www-data php $NC_PATH/occ app:enable files_external
 sudo -u www-data php $NC_PATH/occ files_external:import /tmp/jra-nc-app-ef.json
 
 usermod -a -G jibri www-data
-#chown -R jibri:www-data $DIR_RECORD
 chmod -R 770 $DIR_RECORD
 chmod -R g+s $DIR_RECORD
 

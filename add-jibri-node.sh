@@ -181,7 +181,6 @@ apt-get -y install \
                 apt-show-versions \
                 bmon \
                 curl \
-                expect \
                 ffmpeg \
                 git \
                 htop \
