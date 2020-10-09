@@ -125,7 +125,7 @@ if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     "
 else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
-    echo "Since this is a Jibri node there is no point on having the necessary resources."
+    echo "Since this is a Jibri node installation there is no point on not having the necessary resources."
     echo "We highly advice to increase the resources in order to install this Jibri node."
     while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
     do
