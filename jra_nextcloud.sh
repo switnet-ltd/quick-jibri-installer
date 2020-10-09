@@ -20,7 +20,14 @@ if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
-
+exit_if_not_installed() {
+if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" != "1" ]; then
+	echo " This instance doesn't have $1 installed, exiting..."
+	echo " If you think this is an error, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+	exit
+fi
+}
 clear
 echo -e '\n
 ########################################################################
@@ -28,12 +35,40 @@ echo -e '\n
 ########################################################################
                     by Software, IT & Networks Ltd
 \n'
+exit_if_not_installed jitsi-meet
+
+DISTRO_RELEASE="$(lsb_release -sc)"
+DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+PHP_REPO=$(apt-cache policy | grep http | grep php | head -n 1 | awk '{print $2}' | cut -d "/" -f5)
+PHPVER="7.4"
+PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+" -f1)"
+PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
+PHP_INI="$PHP_FPM_DIR/php.ini"
+PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
+NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
+NC_NGINX_SSL_PORT="$(grep "listen 44" /etc/nginx/sites-enabled/$DOMAIN.conf | awk '{print$2}')"
+NC_REPO="https://download.nextcloud.com/server/releases"
+NCVERSION="$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)"
+STABLEVERSION="nextcloud-$NCVERSION"
+NC_PATH="/var/www/nextcloud"
+NC_CONFIG="$NC_PATH/config/config.php"
+NC_DB_USER="nextcloud_user"
+NC_DB="nextcloud_db"
+NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
+DIR_RECORD="$(grep -nr RECORDING /home/jibri/finalize_recording.sh|head -n1|cut -d "=" -f2)"
+REDIS_CONF="/etc/redis/redis.conf"
+JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
+if [ -f $JITSI_MEET_PROXY ];then
+PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
+fi
 
 while [[ -z "$NC_DOMAIN" ]]
 do
 read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
-if [ -z "$NC_DOMAIN" ]; then
+if [ -z "$NC_DOMAIN" ];then
 	echo "-- This field is mandatory."
+elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
+	echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
 fi
 done
 while [[ -z "$NC_USER" ]]
@@ -63,30 +98,6 @@ elif [ "$ENABLE_HSTS" = "yes" ]; then
 	echo "-- HSTS will be enabled."
 fi
 done
-DISTRO_RELEASE="$(lsb_release -sc)"
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
-PHP_REPO=$(apt-cache policy | grep http | grep php | head -n 1 | awk '{print $2}' | cut -d "/" -f5)
-PHPVER="7.4"
-PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+" -f1)"
-PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
-PHP_INI="$PHP_FPM_DIR/php.ini"
-PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
-NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
-NC_NGINX_SSL_PORT="$(grep "listen 44" /etc/nginx/sites-enabled/$DOMAIN.conf | awk '{print$2}')"
-NC_REPO="https://download.nextcloud.com/server/releases"
-NCVERSION="$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)"
-STABLEVERSION="nextcloud-$NCVERSION"
-NC_PATH="/var/www/nextcloud"
-NC_CONFIG="$NC_PATH/config/config.php"
-NC_DB_USER="nextcloud_user"
-NC_DB="nextcloud_db"
-NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
-DIR_RECORD="$(grep -nr RECORDING /home/jibri/finalize_recording.sh|head -n1|cut -d "=" -f2)"
-REDIS_CONF="/etc/redis/redis.conf"
-JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
-if [ -f $JITSI_MEET_PROXY ];then
-PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
-fi
 
 echo -e "\n# Check for jitsi-meet/jibri\n"
 if [ "$(dpkg-query -W -f='${Status}' jibri 2>/dev/null | grep -c "ok installed")" == "1" ] || \
@@ -101,7 +112,7 @@ fi
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " This instance already has $1 installed, exiting..."
-	echo " Please report to:
+	echo " If you think this is an error, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
 	exit
 fi
