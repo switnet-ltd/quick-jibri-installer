@@ -405,7 +405,7 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 
 Jitsi Meet web interface will be set to use such language.
 "
-read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r LANG
+read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
@@ -732,12 +732,12 @@ sed -i "s|LOC_REC=.*|LOC_REC=\"on\"|" jitsi-updater.sh
 fi
 
 #Setup main language
-if [ -z $LANG ] || [ "$LANG" = "en" ]; then
+if [ -z $JB_LANG ] || [ "$JB_LANG" = "en" ]; then
 	echo "Leaving English (en) as default language..."
 	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
 else
-	echo "Changing default language to: $LANG"
-	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$LANG\',|" $MEET_CONF
+	echo "Changing default language to: $JB_LANG"
+	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$JB_LANG\',|" $MEET_CONF
 fi
 
 #Check config file
