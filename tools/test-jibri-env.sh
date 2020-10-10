@@ -39,15 +39,39 @@ SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
 HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
 CONF_JSON="/etc/jitsi/jibri/config.json"
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
+CHD_VER="$(/usr/local/bin/chromedriver --version 2>/dev/null| awk '{print$1,$2}')"
+GOOGL_VER="$(/usr/bin/google-chrome --version 2>/dev/null)"
 
-echo -e "\n# -- Check repository --\n"
+check_google_binaries() {
+if [ -z "$2" ]; then
+  echo "Warning: No $1 doesn't seem installed"
+else
+  echo $2
+fi
+}
+
+#T1
+echo -e "\n#1 -- Check repository --\n"
 if [ -z $JITSI_REPO ]; then
     echo "No repository detected, wait whaaaat?..."
+    while [[ "$CONT_TEST" != "yes" && "$CONT_TEST" != "no" ]]
+    do
+      read -p "> Do you still want to continue the test?: (yes or no)"$'\n' -r CONT_TEST
+      if [ "$CONT_TEST" = "no" ]; then
+        echo "Exiting..."
+        exit
+      elif [ "$CONT_TEST" = "yes" ]; then
+        echo "Hmm, seems there won't be anything to test, continuing anyway..."
+        T=0
+      fi
+    done
 else
     echo "This installation is using the \"$JITSI_REPO\" repository."
+    T1=1
 fi
 
-echo -e "\n# -- Check latest updates for jibri --\n"
+#T2
+echo -e "\n#2 -- Check latest updates for jibri --\n"
 if [ "$(dpkg-query -W -f='${Status}' jibri 2>/dev/null | grep -c "ok installed")" == "1" ]; then
     echo "Jibri is installed, checking version:"
     apt-show-versions jibri
@@ -62,8 +86,22 @@ else
 echo -e "\nAttempting jibri upgrade!"
 apt -y install --only-upgrade jibri
 fi
+T2=1
 
-echo -e "\n# -- Test kernel modules --\n"
+#T3
+echo -e "\n#3 -- Check Google Chrome/driver software.  --\n"
+check_google_binaries "Chromedriver" "$CHD_VER"
+check_google_binaries "Google Chrome" "$GOOGL_VER"
+if [ ! -z "$CHD_VER" ] && [ ! -z "$GOOGL_VER" ]; then
+T3=1
+elif [ -z "$CHD_VER" ] || [ -z "$GOOGL_VER" ]; then
+T3=0
+else
+T3=0
+fi
+
+#T4
+echo -e "\n#4 -- Test kernel modules --\n"
 if [ -z $SND_AL_MODULE ]; then
 #First make sure the recommended kernel is installed.
   if [ "$HWE_VIR_MOD" == "1" ]; then
@@ -74,7 +112,7 @@ if [ -z $SND_AL_MODULE ]; then
       apt-get -y install \
       linux-modules-extra-$(uname -r)
   fi
-    echo -e "No module snd_aloop detected. \xE2\x9C\x96 <== IMPORTANT! \nCurrent kernel: $(uname -r)"
+    echo -e "\nNo module snd_aloop detected. \xE2\x9C\x96 <== IMPORTANT! \nCurrent kernel: $(uname -r)\n"
     echo -e "\nIf you just installed a new kernel, \
 please try rebooting.\nFor now wait 'til the end of the recommended kernel installation."
   echo "# Check and Install HWE kernel if possible..."
@@ -86,10 +124,14 @@ please try rebooting.\nFor now wait 'til the end of the recommended kernel insta
       echo -e "\n > $KNL_MENU"
       fi
   fi
+  T4=0
 else
     echo -e "Great!\nModule snd-aloop found!"
+    T4=1
 fi
-echo -e "\n# -- Test .asoundrc file --\n"
+
+#T5
+echo -e "\n#5 -- Test .asoundrc file --\n"
 ASRC_MASTER="https://raw.githubusercontent.com/jitsi/jibri/master/resources/debian-package/etc/jitsi/jibri/asoundrc"
 ASRC_INSTALLED="/home/jibri/.asoundrc"
 ASRC_MASTER_MD5SUM=$(curl -sL $ASRC_MASTER | md5sum | cut -d ' ' -f 1)
@@ -97,11 +139,14 @@ ASRC_INSTALLED_MD5SUM=$(md5sum $ASRC_INSTALLED | cut -d ' ' -f 1)
 
 if [ "$ASRC_MASTER_MD5SUM" == "$ASRC_INSTALLED_MD5SUM" ]; then
     echo "Seems to be using the latest asoundrc file available!"
+    T5=1
 else
     echo "asoundrc files differ, if you have errors, you might wanna check this file!"
+    T5=0
 fi
 
-echo -e "\n# -- Old or new config --\n"
+#T6
+echo -e "\n#6 -- Old or new config --\n"
 
 echo -e "What config version is this using?"
 if [ -f ${CONF_JSON}_disabled ] && \
@@ -109,15 +154,25 @@ if [ -f ${CONF_JSON}_disabled ] && \
    [ -f $JIBRI_CONF-dpkg-file ]; then
     echo -e "\n> This jibri config has been upgraded already.\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+T6=1
 elif [ ! -f $CONF_JSON ] && \
    [ -f $JIBRI_CONF ] && \
    [ -f ${JIBRI_CONF}-dpkg-file ]; then
     echo -e "\n> This jibri seems to be running the lastest configuration already.\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+T6=1
 elif [ -f ${CONF_JSON} ] && \
    [ -f $JIBRI_CONF ]; then
     echo -e "\n> This jibri config seems to be candidate for upgrading.\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+T6=0
 fi
 
+TEST_TOTAL=$((T1 + T2 + T3 + T4 + T5 + T6))
+echo "
+###########################
+     \
+Score: $TEST_TOTAL out of 6
+###########################
+"
 echo -e "\nJibri Test complete, thanks for testing.\n"
