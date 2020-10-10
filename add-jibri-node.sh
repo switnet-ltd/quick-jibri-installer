@@ -380,6 +380,7 @@ echo -e "\n---- We'll connect to main server ----"
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
 echo "Remote pass: $MJS_USER_PASS"
+ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
 sudo su $NJN_USER -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
 
@@ -457,12 +458,12 @@ systemctl enable jibri
 systemctl enable jibri-xorg
 systemctl enable jibri-icewm
 
-echo -e "\nSending updated add-jibri-node.sh file to main server sync user..."
+check_snd_driver
+
+echo -e "\nSending updated add-jibri-node.sh file to main server sync user...\n"
 cp $PWD/add-jibri-node.sh /tmp
 sudo -u $NJN_USER scp /tmp/add-jibri-node.sh $MJS_USER@$MAIN_SRV_DOMAIN:/home/$MJS_USER/
 rm $PWD/add-jibri-node.sh /tmp/add-jibri-node.sh
-
-check_snd_driver
 
 echo "
 ########################################################################
