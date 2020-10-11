@@ -125,8 +125,8 @@ Featuring:
 
 Learn more about these at,
 Main repository: https://github.com/switnet-ltd/quick-jibri-installer
-Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki\n' \
-&& \
+Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki\n'
+
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 #Check if user is root
@@ -220,7 +220,7 @@ So you can add a Jibri server on a instance with enough resources.\n"
             echo "Please keep in mind that we might not support underpowered servers."
             exit
     elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
-            echo "Please think about adding dedicated jibri nodes see more at the wiki."
+            echo "You can add dedicated jibri nodes later, see more at the wiki."
     fi
     done
 fi
@@ -587,24 +587,17 @@ echo '
 
 echo "#Set and upgrade certbot PPA if posssible..."
 if [ "$CERTBOT_REPO" = "certbot" ]; then
-	echo "
-Cerbot repository already on the system!
-Checking for updates...
-"
+	echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
 	apt-get -q2 update
 	apt-get -yq2 dist-upgrade
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
-		echo "
-Adding cerbot (formerly letsencrypt) PPA repository for latest updates
-"
+		echo -e "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
 		echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
 		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
 		apt-get -q2 update
 		apt-get -yq2 dist-upgrade
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
-		echo "
-Certbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...
-"
+		echo -e "\nCertbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...\n"
 fi
 
 else
@@ -673,18 +666,13 @@ if [ ! -z $L10N_ME ]; then
 	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
 fi
 if [ ! -f $MOD_LIST_FILE ]; then
-echo "
--> Adding external module to list prosody users...
-"
+echo -e "\n-> Adding external module to list prosody users...\n"
 curl -s $MOD_LISTU > $MOD_LIST_FILE
 
-echo "Now you can check registered users with:
-prosodyctl mod_listusers
-"
+echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
 else
-echo "Prosody support for listing users seems to be enabled.
-check with: prosodyctl mod_listusers
-"
+echo -e "Prosody support for listing users seems to be enabled.
+check with: prosodyctl mod_listusers\n"
 fi
 
 ### Prosody users
@@ -741,14 +729,10 @@ else
 fi
 
 #Check config file
-echo "
-# Checking $MEET_CONF file for errors
-"
+echo -e "\n# Checking $MEET_CONF file for errors\n"
 CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
 if [[ -z "$CHECKJS" ]]; then
-echo "
-# The $MEET_CONF configuration seems correct. =)
-"
+echo -e "\n# The $MEET_CONF configuration seems correct. =)\n"
 else
 echo "
 Watch out!, there seems to be an issue on $MEET_CONF line:
@@ -900,11 +884,11 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
-	echo "Dropping TLSv1/1.1 in favor of v1.3"
+	echo -e "\nDropping TLSv1/1.1 in favor of v1.3"
 	sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
 	#sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
 elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
-	echo "Only dropping TLSv1/1.1"
+	echo -e "\nOnly dropping TLSv1/1.1"
 	sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
 	sed -i "s| TLSv1.3||" $WS_CONF
 elif [ "$DROP_TLS1" = "no" ];then
@@ -914,7 +898,7 @@ echo "No contidion meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
-echo "Disable \"Blur my background\" until new notice"
+echo -e"\nDisable \"Blur my background\" until new notice\n"
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #================== Setup prosody conf file =================
@@ -955,7 +939,7 @@ fi
 #======================
 #Secure room initial user
 if [ "$ENABLE_SC" = "yes" ]; then
-echo "Secure rooms are being enabled..."
+echo -e "\nSecure rooms are being enabled..."
 echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
 or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
@@ -992,7 +976,7 @@ fi
 enable_letsencrypt
 
 if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
-echo "Waiting prosody restart, wait 15s..."
+echo "Waiting prosody restart to continue configuration, 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
 sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
