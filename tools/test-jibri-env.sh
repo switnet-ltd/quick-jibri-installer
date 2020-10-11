@@ -31,8 +31,8 @@ if ! [ $(id -u) = 0 ]; then
 fi
 
 echo "Checking for updates...."
-apt -q2 update
-apt -yq2 install apt-show-versions
+apt-get -q2 update
+apt-get -yq2 install apt-show-versions
 
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
 SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
