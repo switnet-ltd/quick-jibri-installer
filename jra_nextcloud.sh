@@ -45,7 +45,6 @@ PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
-NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
 NC_NGINX_SSL_PORT="$(grep "listen 44" /etc/nginx/sites-enabled/$DOMAIN.conf | awk '{print$2}')"
 NC_REPO="https://download.nextcloud.com/server/releases"
 NCVERSION="$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)"
@@ -71,6 +70,7 @@ elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
 	echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
 fi
 done
+NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
 while [[ -z "$NC_USER" ]]
 do
 read -p "Nextcloud user: " -r NC_USER
@@ -374,7 +374,7 @@ NC_NGINX
 systemctl stop nginx
 letsencrypt certonly --standalone --renew-by-default --agree-tos -d $NC_DOMAIN
 if [ -f /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem ];then
-	ln -s /etc/nginx/sites-available/$NC_DOMAIN.conf /etc/nginx/sites-enabled/
+	ln -s $NC_NGINX_CONF /etc/nginx/sites-enabled/
 else
 	echo "There are issues on getting the SSL certs..."
 	read -n 1 -s -r -p "Press any key to continue"
