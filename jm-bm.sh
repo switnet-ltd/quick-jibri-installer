@@ -74,4 +74,6 @@ else
 	sed -i "s|'me'|'$LOCAL_USER'|" $INT_CONF
 	sed -i "s|LIVE_STREAMING_HELP_LINK: .*|LIVE_STREAMING_HELP_LINK: '#',|g" $INT_CONF
 	sed -i "s|SUPPORT_URL: .*|SUPPORT_URL: '#',|g" $INT_CONF
+	#Logo 2
+	sed -i "s|watermark.png|watermark2.png|g" $INT_CONF
 fi

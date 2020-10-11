@@ -26,7 +26,6 @@ NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
-HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
 CR=`echo $'\n> '`
 
 if [ $DIST = flidas ]; then
@@ -63,8 +62,9 @@ Installing nginx webserver!
 fi
 }
 check_snd_driver() {
+echo -e "\n# Checking ALSA - Loopback module..."
+echo "snd-aloop" | tee -a /etc/modules
 modprobe snd-aloop
-echo "snd-aloop" >> /etc/modules
 if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
 	echo "
 #-----------------------------------------------------------------------
@@ -73,10 +73,15 @@ if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; t
 else
 	echo "
 #-----------------------------------------------------------------------
-# Your audio driver might not be able to load, once the installation
-# is complete and server restarted, please run: \`lsmod | grep snd_aloop'
-# to make sure it did. If not, any feedback for your setup is welcome.
+# Your audio driver might not be able to load.
+# We'll check the state of this Jibri with our 'test-jibri-env.sh' tool.
 #-----------------------------------------------------------------------"
+#Test tool
+  if [ "$MODE" = "debug" ]; then
+    bash $PWD/tools/test-jibri-env.sh -m debug
+  else
+    bash $PWD/tools/test-jibri-env.sh
+  fi
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 }
@@ -120,8 +125,8 @@ Featuring:
 
 Learn more about these at,
 Main repository: https://github.com/switnet-ltd/quick-jibri-installer
-Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki\n' \
-&& \
+Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki\n'
+
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 #Check if user is root
@@ -145,7 +150,7 @@ echo "  > $(lsb_release -sc), even when it's compatible and functional.
     We suggest to use the next (LTS) release, for longer support and security reasons."
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
-#Check resources
+#Check system resources
 echo "Verifying System Resources:"
 if [ "$(nproc --all)" -lt 4 ];then
   echo "
@@ -184,7 +189,37 @@ else
             echo "See you next time with more resources!..."
             exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
-            echo "Please keep in mind that trying to use Jibri with low resources might fail."
+            echo "We highly recommend to increase the server resources."
+            echo "Otherwise, please think about adding dedicated jibri nodes instead."
+    fi
+    done
+fi
+
+if [ "$CONTINUE_LOW_RES" = "yes" ]; then
+echo -e "\nThis server will likely have issues due the lack of resources.
+If you plan to enable other components such as,
+
+ - JRA via Nextcloud
+ - Jigasi Transcriber
+ - Additional Jibri Nodes
+ - others.
+
+We higly recommend to increase resources of this server.
+
+For now we advice to disable the Jibri service locally and add an external
+Jibri node once this installation has finished, using our script:
+
+ >> add-jibri-node.sh
+
+So you can add a Jibri server on a instance with enough resources.\n"
+
+    while [[ "$DISABLE_LOCAL_JIBRI" != "yes" && "$DISABLE_LOCAL_JIBRI" != "no" ]]
+    do
+    read -p "> Do you want to disable local jibri service?: (yes or no)"$'\n' -r DISABLE_LOCAL_JIBRI
+    if [ "$DISABLE_LOCAL_JIBRI" = "no" ]; then
+            echo -e "Please keep in mind that we might not support underpowered servers.\n"
+    elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
+            echo -e "You can add dedicated jibri nodes later, see more at the wiki.\n"
     fi
     done
 fi
@@ -192,14 +227,13 @@ fi
 add_prosody_repo
 
 # Jitsi-Meet Repo
-echo "
-Add Jitsi repo
-"
+echo -e "\nAdd Jitsi repo\n"
 if [ "$JITSI_REPO" = "stable" ]; then
 	echo "Jitsi stable repository already installed"
 else
 	echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
 	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
+	JITSI_REPO="stable"
 fi
 #Default to LE SSL?
 while [[ $LE_SSL != yes && $LE_SSL != no ]]
@@ -218,17 +252,22 @@ apt-get update -q2
 apt-get dist-upgrade -yq2
 
 apt-get -y install \
+				apt-show-versions \
 				bmon \
 				curl \
 				ffmpeg \
 				git \
 				htop \
+				jq \
 				letsencrypt \
 				net-tools \
+				rsync \
+				ssh \
 				unzip \
 				wget
 
 echo "# Check and Install HWE kernel if possible..."
+HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
 if [ "$HWE_VIR_MOD" == "1" ]; then
     apt-get -y install \
     linux-image-generic-hwe-$(lsb_release -sr) \
@@ -278,9 +317,6 @@ elif [ "$(npm list -g esprima 2>/dev/null | grep -c "esprima")" == "1" ]; then
 	echo "Good. Esprima package is already installed"
 fi
 
-# ALSA - Loopback
-echo "snd-aloop" | tee -a /etc/modules
-check_snd_driver
 CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
@@ -333,7 +369,7 @@ PROSODY_FILE=/etc/prosody/conf.d/$DOMAIN.cfg.lua
 PROSODY_SYS=/etc/prosody/prosody.cfg.lua
 JICOFO_SIP=/etc/jitsi/jicofo/sip-communicator.properties
 MEET_CONF=/etc/jitsi/meet/$DOMAIN-config.js
-CONF_JSON=/etc/jitsi/jibri/config.json
+JIBRI_CONF=/etc/jitsi/jibri/jibri.conf
 DIR_RECORD=/var/jbrecord
 REC_DIR=/home/jibri/finalize_recording.sh
 JB_NAME="Jibri Sessions"
@@ -344,6 +380,13 @@ ENABLE_SA="yes"
 CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
 CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
 GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
+MJS_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
+MJS_USER="jbsync_$MJS_RAND_TAIL"
+MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
+
+# Rename hostname for jitsi server
+#hostnamectl set-hostname "jibri.${DOMAIN}"
+#sed -i "1i ${PUBLIC_IP} jibri.${DOMAIN}" /etc/hosts
 
 #Sysadmin email
 while [[ -z $SYSADMIN_EMAIL ]]
@@ -359,7 +402,7 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 
 Jitsi Meet web interface will be set to use such language.
 "
-read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r LANG
+read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
@@ -482,7 +525,7 @@ read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 	fi
 	done
 else
-	echo "No valid option for Jigasi.Please report this to
+	echo "No valid option for Jigasi. Please report this to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 #Grafana
@@ -541,24 +584,17 @@ echo '
 
 echo "#Set and upgrade certbot PPA if posssible..."
 if [ "$CERTBOT_REPO" = "certbot" ]; then
-	echo "
-Cerbot repository already on the system!
-Checking for updates...
-"
+	echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
 	apt-get -q2 update
 	apt-get -yq2 dist-upgrade
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
-		echo "
-Adding cerbot (formerly letsencrypt) PPA repository for latest updates
-"
+		echo -e "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
 		echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
 		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
 		apt-get -q2 update
 		apt-get -yq2 dist-upgrade
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
-		echo "
-Certbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...
-"
+		echo -e "\nCertbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...\n"
 fi
 
 else
@@ -627,18 +663,13 @@ if [ ! -z $L10N_ME ]; then
 	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
 fi
 if [ ! -f $MOD_LIST_FILE ]; then
-echo "
--> Adding external module to list prosody users...
-"
+echo -e "\n-> Adding external module to list prosody users...\n"
 curl -s $MOD_LISTU > $MOD_LIST_FILE
 
-echo "Now you can check registered users with:
-prosodyctl mod_listusers
-"
+echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
 else
-echo "Prosody support for listing users seems to be enabled.
-check with: prosodyctl mod_listusers
-"
+echo -e "Prosody support for listing users seems to be enabled.
+check with: prosodyctl mod_listusers\n"
 fi
 
 ### Prosody users
@@ -686,23 +717,19 @@ sed -i "s|LOC_REC=.*|LOC_REC=\"on\"|" jitsi-updater.sh
 fi
 
 #Setup main language
-if [ -z $LANG ] || [ "$LANG" = "en" ]; then
+if [ -z $JB_LANG ] || [ "$JB_LANG" = "en" ]; then
 	echo "Leaving English (en) as default language..."
 	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
 else
-	echo "Changing default language to: $LANG"
-	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$LANG\',|" $MEET_CONF
+	echo "Changing default language to: $JB_LANG"
+	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$JB_LANG\',|" $MEET_CONF
 fi
 
 #Check config file
-echo "
-# Checking $MEET_CONF file for errors
-"
+echo -e "\n# Checking $MEET_CONF file for errors\n"
 CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
 if [[ -z "$CHECKJS" ]]; then
-echo "
-# The $MEET_CONF configuration seems correct. =)
-"
+echo -e "\n# The $MEET_CONF configuration seems correct. =)\n"
 else
 echo "
 Watch out!, there seems to be an issue on $MEET_CONF line:
@@ -735,41 +762,86 @@ REC_DIR
 chown jibri:jibri $REC_DIR
 chmod +x $REC_DIR
 
-## JSON Config
-cp $CONF_JSON ${CONF_JSON}.orig
-cat << CONF_JSON > $CONF_JSON
-{
-    "recording_directory":"$DIR_RECORD",
-    "finalize_recording_script_path": "$REC_DIR",
-    "xmpp_environments": [
-        {
-            "name": "$JB_NAME",
-            "xmpp_server_hosts": [
-                "$DOMAIN"
-            ],
-            "xmpp_domain": "$DOMAIN",
-            "control_login": {
-                "domain": "auth.$DOMAIN",
-                "username": "jibri",
-                "password": "$JB_AUTH_PASS"
-            },
-            "control_muc": {
-                "domain": "internal.auth.$DOMAIN",
-                "room_name": "$JibriBrewery",
-                "nickname": "Live"
-            },
-            "call_login": {
-                "domain": "recorder.$DOMAIN",
-                "username": "recorder",
-                "password": "$JB_REC_PASS"
-            },
+## New Jibri Config (2020)
+mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
+cat << NEW_CONF > $JIBRI_CONF
+// New XMPP environment config.
+jibri {
+    recording {
+         recordings-directory = $DIR_RECORD
+         finalize-script = $REC_DIR
+    }
+    api {
+        xmpp {
+            environments = [
+                {
+				// A user-friendly name for this environment
+				name = "$JB_NAME"
 
-            "room_jid_domain_string_to_strip_from_start": "conference.",
-            "usage_timeout": "0"
+				// A list of XMPP server hosts to which we'll connect
+				xmpp-server-hosts = [ "$DOMAIN" ]
+
+				// The base XMPP domain
+				xmpp-domain = "$DOMAIN"
+
+				// The MUC we'll join to announce our presence for
+				// recording and streaming services
+				control-muc {
+					domain = "internal.auth.$DOMAIN"
+					room-name = "$JibriBrewery"
+					nickname = "Live"
+				}
+
+				// The login information for the control MUC
+				control-login {
+					domain = "auth.$DOMAIN"
+					username = "jibri"
+					password = "$JB_AUTH_PASS"
+				}
+
+				// An (optional) MUC configuration where we'll
+				// join to announce SIP gateway services
+			//	sip-control-muc {
+			//		domain = "domain"
+			//		room-name = "room-name"
+			//		nickname = "nickname"
+			//	}
+
+				// The login information the selenium web client will use
+				call-login {
+					domain = "recorder.$DOMAIN"
+					username = "recorder"
+					password = "$JB_REC_PASS"
+				}
+
+				// The value we'll strip from the room JID domain to derive
+				// the call URL
+				strip-from-room-domain = "conference."
+
+				// How long Jibri sessions will be allowed to last before
+				// they are stopped.  A value of 0 allows them to go on
+				// indefinitely
+				usage-timeout = 0 hour
+
+				// Whether or not we'll automatically trust any cert on
+				// this XMPP domain
+				trust-all-xmpp-certs = true
+                }
+            ]
         }
-    ]
+    }
 }
-CONF_JSON
+NEW_CONF
+#Create receiver user
+useradd -m -g jibri $MJS_USER
+echo "$MJS_USER:$MJS_USER_PASS" | chpasswd
+
+#Create ssh key and restrict connections
+sudo su $MJS_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+#Allow password authentication
+sed -i "s|PasswordAuthentication .*|PasswordAuthentication yes|" /etc/ssh/sshd_config
+systemctl restart sshd
+
 
 #Setting varibales for add-jibri-node.sh
 sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jibri-node.sh
@@ -779,6 +851,8 @@ sed -i "s|JB_NAME=.*|JB_NAME=\"$JB_NAME\"|" add-jibri-node.sh
 sed -i "s|JibriBrewery=.*|JibriBrewery=\"$JibriBrewery\"|" add-jibri-node.sh
 sed -i "s|JB_AUTH_PASS=.*|JB_AUTH_PASS=\"$JB_AUTH_PASS\"|" add-jibri-node.sh
 sed -i "s|JB_REC_PASS=.*|JB_REC_PASS=\"$JB_REC_PASS\"|" add-jibri-node.sh
+sed -i "s|MJS_USER=.*|MJS_USER=\"$MJS_USER\"|" add-jibri-node.sh
+sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
 echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
 
@@ -807,11 +881,11 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
-	echo "Dropping TLSv1/1.1 in favor of v1.3"
+	echo -e "\nDropping TLSv1/1.1 in favor of v1.3"
 	sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
 	#sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
 elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
-	echo "Only dropping TLSv1/1.1"
+	echo -e "\nOnly dropping TLSv1/1.1"
 	sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
 	sed -i "s| TLSv1.3||" $WS_CONF
 elif [ "$DROP_TLS1" = "no" ];then
@@ -821,7 +895,7 @@ echo "No contidion meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
-echo "Disable \"Blur my background\" until new notice"
+echo -e "\nDisable \"Blur my background\" until new notice\n"
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #================== Setup prosody conf file =================
@@ -862,7 +936,7 @@ fi
 #======================
 #Secure room initial user
 if [ "$ENABLE_SC" = "yes" ]; then
-echo "Secure rooms are being enabled..."
+echo -e "\nSecure rooms are being enabled..."
 echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
 or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
@@ -890,11 +964,17 @@ systemctl enable jibri
 systemctl enable jibri-xorg
 systemctl enable jibri-icewm
 restart_services
+if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
+    systemctl stop jibri*
+    systemctl disable jibri
+    systemctl disable jibri-xorg
+    systemctl disable jibri-icewm
+fi
 
 enable_letsencrypt
 
 if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
-echo "Waiting prosody restart, wait 15s..."
+echo "Waiting prosody restart to continue configuration, 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
 sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
@@ -938,25 +1018,42 @@ else
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo "JRA via Nextcloud will be enabled."
-	bash $PWD/jra_nextcloud.sh
+	echo -n "\nJRA via Nextcloud will be enabled."
+	if [ "$MODE" = "debug" ]; then
+	    bash $PWD/jra_nextcloud.sh -m debug
+	else
+	    bash $PWD/jra_nextcloud.sh
+	fi
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 #Jigasi Transcript
 if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-	echo "Jigasi Transcription will be enabled."
-	bash $PWD/jigasi.sh
+	echo -e "\nJigasi Transcription will be enabled."
+	# ToDo: Analyze behavior on debug
+	#if [ "$MODE" = "debug" ]; then
+	#    bash $PWD/jigasi.sh -m debug
+	#else
+	    bash $PWD/jigasi.sh
+	#fi
 fi
 {
 #Grafana Dashboard
 if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-	echo "Grafana Dashboard will be enabled."
-	bash $PWD/grafana.sh
+	echo -e "\nGrafana Dashboard will be enabled."
+	if [ "$MODE" = "debug" ]; then
+	    bash $PWD/grafana.sh -m debug
+	else
+	    bash $PWD/grafana.sh
+	fi
 fi
 #Docker Etherpad
 if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-	echo "Docker Etherpad will be enabled."
-	bash $PWD/etherpad.sh
+	echo -e "\nDocker Etherpad will be enabled."
+	if [ "$MODE" = "debug" ]; then
+	    bash $PWD/etherpad.sh -m debug
+	else
+	    bash $PWD/etherpad.sh
+	fi
 fi
 #Prevent Jibri conecction issue
 if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
@@ -965,6 +1062,8 @@ sed -i "/127.0.0.1/a \\
 else
   echo "Local host already in place..."
 fi
+
+check_snd_driver
 
 echo "
 ########################################################################

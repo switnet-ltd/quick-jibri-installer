@@ -2,51 +2,41 @@
 # JRA (Jibri Recordings Access) via Nextcloud
 # SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo ./jra_nextcloud.sh [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
+
 if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
-
+exit_if_not_installed() {
+if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" != "1" ]; then
+	echo " This instance doesn't have $1 installed, exiting..."
+	echo " If you think this is an error, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+	exit
+fi
+}
 clear
-echo '
+echo -e '\n
 ########################################################################
                  Jibri Recordings Access via Nextcloud
 ########################################################################
                     by Software, IT & Networks Ltd
-'
-while [[ -z "$NC_DOMAIN" ]]
-do
-read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
-if [ -z "$NC_DOMAIN" ]; then
-	echo "-- This field is mandatory."
-fi
-done
-while [[ -z "$NC_USER" ]]
-do
-read -p "Nextcloud user: " -r NC_USER
-if [ -z "$NC_USER" ]; then
-	echo "-- This field is mandatory."
-fi
-done
-while [[ -z "$NC_PASS" ]]
-do
-read -p "Nextcloud user password: " -r NC_PASS
-if [ -z "$NC_PASS" ]; then
-	echo "-- This field is mandatory."
-fi
-done
-#Enable HSTS
-while [[ "$ENABLE_HSTS" != "yes" && "$ENABLE_HSTS" != "no" ]]
-do
-read -p "> Do you want to enable HSTS for this domain?: (yes or no)
-  Be aware this option apply mid-term effects on the domain, choose \"no\"
-  in case you don't know what you are doing. More at https://hstspreload.org/"$'\n' -r ENABLE_HSTS
-if [ "$ENABLE_HSTS" = "no" ]; then
-	echo "-- HSTS won't be enabled."
-elif [ "$ENABLE_HSTS" = "yes" ]; then
-	echo "-- HSTS will be enabled."
-fi
-done
+\n'
+exit_if_not_installed jitsi-meet
+
 DISTRO_RELEASE="$(lsb_release -sc)"
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 PHP_REPO=$(apt-cache policy | grep http | grep php | head -n 1 | awk '{print $2}' | cut -d "/" -f5)
@@ -55,7 +45,6 @@ PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
-NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
 NC_NGINX_SSL_PORT="$(grep "listen 44" /etc/nginx/sites-enabled/$DOMAIN.conf | awk '{print$2}')"
 NC_REPO="https://download.nextcloud.com/server/releases"
 NCVERSION="$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)"
@@ -71,10 +60,59 @@ JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f $JITSI_MEET_PROXY ];then
 PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
+
+while [[ -z "$NC_DOMAIN" ]]
+do
+read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
+if [ -z "$NC_DOMAIN" ];then
+	echo "-- This field is mandatory."
+elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
+	echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
+fi
+done
+NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
+while [[ -z "$NC_USER" ]]
+do
+read -p "Nextcloud user: " -r NC_USER
+if [ -z "$NC_USER" ]; then
+	echo "-- This field is mandatory."
+fi
+done
+while [ -z "$NC_PASS" ]  || [ ${#NC_PASS} -lt 6 ]
+do
+read -p "Nextcloud user password: " -r NC_PASS
+
+if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt 6 ]; then
+	echo -e "-- This field is mandatory. \nPlease make sure it's at least 6 caracters.\n"
+fi
+done
+#Enable HSTS
+while [[ "$ENABLE_HSTS" != "yes" && "$ENABLE_HSTS" != "no" ]]
+do
+read -p "> Do you want to enable HSTS for this domain?: (yes or no)
+  Be aware this option apply mid-term effects on the domain, choose \"no\"
+  in case you don't know what you are doing. More at https://hstspreload.org/"$'\n' -r ENABLE_HSTS
+if [ "$ENABLE_HSTS" = "no" ]; then
+	echo "-- HSTS won't be enabled."
+elif [ "$ENABLE_HSTS" = "yes" ]; then
+	echo "-- HSTS will be enabled."
+fi
+done
+
+echo -e "\n# Check for jitsi-meet/jibri\n"
+if [ "$(dpkg-query -W -f='${Status}' jibri 2>/dev/null | grep -c "ok installed")" == "1" ] || \
+   [ -f /etc/prosody/conf.d/$DOMAIN.conf ]; then
+    echo "jitsi meet/jibri is installed, checking version:"
+    apt-show-versions jibri
+else
+    echo "Wait!, jitsi-meet/jibri is not installed on this system using apt, exiting..."
+    exit
+fi
+
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
 	echo " This instance already has $1 installed, exiting..."
-	echo " Please report to:
+	echo " If you think this is an error, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
 	exit
 fi
@@ -128,7 +166,8 @@ apt-get install -y \
             php$PHPVER-zip \
             php-imagick \
             php-redis \
-            redis-server
+            redis-server \
+            unzip
 
 #System related
 install_ifnot smbclient
@@ -175,6 +214,7 @@ systemctl restart php$PHPVER-fpm.service
 #--------------------------------------------------
 
 echo -e "\n---- Creating the PgSQL DB & User  ----"
+cd /tmp
 sudo -u postgres psql <<DB
 CREATE DATABASE nextcloud_db;
 CREATE USER ${NC_DB_USER} WITH ENCRYPTED PASSWORD '${NC_DB_PASSWD}';
@@ -334,7 +374,7 @@ NC_NGINX
 systemctl stop nginx
 letsencrypt certonly --standalone --renew-by-default --agree-tos -d $NC_DOMAIN
 if [ -f /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem ];then
-	ln -s /etc/nginx/sites-available/$NC_DOMAIN.conf /etc/nginx/sites-enabled/
+	ln -s $NC_NGINX_CONF /etc/nginx/sites-enabled/
 else
 	echo "There are issues on getting the SSL certs..."
 	read -n 1 -s -r -p "Press any key to continue"
@@ -419,7 +459,6 @@ sudo -u www-data php $NC_PATH/occ app:enable files_external
 sudo -u www-data php $NC_PATH/occ files_external:import /tmp/jra-nc-app-ef.json
 
 usermod -a -G jibri www-data
-chown -R jibri:www-data $DIR_RECORD
 chmod -R 770 $DIR_RECORD
 chmod -R g+s $DIR_RECORD
 
@@ -436,6 +475,7 @@ Adding trusted domain...
 sudo -u www-data php $NC_PATH/occ config:system:set trusted_domains 0 --value=$NC_DOMAIN
 
 echo "Setting JRA domain on jitsi-updater.sh"
+cd ~/quick-jibri-installer
 sed -i "s|NC_DOMAIN=.*|NC_DOMAIN=\"$NC_DOMAIN\"|" jitsi-updater.sh
 
 echo "Quick Nextcloud installation complete!"
