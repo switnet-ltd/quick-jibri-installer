@@ -217,9 +217,9 @@ So you can add a Jibri server on a instance with enough resources.\n"
     do
     read -p "> Do you want to disable local jibri service?: (yes or no)"$'\n' -r DISABLE_LOCAL_JIBRI
     if [ "$DISABLE_LOCAL_JIBRI" = "no" ]; then
-            echo "Please keep in mind that we might not support underpowered servers."
+            echo -e "Please keep in mind that we might not support underpowered servers.\n"
     elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
-            echo "You can add dedicated jibri nodes later, see more at the wiki."
+            echo -e "You can add dedicated jibri nodes later, see more at the wiki.\n"
     fi
     done
 fi
@@ -227,9 +227,7 @@ fi
 add_prosody_repo
 
 # Jitsi-Meet Repo
-echo "
-Add Jitsi repo
-"
+echo -e "\nAdd Jitsi repo\n"
 if [ "$JITSI_REPO" = "stable" ]; then
 	echo "Jitsi stable repository already installed"
 else
@@ -897,7 +895,7 @@ echo "No contidion meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
-echo -e"\nDisable \"Blur my background\" until new notice\n"
+echo -e "\nDisable \"Blur my background\" until new notice\n"
 sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #================== Setup prosody conf file =================

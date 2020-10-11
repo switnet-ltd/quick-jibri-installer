@@ -469,6 +469,7 @@ echo "
 ########################################################################
                         Node addition complete!!
 
+                               IMPORTANT:
    The updated version of this file has been sent to the main server
     at the sync user home directory, please use that one in order to
   install new nodes. For security reason this version has been deleted
