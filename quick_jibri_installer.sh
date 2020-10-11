@@ -218,7 +218,6 @@ So you can add a Jibri server on a instance with enough resources.\n"
     read -p "> Do you want to disable local jibri service?: (yes or no)"$'\n' -r DISABLE_LOCAL_JIBRI
     if [ "$DISABLE_LOCAL_JIBRI" = "no" ]; then
             echo "Please keep in mind that we might not support underpowered servers."
-            exit
     elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
             echo "You can add dedicated jibri nodes later, see more at the wiki."
     fi
@@ -968,9 +967,10 @@ systemctl enable jibri-xorg
 systemctl enable jibri-icewm
 restart_services
 if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
-
     systemctl stop jibri*
-    systemctl disable jibri*
+    systemctl disable jibri
+    systemctl disable jibri-xorg
+    systemctl disable jibri-icewm
 fi
 
 enable_letsencrypt
