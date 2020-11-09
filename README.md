@@ -11,7 +11,7 @@ Login into your clean server, clone git repository and run the installer,
 ```
 git clone https://github.com/switnet-ltd/quick-jibri-installer
 cd quick-jibri-installer
-bash quick-jibri-installer.sh
+sudo bash quick_jibri_installer.sh
 ```
 
 ### Add Jibri node
