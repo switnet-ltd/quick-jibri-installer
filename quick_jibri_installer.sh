@@ -946,7 +946,7 @@ sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMA
 fi
 
 #Guest allow
-if dpkg-compare prosody gt 0.11.0 ; then
+if [ "$ENABLE_SC" = "yes" ] || [ "$ENABLE_JWT" = "yes" ];then
     cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
@@ -968,9 +968,9 @@ P_SR
 	else
     cat << P_SR >> $PROSODY_FILE
 
-#VirtualHost "guest.$DOMAIN"
-#    authentication = "anonymous"
-#    c2s_require_encryption = false
+--VirtualHost "guest.$DOMAIN"
+--    authentication = "anonymous"
+--    c2s_require_encryption = false
 P_SR
 
 fi
