@@ -304,7 +304,7 @@ echo "
 if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" ]; then
 		echo "Nodejs is installed, skipping..."
     else
-		curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+		curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 		apt-get install -yq2 nodejs
 		echo "Installing nodejs esprima package..."
 		npm install -g esprima
@@ -385,8 +385,8 @@ MJS_USER="jbsync_$MJS_RAND_TAIL"
 MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 
 # Rename hostname for jitsi server
-#hostnamectl set-hostname "jibri.${DOMAIN}"
-#sed -i "1i ${PUBLIC_IP} jibri.${DOMAIN}" /etc/hosts
+#hostnamectl set-hostname "jitsi.${DOMAIN}"
+#sed -i "1i ${PUBLIC_IP} jitsi.${DOMAIN}" /etc/hosts
 
 #Sysadmin email
 while [[ -z $SYSADMIN_EMAIL ]]
@@ -686,7 +686,6 @@ org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 BREWERY
 
 # Jibri tweaks for /etc/jitsi/meet/$DOMAIN-config.js
-sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 sed -i "s|conference.$DOMAIN|internal.auth.$DOMAIN|" $MEET_CONF
 sed -i "s|// fileRecordingsEnabled: false,|fileRecordingsEnabled: true,| " $MEET_CONF
 sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
@@ -900,11 +899,53 @@ sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #================== Setup prosody conf file =================
 
-#Setup secure rooms
+#===Setup secure rooms ===#
+if [ "$ENABLE_SC" = "yes" ]; then
 SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
 SRP_END=$((SRP_STR + 10))
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+fi
 
+if [ "$ENABLE_JWT" = "yes" ]; then
+	## focal openssl
+	if [ "$(lsb_release -sc)" = "focal" ]; then
+	echo "deb http://ppa.launchpad.net/rael-gc/rvm/ubuntu focal main" | \
+	sudo tee /etc/apt/sources.list.d/rvm.list
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F4E3FBBE
+	apt-get update
+	fi
+
+###JWT
+apt-get -y install \
+                        lua5.2 \
+                        liblua5.2 \
+                        luarocks \
+                        libssl1.0-dev \
+                        python3-jwt
+
+luarocks install basexx
+luarocks install luacrypto
+luarocks install lua-cjson 2.1.0-1
+
+echo "set jitsi-meet-tokens/appid string $APP_ID" | debconf-set-selections
+echo "set jitsi-meet-tokens/appsecret password $SECRET_APP" | debconf-set-selections
+
+apt-get install -y jitsi-meet-tokens
+
+#Setting up
+sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" /etc/prosody/prosody.cfg.lua
+sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" /etc/prosody/conf.d/$DOMAIN.cfg.lua
+sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\" }" /etc/prosody/conf.d/$DOMAIN.cfg.lua
+
+#allow_empty_token = true
+
+#SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+#SRP_END=$((SRP_STR + 10))
+sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+fi
+
+#Guest allow
 if dpkg-compare prosody gt 0.11.0 ; then
     cat << P_SR >> $PROSODY_FILE
 
@@ -927,9 +968,9 @@ P_SR
 	else
     cat << P_SR >> $PROSODY_FILE
 
-VirtualHost "guest.$DOMAIN"
-    authentication = "anonymous"
-    c2s_require_encryption = false
+#VirtualHost "guest.$DOMAIN"
+#    authentication = "anonymous"
+#    c2s_require_encryption = false
 P_SR
 
 fi
