@@ -896,6 +896,12 @@ sed -i "s|SHARD_HOSTNAME=.*|SHARD_HOSTNAME=\'$SHARD_HOSTNAME\'|" add-jvb2-node.s
 sed -i "s|SHARD_DOMAIN=.*|SHARD_DOMAIN=\'$SHARD_DOMAIN\'|" add-jvb2-node.sh
 sed -i "s|SHARD_PASS=.*|SHARD_PASS=\'$SHARD_PASSWORD\'|" add-jvb2-node.sh
 sed -i "s|MUC_JID=.*|MUC_JID=\'$MUC_JID\'|" add-jvb2-node.sh
+
+sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jvb2-node.sh
+sed -i "s|MAIN_SRV_REPO=.*|MAIN_SRV_REPO=\"$JITSI_REPO\"|" add-jvb2-node.sh
+sed -i "s|MAIN_SRV_DOMAIN=.*|MAIN_SRV_DOMAIN=\"$DOMAIN\"|" add-jvb2-node.sh
+sed -i "s|MJS_USER=.*|MJS_USER=\"$MJS_USER\"|" add-jvb2-node.sh
+sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jvb2-node.sh
 ##--
 
 #Tune webserver for Jitsi App control
