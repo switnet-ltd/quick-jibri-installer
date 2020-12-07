@@ -863,12 +863,12 @@ echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LET
 g_conf_value() {
   grep "$1" $JVB2_CONF|sed "s|$1||"
 }
-JVB_HOSTNAME=$(g_sys_value JVB_HOSTNAME=)
-JVB_HOST=$(g_sys_value JVB_HOST=)
-JVB_PORT=$(g_sys_value JVB_PORT=)
-JVB_SECRET=$(g_sys_value JVB_SECRET=)
-JVB_OPTS=$(g_sys_value JVB_OPTS=)
-JAVA_SYS_PROPS=$(g_sys_value JAVA_SYS_PROPS=)
+JVB_HOSTNAME=$(g_conf_value JVB_HOSTNAME=)
+JVB_HOST=$(g_conf_value JVB_HOST=)
+JVB_PORT=$(g_conf_value JVB_PORT=)
+JVB_SECRET=$(g_conf_value JVB_SECRET=)
+JVB_OPTS=$(g_conf_value JVB_OPTS=)
+JAVA_SYS_PROPS=$(g_conf_value JAVA_SYS_PROPS=)
 
 g_sip_value() {
   grep "$1" $JVB2_SIP|sed "s|$1||"
