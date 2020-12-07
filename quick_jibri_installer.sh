@@ -362,16 +362,18 @@ echo '
 '
 # MEET / JIBRI SETUP
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
-WS_CONF=/etc/nginx/sites-enabled/$DOMAIN.conf
+WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 JB_AUTH_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 JB_REC_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
-PROSODY_FILE=/etc/prosody/conf.d/$DOMAIN.cfg.lua
-PROSODY_SYS=/etc/prosody/prosody.cfg.lua
-JICOFO_SIP=/etc/jitsi/jicofo/sip-communicator.properties
-MEET_CONF=/etc/jitsi/meet/$DOMAIN-config.js
-JIBRI_CONF=/etc/jitsi/jibri/jibri.conf
+PROSODY_FILE="/etc/prosody/conf.d/$DOMAIN.cfg.lua"
+PROSODY_SYS="/etc/prosody/prosody.cfg.lua"
+JICOFO_SIP="/etc/jitsi/jicofo/sip-communicator.properties"
+MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
+JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
+JVB2_CONF="/etc/jitsi/videobridge/config"
+JVB2_SIP="/etc/jitsi/videobridge/sip-communicator.properties"
 DIR_RECORD=/var/jbrecord
-REC_DIR=/home/jibri/finalize_recording.sh
+REC_DIR="/home/jibri/finalize_recording.sh"
 JB_NAME="Jibri Sessions"
 LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
@@ -621,6 +623,9 @@ restart_services() {
 	check_jibri
 }
 
+# Configure Jvb2
+sed -i "/shard.HOSTNAME/s|localhost|$DOMAIN|" /etc/jitsi/videobridge/sip-communicator.properties
+
 # Configure Jibri
 ## PROSODY
 if dpkg-compare prosody lt 0.11.0 ; then
@@ -841,7 +846,6 @@ sudo su $MJS_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N
 sed -i "s|PasswordAuthentication .*|PasswordAuthentication yes|" /etc/ssh/sshd_config
 systemctl restart sshd
 
-
 #Setting varibales for add-jibri-node.sh
 sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jibri-node.sh
 sed -i "s|MAIN_SRV_REPO=.*|MAIN_SRV_REPO=\"$JITSI_REPO\"|" add-jibri-node.sh
@@ -854,6 +858,45 @@ sed -i "s|MJS_USER=.*|MJS_USER=\"$MJS_USER\"|" add-jibri-node.sh
 sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
 echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
+
+#-- Setting variables for add-jvb2-node.sh
+g_conf_value() {
+  grep "$1" $JVB2_CONF|sed "s|$1||"
+}
+JVB_HOSTNAME=$(g_sys_value JVB_HOSTNAME=)
+JVB_HOST=$(g_sys_value JVB_HOST=)
+JVB_PORT=$(g_sys_value JVB_PORT=)
+JVB_SECRET=$(g_sys_value JVB_SECRET=)
+JVB_OPTS=$(g_sys_value JVB_OPTS=)
+JAVA_SYS_PROPS=$(g_sys_value JAVA_SYS_PROPS=)
+
+g_sip_value() {
+  grep "$1" $JVB2_SIP|sed "s|$1||"
+}
+DISABLE_AWS_HARVESTER=$(g_sip_value DISABLE_AWS_HARVESTER=)
+STUN_MAPPING_HARVESTER_ADDRESSES=$(g_sip_value STUN_MAPPING_HARVESTER_ADDRESSES=)
+ENABLE_STATISTICS=$(g_sip_value ENABLE_STATISTICS=)
+SHARD_HOSTNAME=$(g_sip_value shard.HOSTNAME=)
+SHARD_DOMAIN=$(g_sip_value shard.DOMAIN=)
+SHARD_PASSWORD=$(g_sip_value shard.PASSWORD=)
+MUC_JID=$(g_sip_value MUC_JIDS=)
+
+##-- Replacing on add-jvb2-node.sh
+sed -i "s|JVB_HOSTNAME=.*|JVB_HOSTNAME=\'$JVB_HOSTNAME\'|" add-jvb2-node.sh
+sed -i "s|JVB_HOST=.*|JVB_HOST=\'$JVB_HOST\'|" add-jvb2-node.sh
+sed -i "s|JVB_PORT=.*|JVB_PORT=\'$JVB_PORT\'|" add-jvb2-node.sh
+sed -i "s|JVB_SECRET=.*|JVB_SECRET=\'$JVB_SECRET\'|" add-jvb2-node.sh
+sed -i "s|JVB_OPTS=.*|JVB_OPTS=\'$JVB_OPTS\'|" add-jvb2-node.sh
+sed -i "s|SYS_PROPS=.*|SYS_PROPS=\'$JAVA_SYS_PROPS\'|" add-jvb2-node.sh
+#-
+sed -i "s|AWS_HARVEST=.*|AWS_HARVEST=\'$DISABLE_AWS_HARVESTER\'|" add-jvb2-node.sh
+sed -i "s|STUN_MAPPING=.*|STUN_MAPPING=\'$STUN_MAPPING_HARVESTER_ADDRESSES\'|" add-jvb2-node.sh
+sed -i "s|ENABLE_STATISTICS=.*|ENABLE_STATISTICS=\'$ENABLE_STATISTICS\'|" add-jvb2-node.sh
+sed -i "s|SHARD_HOSTNAME=.*|SHARD_HOSTNAME=\'$SHARD_HOSTNAME\'|" add-jvb2-node.sh
+sed -i "s|SHARD_DOMAIN=.*|SHARD_DOMAIN=\'$SHARD_DOMAIN\'|" add-jvb2-node.sh
+sed -i "s|SHARD_PASS=.*|SHARD_PASS=\'$SHARD_PASSWORD\'|" add-jvb2-node.sh
+sed -i "s|MUC_JID=.*|MUC_JID=\'$MUC_JID\'|" add-jvb2-node.sh
+##--
 
 #Tune webserver for Jitsi App control
 if [ -f $WS_CONF ]; then
@@ -966,12 +1009,7 @@ VirtualHost "guest.$DOMAIN"
 
 P_SR
 	else
-    cat << P_SR >> $PROSODY_FILE
-
---VirtualHost "guest.$DOMAIN"
---    authentication = "anonymous"
---    c2s_require_encryption = false
-P_SR
+    echo "No authentication method selected."
 
 fi
 #======================
