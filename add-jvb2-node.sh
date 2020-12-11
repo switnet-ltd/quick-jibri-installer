@@ -270,6 +270,8 @@ org.jitsi.videobridge.xmpp.user.shard.USERNAME=jvb
 org.jitsi.videobridge.xmpp.user.shard.PASSWORD=$SHARD_PASS
 org.jitsi.videobridge.xmpp.user.shard.MUC_JIDS=JvbBrewery@internal.auth.$MAIN_SRV_DOMAIN
 org.jitsi.videobridge.xmpp.user.shard.MUC_NICKNAME=jvb2-$ADDUP
+
+org.jitsi.videobridge.xmpp.user.shard.DISABLE_CERTIFICATE_VERIFICATION=true
 JVB2_SIP
 
 echo -e "\n---- Create random nodesync user ----"
