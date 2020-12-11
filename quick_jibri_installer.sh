@@ -882,20 +882,20 @@ SHARD_PASSWORD=$(g_sip_value shard.PASSWORD=)
 MUC_JID=$(g_sip_value MUC_JIDS=)
 
 ##-- Replacing on add-jvb2-node.sh
-sed -i "s|JVB_HOSTNAME=.*|JVB_HOSTNAME=\'$JVB_HOSTNAME\'|" add-jvb2-node.sh
-sed -i "s|JVB_HOST=.*|JVB_HOST=\'$JVB_HOST\'|" add-jvb2-node.sh
-sed -i "s|JVB_PORT=.*|JVB_PORT=\'$JVB_PORT\'|" add-jvb2-node.sh
-sed -i "s|JVB_SECRET=.*|JVB_SECRET=\'$JVB_SECRET\'|" add-jvb2-node.sh
-sed -i "s|JVB_OPTS=.*|JVB_OPTS=\'$JVB_OPTS\'|" add-jvb2-node.sh
-sed -i "s|SYS_PROPS=.*|SYS_PROPS=\'$JAVA_SYS_PROPS\'|" add-jvb2-node.sh
+sed -i "s|JVB_HOSTNAME=.*|JVB_HOSTNAME=$JVB_HOSTNAME|" add-jvb2-node.sh
+sed -i "s|JVB_HOST=.*|JVB_HOST=$JVB_HOST|" add-jvb2-node.sh
+sed -i "s|JVB_PORT=.*|JVB_PORT=$JVB_PORT|" add-jvb2-node.sh
+sed -i "s|JVB_SECRET=.*|JVB_SECRET=$JVB_SECRET|" add-jvb2-node.sh
+sed -i "s|JVB_OPTS=.*|JVB_OPTS=$JVB_OPTS|" add-jvb2-node.sh
+sed -i "s|SYS_PROPS=.*|SYS_PROPS=$JAVA_SYS_PROPS|" add-jvb2-node.sh
 #-
-sed -i "s|AWS_HARVEST=.*|AWS_HARVEST=\'$DISABLE_AWS_HARVESTER\'|" add-jvb2-node.sh
-sed -i "s|STUN_MAPPING=.*|STUN_MAPPING=\'$STUN_MAPPING_HARVESTER_ADDRESSES\'|" add-jvb2-node.sh
-sed -i "s|ENABLE_STATISTICS=.*|ENABLE_STATISTICS=\'$ENABLE_STATISTICS\'|" add-jvb2-node.sh
-sed -i "s|SHARD_HOSTNAME=.*|SHARD_HOSTNAME=\'$SHARD_HOSTNAME\'|" add-jvb2-node.sh
-sed -i "s|SHARD_DOMAIN=.*|SHARD_DOMAIN=\'$SHARD_DOMAIN\'|" add-jvb2-node.sh
-sed -i "s|SHARD_PASS=.*|SHARD_PASS=\'$SHARD_PASSWORD\'|" add-jvb2-node.sh
-sed -i "s|MUC_JID=.*|MUC_JID=\'$MUC_JID\'|" add-jvb2-node.sh
+sed -i "s|AWS_HARVEST=.*|AWS_HARVEST=$DISABLE_AWS_HARVESTER\'|" add-jvb2-node.sh
+sed -i "s|STUN_MAPPING=.*|STUN_MAPPING=$STUN_MAPPING_HARVESTER_ADDRESSES|" add-jvb2-node.sh
+sed -i "s|ENABLE_STATISTICS=.*|ENABLE_STATISTICS=$ENABLE_STATISTICS|" add-jvb2-node.sh
+sed -i "s|SHARD_HOSTNAME=.*|SHARD_HOSTNAME=$SHARD_HOSTNAME|" add-jvb2-node.sh
+sed -i "s|SHARD_DOMAIN=.*|SHARD_DOMAIN=$SHARD_DOMAIN|" add-jvb2-node.sh
+sed -i "s|SHARD_PASS=.*|SHARD_PASS=$SHARD_PASSWORD|" add-jvb2-node.sh
+sed -i "s|MUC_JID=.*|MUC_JID=$MUC_JID|" add-jvb2-node.sh
 
 sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jvb2-node.sh
 sed -i "s|MAIN_SRV_REPO=.*|MAIN_SRV_REPO=\"$JITSI_REPO\"|" add-jvb2-node.sh
