@@ -214,6 +214,8 @@ echo "
 # Install JVB2
 #--------------------------------------------------
 "
+echo "jitsi-videobridge/jvb-hostname string $MAIN_SRV_DOMAIN"
+
 apt-get -y install \
                 jitsi-videobridge2 \
                 openjdk-8-jre-headless
