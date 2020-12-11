@@ -501,7 +501,7 @@ done
 #	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
 #fi
 #done
-
+echo -e "\n> Jitsi Meet Auth Method selection.\n"
 PS3='Select the authentication method for your Jitsi Meet instance: '
 options=("Local" "JWT" "None")
 select opt in "${options[@]}"
@@ -510,6 +510,8 @@ do
         "Local")
             echo -e "\n  > Users are created manually using prosodyctl, only moderators can open a room or launch recording."
             ENABLE_SC="yes"
+            read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+            read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
             break
             ;;
         "JWT")
