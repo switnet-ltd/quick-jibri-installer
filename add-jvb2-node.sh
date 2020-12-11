@@ -267,7 +267,7 @@ org.jitsi.videobridge.xmpp.user.shard.MUC_NICKNAME=jvb2-$ADDUP
 JVB2_SIP
 
 echo -e "\n---- Create random nodesync user ----"
-useradd -m -g jvb $NJN_USER
+useradd -m -g jitsi $NJN_USER
 echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 
 echo -e "\n---- We'll connect to main server ----"
@@ -284,8 +284,8 @@ sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add
 echo "Last file edition at: $(grep "LETS:" add-jvb2-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
 
 #Enable jvb2 services
-systemctl enable jvb2
-systemctl restart jvb2
+systemctl enable jitsi-videobridge2.service
+systemctl restart jitsi-videobridge2.service
 
 echo -e "\nSending updated add-jvb2-node.sh file to main server sync user...\n"
 cp $PWD/add-jvb2-node.sh /tmp

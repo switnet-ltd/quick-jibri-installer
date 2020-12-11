@@ -871,7 +871,7 @@ JVB_OPTS=$(g_conf_value JVB_OPTS=)
 JAVA_SYS_PROPS=$(g_conf_value JAVA_SYS_PROPS=)
 
 g_sip_value() {
-  grep "$1" $JVB2_SIP|sed "s|$1||"
+  grep "$1" $JVB2_SIP |cut -d "=" -f2 
 }
 DISABLE_AWS_HARVESTER=$(g_sip_value DISABLE_AWS_HARVESTER=)
 STUN_MAPPING_HARVESTER_ADDRESSES=$(g_sip_value STUN_MAPPING_HARVESTER_ADDRESSES=)
