@@ -151,7 +151,11 @@ echo "
 #-----------------------------------------------------------------------"
 
 check_var JVB_HOSTNNAME "$JVB_HOSTNAME"
-check_var JVB_HOST "$JVB_HOST"
+if [ -z $JVB_HOST ]; then
+  echo "JVB_HOST is empty, but it may be ok for it to be empty, skipping empty test."
+else
+  check_var JVB_HOST "$JVB_HOST"
+fi
 check_var JVB_PORT "$JVB_PORT"
 check_var JVB_SECRET "$JVB_SECRET"
 check_var JVB_OPTS "$JVB_OPTS"
@@ -214,7 +218,7 @@ echo "
 # Install JVB2
 #--------------------------------------------------
 "
-echo "jitsi-videobridge/jvb-hostname string $MAIN_SRV_DOMAIN"
+echo "jitsi-videobridge/jvb-hostname string $MAIN_SRV_DOMAIN" | debconf-set-selections
 
 apt-get -y install \
                 jitsi-videobridge2 \
