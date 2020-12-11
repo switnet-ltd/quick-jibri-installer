@@ -219,7 +219,7 @@ echo "
 # Install JVB2
 #--------------------------------------------------
 "
-echo "jitsi-videobridge/jvb-hostname string $MAIN_SRV_DOMAIN" | debconf-set-selections
+echo "jitsi-videobridge jitsi-videobridge/jvb-hostname string $MAIN_SRV_DOMAIN" | debconf-set-selections
 
 apt-get -y install \
                 jitsi-videobridge2 \
@@ -267,8 +267,8 @@ cat << JVB2_SIP > $JVB2_SIP
 JVB2_SIP
 
 echo -e "\n---- Setting new config format for jvb2 node. ----"
-sed -i '$/}/d' $JVB2_NCONF
-cat << JVB2 >> /etc/jitsi/videobridge/jvb.conf
+sed -i '${/\}/d;}' $JVB2_NCONF
+cat << JVB2 >> $JVB2_NCONF
     stats {
       # Enable broadcasting stats/presence in a MUC
       enabled = true
