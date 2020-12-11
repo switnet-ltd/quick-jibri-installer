@@ -61,6 +61,7 @@ LAST=TBD
 THIS_SRV_DIST=$(lsb_release -sc)
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
 JVB2_CONF="/etc/jitsi/videobridge/config"
+JVB2_NCONF="/etc/jitsi/videobridge/jvb.conf"
 JVB2_SIP="/etc/jitsi/videobridge/sip-communicator.properties"
 #PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
@@ -260,19 +261,41 @@ JVB2_CONF
 mv $JVB2_SIP $JVB2_SIP-dpkg-file
 ## JVB2 - SIP
 cat << JVB2_SIP > $JVB2_SIP
-org.ice4j.ice.harvest.DISABLE_AWS_HARVESTER=$AWS_HARVEST
-org.ice4j.ice.harvest.STUN_MAPPING_HARVESTER_ADDRESSES=$STUN_MAPPING
-org.jitsi.videobridge.ENABLE_STATISTICS=$ENABLE_STATISTICS
-org.jitsi.videobridge.STATISTICS_TRANSPORT=muc
-org.jitsi.videobridge.xmpp.user.shard.HOSTNAME=$MAIN_SRV_DOMAIN
-org.jitsi.videobridge.xmpp.user.shard.DOMAIN=auth.$MAIN_SRV_DOMAIN
-org.jitsi.videobridge.xmpp.user.shard.USERNAME=jvb
-org.jitsi.videobridge.xmpp.user.shard.PASSWORD=$SHARD_PASS
-org.jitsi.videobridge.xmpp.user.shard.MUC_JIDS=JvbBrewery@internal.auth.$MAIN_SRV_DOMAIN
-org.jitsi.videobridge.xmpp.user.shard.MUC_NICKNAME=jvb2-$ADDUP
-
-org.jitsi.videobridge.xmpp.user.shard.DISABLE_CERTIFICATE_VERIFICATION=true
+# Legacy conf file, new format already at
+# /etc/jitsi/videobridge/jvb.conf
+# --add-jvb2-node.sh
 JVB2_SIP
+
+echo -e "\n---- Setting new config format for jvb2 node. ----"
+sed -i '$/}/d' $JVB2_NCONF
+cat << JVB2 >> /etc/jitsi/videobridge/jvb.conf
+    stats {
+      # Enable broadcasting stats/presence in a MUC
+      enabled = true
+      transports = [
+        { type = "muc" }
+      ]
+    }
+
+    apis {
+      xmpp-client {
+        configs {
+          # Connect to the first XMPP server
+          xmpp-server-$ADDUP {
+            hostname="$MAIN_SRV_DOMAIN"
+            domain = "auth.$MAIN_SRV_DOMAIN"
+            username = "jvb"
+            password = "$SHARD_PASS"
+            muc_jids = "JvbBrewery@internal.auth.$MAIN_SRV_DOMAIN"
+            # The muc_nickname must be unique across all jitsi-videobridge instances
+            muc_nickname = "jvb2-$ADDUP"
+            disable_certificate_verification = true
+        }
+      }
+    }
+  }
+}
+JVB2
 
 echo -e "\n---- Create random nodesync user ----"
 useradd -m -g jitsi $NJN_USER
