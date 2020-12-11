@@ -488,18 +488,43 @@ done
 #	echo "Local audio recording option will be enabled"
 #fi
 #done
+
 #Secure room initial user
-while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
+#while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
+#do
+#read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
+#if [ "$ENABLE_SC" = "no" ]; then
+#	echo "-- Secure rooms won't be enabled."
+#elif [ "$ENABLE_SC" = "yes" ]; then
+#	echo "-- Secure rooms will be enabled."
+#	read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+#	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
+#fi
+#done
+
+PS3='Select the authentication method for your Jitsi Meet instance: '
+options=("Local" "JWT" "None")
+select opt in "${options[@]}"
 do
-read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
-if [ "$ENABLE_SC" = "no" ]; then
-	echo "-- Secure rooms won't be enabled."
-elif [ "$ENABLE_SC" = "yes" ]; then
-	echo "-- Secure rooms will be enabled."
-	read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
-fi
+    case $opt in
+        "Local")
+            echo -e "\n  > Users are created manually using prosodyctl, only moderators can open a room or launch recording."
+            ENABLE_SC="yes"
+            break
+            ;;
+        "JWT")
+            echo -e "\n  > A external app manage the token usage/creation, like RocketChat does."
+            ENABLE_JWT="yes"
+            break
+            ;;
+        "None")
+            echo -e "\n  > Everyone can access the room as moderators as there is no auth mechanism."
+            break
+            ;;
+        *) echo "Invalid option $REPLY, choose 1, 2 or 3";;
+    esac
 done
+
 #Jibri Records Access (JRA) via Nextcloud
 while [[ "$ENABLE_NC_ACCESS" != "yes" && "$ENABLE_NC_ACCESS" != "no" ]]
 do
@@ -627,20 +652,8 @@ restart_services() {
 sed -i "/shard.HOSTNAME/s|localhost|$DOMAIN|" /etc/jitsi/videobridge/sip-communicator.properties
 
 # Configure Jibri
+if [ "$ENABLE_SC" = "yes" ]; then
 ## PROSODY
-if dpkg-compare prosody lt 0.11.0 ; then
-cat  << MUC-JIBRI >> $PROSODY_FILE
-
--- internal muc component, meant to enable pools of jibri and jigasi clients
-Component "internal.auth.$DOMAIN" "muc"
-    modules_enabled = {
-      "ping";
-    }
-    storage = "null"
-    muc_room_cache_size = 1000
-
-MUC-JIBRI
-fi
 cat  << REC-JIBRI >> $PROSODY_FILE
 
 VirtualHost "recorder.$DOMAIN"
@@ -650,16 +663,25 @@ VirtualHost "recorder.$DOMAIN"
   authentication = "internal_plain"
 
 REC-JIBRI
+
+  if [ ! -f $MOD_LIST_FILE ]; then
+  echo -e "\n-> Adding external module to list prosody users...\n"
+  curl -s $MOD_LISTU > $MOD_LIST_FILE
+
+  echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
+    else
+  echo -e "Prosody support for listing users seems to be enabled. \ncheck with: prosodyctl mod_listusers\n"
+  fi
+
+fi
 #Enable Jibri withelist
 sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
 
 #Fix Jibri conectivity issues
-#if dpkg-compare prosody lt 0.11.0 ; then
 sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
 sed -i "/c2s_require_encryption = false/a \\
 \\
 consider_bosh_secure = true" $PROSODY_SYS
-#fi
 
 if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
@@ -667,15 +689,7 @@ fi
 if [ ! -z $L10N_ME ]; then
 	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
 fi
-if [ ! -f $MOD_LIST_FILE ]; then
-echo -e "\n-> Adding external module to list prosody users...\n"
-curl -s $MOD_LISTU > $MOD_LIST_FILE
 
-echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
-else
-echo -e "Prosody support for listing users seems to be enabled.
-check with: prosodyctl mod_listusers\n"
-fi
 
 ### Prosody users
 prosodyctl register jibri auth.$DOMAIN $JB_AUTH_PASS
@@ -698,13 +712,13 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
     hiddenDomain: \'recorder.$DOMAIN\',|" $MEET_CONF
 
 #Dropbox feature
-if [ "$ENABLE_DB" = "yes" ]; then
-DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
-DB_END=$((DB_STR + 10))
-sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
-sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" $MEET_CONF
-sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
-fi
+#if [ "$ENABLE_DB" = "yes" ]; then
+#DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
+#DB_END=$((DB_STR + 10))
+#sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
+#sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" $MEET_CONF
+#sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
+#fi
 
 #LocalRecording
 if [ "$ENABLE_LAR" = "yes" ]; then
@@ -948,16 +962,28 @@ sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #================== Setup prosody conf file =================
 
-#===Setup secure rooms ===#
+###Setup secure rooms
 if [ "$ENABLE_SC" = "yes" ]; then
 SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
 SRP_END=$((SRP_STR + 10))
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
 sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+
+echo -e "\nSecure rooms are being enabled..."
+echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
+or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
+If you have issues with the password refer to your sysadmin."
+sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
+#Secure room initial user
+prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
+sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
 fi
 
+###JWT
 if [ "$ENABLE_JWT" = "yes" ]; then
-	## focal openssl
+echo -e "\nJWT auth are being setup..."
+
+	## Focal Openssl
 	if [ "$(lsb_release -sc)" = "focal" ]; then
 	echo "deb http://ppa.launchpad.net/rael-gc/rvm/ubuntu focal main" | \
 	sudo tee /etc/apt/sources.list.d/rvm.list
@@ -965,7 +991,7 @@ if [ "$ENABLE_JWT" = "yes" ]; then
 	apt-get update
 	fi
 
-###JWT
+
 apt-get -y install \
                         lua5.2 \
                         liblua5.2 \
@@ -989,8 +1015,6 @@ sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\" }"
 
 #allow_empty_token = true
 
-#SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
-#SRP_END=$((SRP_STR + 10))
 sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 fi
 
@@ -1019,16 +1043,6 @@ P_SR
 
 fi
 #======================
-#Secure room initial user
-if [ "$ENABLE_SC" = "yes" ]; then
-echo -e "\nSecure rooms are being enabled..."
-echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
-or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
-If you have issues with the password refer to your sysadmin."
-sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
-prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
-sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
-fi
 #Start with video muted by default
 sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
 
@@ -1058,7 +1072,7 @@ fi
 
 enable_letsencrypt
 
-if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
+if [ "$ENABLE_SC" = "yes" ] || [ "$ENABLE_JWT" = "yes" ];then
 echo "Waiting prosody restart to continue configuration, 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
