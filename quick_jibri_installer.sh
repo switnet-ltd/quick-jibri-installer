@@ -653,17 +653,6 @@ sed -i "/shard.HOSTNAME/s|localhost|$DOMAIN|" /etc/jitsi/videobridge/sip-communi
 
 # Configure Jibri
 if [ "$ENABLE_SC" = "yes" ]; then
-## PROSODY
-cat  << REC-JIBRI >> $PROSODY_FILE
-
-VirtualHost "recorder.$DOMAIN"
-  modules_enabled = {
-    "ping";
-  }
-  authentication = "internal_plain"
-
-REC-JIBRI
-
   if [ ! -f $MOD_LIST_FILE ]; then
   echo -e "\n-> Adding external module to list prosody users...\n"
   curl -s $MOD_LISTU > $MOD_LIST_FILE
@@ -674,6 +663,17 @@ REC-JIBRI
   fi
 
 fi
+#Enable jibri recording
+cat  << REC-JIBRI >> $PROSODY_FILE
+
+VirtualHost "recorder.$DOMAIN"
+  modules_enabled = {
+    "ping";
+  }
+  authentication = "internal_plain"
+
+REC-JIBRI
+
 #Enable Jibri withelist
 sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
 
