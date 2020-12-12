@@ -508,19 +508,19 @@ select opt in "${options[@]}"
 do
     case $opt in
         "Local")
-            echo -e "\n  > Users are created manually using prosodyctl, only moderators can open a room or launch recording."
+            echo -e "\n  > Users are created manually using prosodyctl, only moderators can open a room or launch recording.\n"
             ENABLE_SC="yes"
             read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
             read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
             break
             ;;
         "JWT")
-            echo -e "\n  > A external app manage the token usage/creation, like RocketChat does."
+            echo -e "\n  > A external app manage the token usage/creation, like RocketChat does.\n"
             ENABLE_JWT="yes"
             break
             ;;
         "None")
-            echo -e "\n  > Everyone can access the room as moderators as there is no auth mechanism."
+            echo -e "\n  > Everyone can access the room as moderators as there is no auth mechanism.\n"
             break
             ;;
         *) echo "Invalid option $REPLY, choose 1, 2 or 3";;
@@ -1040,8 +1040,21 @@ VirtualHost "guest.$DOMAIN"
     }
 
 P_SR
+
+echo "Use the following for your App (e.g. Rocket.Chat):"
+pyjwt3 --key="$SECRET_APP" \
+    encode \
+    group="Rocket.Chat" \
+    aud="$APP_ID" \
+    iss="$APP_ID" \
+    sub="$DOMAIN" \
+    room="*" \
+    algorithm="HS256"
+
 	else
     echo "No authentication method selected."
+
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 fi
 #======================
