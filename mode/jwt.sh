@@ -57,4 +57,4 @@ pyjwt3 --key="$SECRET_APP" \
     room="*" \
     algorithm="HS256"
 
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
+read -n 1 -s -r -p $'\n'"Press any key to continue..."$'\n'
