@@ -10,9 +10,6 @@ PROSODY_SYS="/etc/prosody/prosody.cfg.lua"
 APP_ID="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 16 | head -n1)"
 SECRET_APP="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 64 | head -n1)"
 
-echo -e "\n$APP_ID" && \
-echo -e "$SECRET_APP\n"
-
 ## Required  openssl for Focal 20.04
 if [ "$(lsb_release -sc)" = "focal" ]; then
 echo "deb http://ppa.launchpad.net/rael-gc/rvm/ubuntu focal main" | \
@@ -49,6 +46,10 @@ sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMA
 
 
 echo -e "\nUse the following for your App (e.g. Rocket.Chat):\n"
+echo -e "\n$APP_ID" && \
+echo -e "$SECRET_APP\n"
+
+echo -e "You can test JWT authentication with the following token:\n"
 pyjwt3 --key="$SECRET_APP" \
     encode \
     group="Rocket.Chat" \
