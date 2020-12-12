@@ -40,12 +40,13 @@ apt-get install -y jitsi-meet-tokens
 #Setting up
 sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" $PROSODY_SYS
 sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" $PROSODY_FILE
-sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\" }" $PROSODY_FILE
+sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \"RocketChat\" }" $PROSODY_FILE
 #allow_empty_token = true
 
 #Request auth
 sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
 sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+
 
 echo -e "\nUse the following for your App (e.g. Rocket.Chat):\n"
 pyjwt3 --key="$SECRET_APP" \
