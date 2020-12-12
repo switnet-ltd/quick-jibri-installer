@@ -510,8 +510,6 @@ do
         "Local")
             echo -e "\n  > Users are created manually using prosodyctl, only moderators can open a room or launch recording.\n"
             ENABLE_SC="yes"
-            read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-            read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
             break
             ;;
         "JWT")
@@ -977,47 +975,22 @@ or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
 sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
 #Secure room initial user
+read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
 prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
 fi
 
 ###JWT
 if [ "$ENABLE_JWT" = "yes" ]; then
-echo -e "\nJWT auth are being setup..."
+echo -e "\nJWT auth is being setup..."
 
-	## Focal Openssl
-	if [ "$(lsb_release -sc)" = "focal" ]; then
-	echo "deb http://ppa.launchpad.net/rael-gc/rvm/ubuntu focal main" | \
-	sudo tee /etc/apt/sources.list.d/rvm.list
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F4E3FBBE
-	apt-get update
-	fi
+bash $PWD/mode/jwt.sh
 
+	else
+    echo "No authentication method selected."
 
-apt-get -y install \
-                        lua5.2 \
-                        liblua5.2 \
-                        luarocks \
-                        libssl1.0-dev \
-                        python3-jwt
-
-luarocks install basexx
-luarocks install luacrypto
-luarocks install lua-cjson 2.1.0-1
-
-echo "set jitsi-meet-tokens/appid string $APP_ID" | debconf-set-selections
-echo "set jitsi-meet-tokens/appsecret password $SECRET_APP" | debconf-set-selections
-
-apt-get install -y jitsi-meet-tokens
-
-#Setting up
-sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" /etc/prosody/prosody.cfg.lua
-sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" /etc/prosody/conf.d/$DOMAIN.cfg.lua
-sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\" }" /etc/prosody/conf.d/$DOMAIN.cfg.lua
-
-#allow_empty_token = true
-
-sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 
 #Guest allow
@@ -1040,22 +1013,6 @@ VirtualHost "guest.$DOMAIN"
     }
 
 P_SR
-
-echo "Use the following for your App (e.g. Rocket.Chat):"
-pyjwt3 --key="$SECRET_APP" \
-    encode \
-    group="Rocket.Chat" \
-    aud="$APP_ID" \
-    iss="$APP_ID" \
-    sub="$DOMAIN" \
-    room="*" \
-    algorithm="HS256"
-
-	else
-    echo "No authentication method selected."
-
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
-
 fi
 #======================
 #Start with video muted by default
