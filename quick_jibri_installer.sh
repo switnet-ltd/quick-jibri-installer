@@ -405,17 +405,6 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 Jitsi Meet web interface will be set to use such language.
 "
 read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
-
-echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
-##Participant
-echo -e "> Do you want to translate 'Participant' to your own language?" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
-##Me
-echo -e "\n> Do you want to translate 'me' to your own language?
-This must be a really small word to present one self.
-Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
-
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
@@ -460,6 +449,15 @@ elif [ "$ENABLE_BLESSM" = "yes" ]; then
 	echo "Brandless mode will be set."
 fi
 done
+echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
+#Participant
+echo -e "> Do you want to translate 'Participant' to your own language?" && \
+read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
+#Me
+echo -e "\n> Do you want to translate 'me' to your own language?
+This must be a really small word to present one self.
+Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
+read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
 #Welcome Page
 while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
@@ -652,6 +650,38 @@ restart_services() {
 
 # Configure Jvb2
 sed -i "/shard.HOSTNAME/s|localhost|$DOMAIN|" /etc/jitsi/videobridge/sip-communicator.properties
+
+# Configure Jibri
+if [ "$ENABLE_SC" = "yes" ]; then
+  if [ ! -f $MOD_LIST_FILE ]; then
+  echo -e "\n-> Adding external module to list prosody users...\n"
+  curl -s $MOD_LISTU > $MOD_LIST_FILE
+
+  echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
+    else
+  echo -e "Prosody support for listing users seems to be enabled. \ncheck with: prosodyctl mod_listusers\n"
+  fi
+
+fi
+#Enable jibri recording
+cat  << REC-JIBRI >> $PROSODY_FILE
+
+VirtualHost "recorder.$DOMAIN"
+  modules_enabled = {
+    "ping";
+  }
+  authentication = "internal_plain"
+
+REC-JIBRI
+
+#Enable Jibri withelist
+sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
+
+#Fix Jibri conectivity issues
+sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
+sed -i "/c2s_require_encryption = false/a \\
+\\
+consider_bosh_secure = true" $PROSODY_SYS
 
 if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
@@ -944,22 +974,11 @@ echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
 or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
 sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
-
 #Secure room initial user
 read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
 read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
 prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
-
-#Add prodosy module
-  if [ ! -f $MOD_LIST_FILE ]; then
-  echo -e "\n-> Adding external module to list prosody users...\n"
-  curl -s $MOD_LISTU > $MOD_LIST_FILE
-
-  echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
-    else
-  echo -e "Prosody support for listing users seems to be enabled. \ncheck with: prosodyctl mod_listusers\n"
-  fi
 fi
 
 ###JWT
@@ -973,27 +992,6 @@ bash $PWD/mode/jwt.sh
 
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
-
-# Configure Jibri
-#Enable jibri recording
-cat  << REC-JIBRI >> $PROSODY_FILE
-
-VirtualHost "recorder.$DOMAIN"
-  modules_enabled = {
-    "ping";
-  }
-  authentication = "internal_plain"
-
-REC-JIBRI
-
-#Enable Jibri withelist
-sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
-
-#Fix Jibri conectivity issues
-sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
-sed -i "/c2s_require_encryption = false/a \\
-\\
-consider_bosh_secure = true" $PROSODY_SYS
 
 #Guest allow
 if [ "$ENABLE_SC" = "yes" ] || [ "$ENABLE_JWT" = "yes" ];then
