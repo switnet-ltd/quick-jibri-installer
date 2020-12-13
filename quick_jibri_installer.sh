@@ -405,6 +405,16 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 Jitsi Meet web interface will be set to use such language.
 "
 read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
+echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
+#Participant
+echo -e "> Do you want to translate 'Participant' to your own language?" && \
+read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
+#Me
+echo -e "\n> Do you want to translate 'me' to your own language?
+This must be a really small word to present one self.
+Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
+read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
+
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
@@ -449,15 +459,6 @@ elif [ "$ENABLE_BLESSM" = "yes" ]; then
 	echo "Brandless mode will be set."
 fi
 done
-echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
-#Participant
-echo -e "> Do you want to translate 'Participant' to your own language?" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
-#Me
-echo -e "\n> Do you want to translate 'me' to your own language?
-This must be a really small word to present one self.
-Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
 #Welcome Page
 while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
