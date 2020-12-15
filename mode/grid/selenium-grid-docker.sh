@@ -13,16 +13,15 @@ fi
 WAN_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 AV_SPACE="$(df -h .|grep -v File|awk '{print$4}'|sed -e 's|G||')"
 
-echo -e "\n-- Make sure you have at least 20GB of disk space\n"
-if [ $(echo "$AV_SPACE > 19" | bc) -ne 0 ]; then 
+echo -e "\n-- Make sure you have at least 10GB of disk space"
+if [ $(echo "$AV_SPACE > 9" | bc) -ne 0 ]; then
   echo "> Seems we have enough disk space."
 else
   echo "> Please meet the minimum required disk space for this installer, exiting..."
   exit
 fi
 
-
-apt-get update 
+apt-get update
 apt-get dist-upgrade -y
 apt-get install -y \
                          gnupg \
@@ -32,14 +31,15 @@ apt-get install -y \
                          unzip \
                          maven \
                          openjdk-8-jdk
-
+# Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
-
-curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+## Docker Compose
+curl -sL "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
+# Jitsi Meet Torture
 cd /opt
 git clone https://github.com/jitsi/jitsi-meet-torture
 cd /opt/jitsi-meet-torture/resources
@@ -57,77 +57,77 @@ services:
     container_name: selenium-hub
     ports:
       - "4444:4444"
-      restart: always
+    restart: always
   chrome:
-      image: selenium/node-chrome:3.141.59-20200525
-      volumes:
-        - /dev/shm:/dev/shm
-        - ./resources:/usr/share/jitsi-meet-torture/resources
-      depends_on:
-        - selenium-hub
-      environment:
-        - HUB_HOST=selenium-hub
-        - HUB_PORT=4444
-        - NODE_MAX_INSTANCES=30
-        - NODE_MAX_SESSION=30
-      restart: always
+    image: selenium/node-chrome:3.141.59-20200525
+    volumes:
+      - /dev/shm:/dev/shm
+      - ./resources:/usr/share/jitsi-meet-torture/resources
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=30
+      - NODE_MAX_SESSION=30
+    restart: always
   chrome2:
-      image: selenium/node-chrome:3.141.59-20200525
-      volumes:
-        - /dev/shm:/dev/shm
-        - ./resources:/usr/share/jitsi-meet-torture/resources
-      depends_on:
-        - selenium-hub
-      environment:
-        - HUB_HOST=selenium-hub
-        - HUB_PORT=4444
-        - NODE_MAX_INSTANCES=30
-        - NODE_MAX_SESSION=30
-      restart: always
+    image: selenium/node-chrome:3.141.59-20200525
+    volumes:
+      - /dev/shm:/dev/shm
+      - ./resources:/usr/share/jitsi-meet-torture/resources
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=30
+      - NODE_MAX_SESSION=30
+    restart: always
   chrome3:
-      image: selenium/node-chrome:3.141.59-20200525
-      volumes:
-        - /dev/shm:/dev/shm
-        - ./resources:/usr/share/jitsi-meet-torture/resources
-      depends_on:
-        - selenium-hub
-      environment:
-        - HUB_HOST=selenium-hub
-        - HUB_PORT=4444
-        - NODE_MAX_INSTANCES=30
-        - NODE_MAX_SESSION=30
-      restart: always
+    image: selenium/node-chrome:3.141.59-20200525
+    volumes:
+      - /dev/shm:/dev/shm
+      - ./resources:/usr/share/jitsi-meet-torture/resources
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=30
+      - NODE_MAX_SESSION=30
+    restart: always
   chrome4:
-      image: selenium/node-chrome:3.141.59-20200525
-      volumes:
-        - /dev/shm:/dev/shm
-        - ./resources:/usr/share/jitsi-meet-torture/resources
-      depends_on:
-        - selenium-hub
-      environment:
-        - HUB_HOST=selenium-hub
-        - HUB_PORT=4444
-        - NODE_MAX_INSTANCES=30
-        - NODE_MAX_SESSION=30
-      restart: always
+    image: selenium/node-chrome:3.141.59-20200525
+    volumes:
+      - /dev/shm:/dev/shm
+      - ./resources:/usr/share/jitsi-meet-torture/resources
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=30
+      - NODE_MAX_SESSION=30
+    restart: always
   chrome5:
-      image: selenium/node-chrome:3.141.59-20200525
-      volumes:
-        - /dev/shm:/dev/shm
-        - ./resources:/usr/share/jitsi-meet-torture/resources
-      depends_on:
-        - selenium-hub
-      environment:
-        - HUB_HOST=selenium-hub
-        - HUB_PORT=4444
-        - NODE_MAX_INSTANCES=30
-        - NODE_MAX_SESSION=30
-      restart: always
+    image: selenium/node-chrome:3.141.59-20200525
+    volumes:
+      - /dev/shm:/dev/shm
+      - ./resources:/usr/share/jitsi-meet-torture/resources
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=30
+      - NODE_MAX_SESSION=30
+    restart: always
 SELENIUM_GRID_DOCKER
 
 docker-compose -f /opt/selenium.yml up -d
-
-echo "Change the values acording to you testusing something like;"
+echo -e "\n#=================== End of Seleniun Grid build ========================#\n"
+echo -e "\nChange the values acording to you test requirements using something like;\n"
 echo "sudo bash /opt/jitsi-meet-torture/scripts/malleus.sh \\
                         --conferences=1 \\
                         --participants=30 \\
@@ -138,10 +138,12 @@ echo "sudo bash /opt/jitsi-meet-torture/scripts/malleus.sh \\
                         --hub-url=http://localhost:4444/wd/hub \\
                         --instance-url=https://YOUR.JITSI-MEET-INSTANCE.DOMAIN
 "
-echo -e "\n-- If using 'hamertesting' you can join the room 
+echo -e "\n-- If using 'hamertesting' as prefix name you can join the room 
 hamertesting0, hamertesting1, hamertestingN 
-acording to the 'N' number of conferences set to watch the test."
+acording to the 'N' number of conferences you have set to watch the test.
 
+*Beware* for 120 \"participants\" to join video-muted it was necessary at least a c5.24xlarge AWS instance.
+So start low and monitor your server resources."
 
 echo -e "\n-- You can check the grid status at:
 http://$WAN_IP:4444/grid/console
