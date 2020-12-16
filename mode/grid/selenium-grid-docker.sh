@@ -140,10 +140,10 @@ echo "sudo bash /opt/jitsi-meet-torture/scripts/malleus.sh \\
 "
 echo -e "\n-- If using 'hamertesting' as prefix name you can join the room 
 hamertesting0, hamertesting1, hamertestingN 
-acording to the 'N' number of conferences you have set to watch the test.
+according to the 'N' number of conferences you have set to watch the test.
 
 *Beware* for 120 \"participants\" to join video-muted it was necessary at least a c5.24xlarge AWS instance.
-So start low and monitor your server resources."
+So start low, monitor your server resources and go from there."
 
 echo -e "\n-- You can check the grid status at:
 http://$WAN_IP:4444/grid/console
