@@ -42,10 +42,10 @@ ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 # Jitsi Meet Torture
 cd /opt
 git clone https://github.com/jitsi/jitsi-meet-torture
-cd /opt/jitsi-meet-torture/resources
+cd jitsi-meet-torture/resources
 wget -c https://media.xiph.org/video/derf/y4m/FourPeople_1280x720_60.y4m
 cp FourPeople_1280x720_60.y4m FourPeople_1280x720_30.y4m
-cd /opt
+cd ..
 
 #150 "participants" available
 ## Tested up to 120 with AWS c5.24xlarge
@@ -125,10 +125,12 @@ services:
     restart: always
 SELENIUM_GRID_DOCKER
 
-docker-compose -f /opt/selenium.yml up -d
+docker-compose -f selenium.yml up -d
+
 echo -e "\n#=================== End of Seleniun Grid build ========================#\n"
 echo -e "\nChange the values acording to you test requirements using something like;\n"
-echo "sudo bash /opt/jitsi-meet-torture/scripts/malleus.sh \\
+echo "cd /opt/jitsi-meet-torture
+sudo bash /opt/jitsi-meet-torture/scripts/malleus.sh \\
                         --conferences=1 \\
                         --participants=30 \\
                         --senders=2 \\
