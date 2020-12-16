@@ -44,6 +44,17 @@ sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \
 sed -i "s|#org.jitsi.jicofo.auth.URL=EXT_JWT:|org.jitsi.jicofo.auth.URL=EXT_JWT:|" $JICOFO_SIP
 sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 
+#Enable jibri recording
+cat  << REC-JIBRI >> $PROSODY_FILE
+
+VirtualHost "recorder.$DOMAIN"
+  modules_enabled = {
+    "ping";
+  }
+  authentication = "internal_plain"
+
+REC-JIBRI
+
 #Setup guests and lobby
 cat << P_SR >> $PROSODY_FILE
 
@@ -52,9 +63,15 @@ VirtualHost "guest.$DOMAIN"
     allow_empty_token = true
     c2s_require_encryption = false
     muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
+    speakerstats_component = "speakerstats.$DOMAIN"
+    conference_duration_component = "conferenceduration.$DOMAIN"
     app_id="$APP_ID";
     app_secret="$SECRET_APP";
 
+    modules_enabled = {
+      "speakerstats";
+      "conference_duration";
+    }
 P_SR
 
 echo -e "\nUse the following for your App (e.g. Rocket.Chat):\n"

@@ -1047,7 +1047,7 @@ fi
 
 enable_letsencrypt
 
-if [ "$ENABLE_SC" = "yes" ] || [ "$ENABLE_JWT" = "yes" ];then
+if [ "$ENABLE_SC" = "yes" ];then
 echo "Waiting prosody restart to continue configuration, 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
