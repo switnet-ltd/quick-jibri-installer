@@ -226,6 +226,7 @@ if [ "$HWE_VIR_MOD" == "1" ]; then
     linux-modules-extra-virtual-hwe-$(lsb_release -sr)
     else
     apt-get -y install \
+    linux-image-generic \
     linux-modules-extra-$(uname -r)
 fi
 

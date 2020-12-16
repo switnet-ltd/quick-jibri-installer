@@ -274,6 +274,7 @@ if [ "$HWE_VIR_MOD" == "1" ]; then
     linux-modules-extra-virtual-hwe-$(lsb_release -sr)
     else
     apt-get -y install \
+    linux-image-generic \
     linux-modules-extra-$(uname -r)
 fi
 
@@ -502,7 +503,9 @@ done
 #	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
 #fi
 #done
-echo -e "\n> Jitsi Meet Auth Method selection.\n"
+echo "
+> Jitsi Meet Auth Method selection.
+"
 PS3='Select the authentication method for your Jitsi Meet instance: '
 options=("Local" "JWT" "None")
 select opt in "${options[@]}"
@@ -1041,6 +1044,8 @@ if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
     systemctl disable jibri
     systemctl disable jibri-xorg
     systemctl disable jibri-icewm
+#Manually apply permissions since finalize_recording.sh won't be triggered on this server.
+    sudo -u jibri bash /home/jibri/finalize_recording.sh
 fi
 
 enable_letsencrypt
