@@ -44,6 +44,18 @@ sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \
 sed -i "s|#org.jitsi.jicofo.auth.URL=EXT_JWT:|org.jitsi.jicofo.auth.URL=EXT_JWT:|" $JICOFO_SIP
 sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 
+#Setup guests and lobby
+cat << P_SR >> $PROSODY_FILE
+
+VirtualHost "guest.$DOMAIN"
+    authentication = "token"
+    allow_empty_token = true
+    c2s_require_encryption = false
+    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
+    app_id="$APP_ID";
+    app_secret="$SECRET_APP";
+
+P_SR
 
 echo -e "\nUse the following for your App (e.g. Rocket.Chat):\n"
 echo -e "\n$APP_ID" && \
@@ -59,4 +71,4 @@ pyjwt3 --key="$SECRET_APP" \
     room="*" \
     algorithm="HS256"
 
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
+read -n 1 -s -r -p $'\n'"Press any key to continue..."$'\n'
