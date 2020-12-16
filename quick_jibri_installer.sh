@@ -704,6 +704,7 @@ prosodyctl register recorder recorder.$DOMAIN $JB_REC_PASS
 # /etc/jitsi/jicofo/sip-communicator.properties
 cat  << BREWERY >> $JICOFO_SIP
 #org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
+#org.jitsi.jicofo.auth.URL=EXT_JWT:$DOMAIN
 org.jitsi.jicofo.jibri.BREWERY=$JibriBrewery@internal.auth.$DOMAIN
 org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 #org.jitsi.jicofo.auth.DISABLE_AUTOLOGIN=true

@@ -405,7 +405,7 @@ INOT_RSYNC
 
 mkdir /var/log/$NJN_USER
 
-cat << LOG_ROT >> /etc/logrotate.d/$NJN_USER
+cat << LOG_ROT > /etc/logrotate.d/$NJN_USER
 /var/log/$NJN_USER/*.log {
     monthly
     missingok
