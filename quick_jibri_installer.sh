@@ -25,6 +25,7 @@ APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok instal
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
+GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 CR=`echo $'\n> '`
 
@@ -322,7 +323,7 @@ CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
 echo "# Installing Google Chrome / ChromeDriver"
-if [ -f $GOOGL_REPO ]; then
+if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
 	echo "Google repository already set."
 else
 	echo "Installing Google Chrome Stable"
@@ -973,28 +974,23 @@ SRP_END=$((SRP_STR + 10))
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
 sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 
+#Secure room initial user
+read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
+prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
+
 echo -e "\nSecure rooms are being enabled..."
 echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
 or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
 sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
-#Secure room initial user
-read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
-prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
 fi
 
 ###JWT
 if [ "$ENABLE_JWT" = "yes" ]; then
 echo -e "\nJWT auth is being setup..."
-
 bash $PWD/mode/jwt.sh
-
-	else
-    echo "No authentication method selected."
-
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 
 #Guest allow
