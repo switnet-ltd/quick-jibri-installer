@@ -544,7 +544,8 @@ done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
 	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
-    thus, Jigasi Transcript can't be enable."
+    thus, Jigasi Transcript can't be enable.
+"
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
 	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
 	do
@@ -995,7 +996,7 @@ bash $PWD/mode/jwt.sh
 fi
 
 #Guest allow
-if [ "$ENABLE_SC" = "yes" ] || [ "$ENABLE_JWT" = "yes" ];then
+if [ "$ENABLE_SC" = "yes" ];then
     cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
@@ -1015,6 +1016,7 @@ VirtualHost "guest.$DOMAIN"
 
 P_SR
 fi
+
 #======================
 #Start with video muted by default
 sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
