@@ -200,3 +200,8 @@ read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 restart_services_jibri
 systemctl status jibri
+
+if [ -f /var/log/jitsi/jicofo.log ]; then
+echo -e "Checking for jicofo recognizing \"Live\" jibri node..."
+tail -n 10 | grep Live
+fi

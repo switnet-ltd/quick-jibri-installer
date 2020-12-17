@@ -60,7 +60,7 @@ Feel free to use our (new) `test-jibri-env.sh` tool to find some details on your
 * Grafana Dashboard
 * Lobby Rooms - Secure Rooms
 * Conference Duration - Secure Rooms
-* (New) Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Jibri-Nodes)).
+* (New) Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
 
 ## Tools (New)
 * (New) Jibri Environment Tester

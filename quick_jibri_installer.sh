@@ -25,6 +25,7 @@ APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok instal
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
+GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 CR=`echo $'\n> '`
 
@@ -274,6 +275,7 @@ if [ "$HWE_VIR_MOD" == "1" ]; then
     linux-modules-extra-virtual-hwe-$(lsb_release -sr)
     else
     apt-get -y install \
+    linux-image-generic \
     linux-modules-extra-$(uname -r)
 fi
 
@@ -304,7 +306,7 @@ echo "
 if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" ]; then
 		echo "Nodejs is installed, skipping..."
     else
-		curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+		curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 		apt-get install -yq2 nodejs
 		echo "Installing nodejs esprima package..."
 		npm install -g esprima
@@ -321,7 +323,7 @@ CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
 echo "# Installing Google Chrome / ChromeDriver"
-if [ -f $GOOGL_REPO ]; then
+if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
 	echo "Google repository already set."
 else
 	echo "Installing Google Chrome Stable"
@@ -362,16 +364,18 @@ echo '
 '
 # MEET / JIBRI SETUP
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
-WS_CONF=/etc/nginx/sites-enabled/$DOMAIN.conf
+WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 JB_AUTH_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 JB_REC_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
-PROSODY_FILE=/etc/prosody/conf.d/$DOMAIN.cfg.lua
-PROSODY_SYS=/etc/prosody/prosody.cfg.lua
-JICOFO_SIP=/etc/jitsi/jicofo/sip-communicator.properties
-MEET_CONF=/etc/jitsi/meet/$DOMAIN-config.js
-JIBRI_CONF=/etc/jitsi/jibri/jibri.conf
+PROSODY_FILE="/etc/prosody/conf.d/$DOMAIN.cfg.lua"
+PROSODY_SYS="/etc/prosody/prosody.cfg.lua"
+JICOFO_SIP="/etc/jitsi/jicofo/sip-communicator.properties"
+MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
+JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
+JVB2_CONF="/etc/jitsi/videobridge/config"
+JVB2_SIP="/etc/jitsi/videobridge/sip-communicator.properties"
 DIR_RECORD=/var/jbrecord
-REC_DIR=/home/jibri/finalize_recording.sh
+REC_DIR="/home/jibri/finalize_recording.sh"
 JB_NAME="Jibri Sessions"
 LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
@@ -385,8 +389,8 @@ MJS_USER="jbsync_$MJS_RAND_TAIL"
 MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 
 # Rename hostname for jitsi server
-#hostnamectl set-hostname "jibri.${DOMAIN}"
-#sed -i "1i ${PUBLIC_IP} jibri.${DOMAIN}" /etc/hosts
+#hostnamectl set-hostname "jitsi.${DOMAIN}"
+#sed -i "1i ${PUBLIC_IP} jitsi.${DOMAIN}" /etc/hosts
 
 #Sysadmin email
 while [[ -z $SYSADMIN_EMAIL ]]
@@ -403,6 +407,16 @@ https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 Jitsi Meet web interface will be set to use such language.
 "
 read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
+echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
+#Participant
+echo -e "> Do you want to translate 'Participant' to your own language?" && \
+read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
+#Me
+echo -e "\n> Do you want to translate 'me' to your own language?
+This must be a really small word to present one self.
+Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
+read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
+
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
@@ -447,15 +461,6 @@ elif [ "$ENABLE_BLESSM" = "yes" ]; then
 	echo "Brandless mode will be set."
 fi
 done
-echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
-#Participant
-echo -e "> Do you want to translate 'Participant' to your own language?" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
-#Me
-echo -e "\n> Do you want to translate 'me' to your own language?
-This must be a really small word to present one self.
-Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
 #Welcome Page
 while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
@@ -486,18 +491,45 @@ done
 #	echo "Local audio recording option will be enabled"
 #fi
 #done
+
 #Secure room initial user
-while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
+#while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
+#do
+#read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
+#if [ "$ENABLE_SC" = "no" ]; then
+#	echo "-- Secure rooms won't be enabled."
+#elif [ "$ENABLE_SC" = "yes" ]; then
+#	echo "-- Secure rooms will be enabled."
+#	read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+#	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
+#fi
+#done
+echo "
+> Jitsi Meet Auth Method selection.
+"
+PS3='Select the authentication method for your Jitsi Meet instance: '
+options=("Local" "JWT" "None")
+select opt in "${options[@]}"
 do
-read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
-if [ "$ENABLE_SC" = "no" ]; then
-	echo "-- Secure rooms won't be enabled."
-elif [ "$ENABLE_SC" = "yes" ]; then
-	echo "-- Secure rooms will be enabled."
-	read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
-fi
+    case $opt in
+        "Local")
+            echo -e "\n  > Users are created manually using prosodyctl, only moderators can open a room or launch recording.\n"
+            ENABLE_SC="yes"
+            break
+            ;;
+        "JWT")
+            echo -e "\n  > A external app manage the token usage/creation, like RocketChat does.\n"
+            ENABLE_JWT="yes"
+            break
+            ;;
+        "None")
+            echo -e "\n  > Everyone can access the room as moderators as there is no auth mechanism.\n"
+            break
+            ;;
+        *) echo "Invalid option $REPLY, choose 1, 2 or 3";;
+    esac
 done
+
 #Jibri Records Access (JRA) via Nextcloud
 while [[ "$ENABLE_NC_ACCESS" != "yes" && "$ENABLE_NC_ACCESS" != "no" ]]
 do
@@ -512,7 +544,8 @@ done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
 	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
-    thus, Jigasi Transcript can't be enable."
+    thus, Jigasi Transcript can't be enable.
+"
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
 	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
 	do
@@ -621,21 +654,22 @@ restart_services() {
 	check_jibri
 }
 
+# Configure Jvb2
+sed -i "/shard.HOSTNAME/s|localhost|$DOMAIN|" /etc/jitsi/videobridge/sip-communicator.properties
+
 # Configure Jibri
-## PROSODY
-if dpkg-compare prosody lt 0.11.0 ; then
-cat  << MUC-JIBRI >> $PROSODY_FILE
+if [ "$ENABLE_SC" = "yes" ]; then
+  if [ ! -f $MOD_LIST_FILE ]; then
+  echo -e "\n-> Adding external module to list prosody users...\n"
+  curl -s $MOD_LISTU > $MOD_LIST_FILE
 
--- internal muc component, meant to enable pools of jibri and jigasi clients
-Component "internal.auth.$DOMAIN" "muc"
-    modules_enabled = {
-      "ping";
-    }
-    storage = "null"
-    muc_room_cache_size = 1000
+  echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
+    else
+  echo -e "Prosody support for listing users seems to be enabled. \ncheck with: prosodyctl mod_listusers\n"
+  fi
 
-MUC-JIBRI
 fi
+#Enable jibri recording
 cat  << REC-JIBRI >> $PROSODY_FILE
 
 VirtualHost "recorder.$DOMAIN"
@@ -645,16 +679,15 @@ VirtualHost "recorder.$DOMAIN"
   authentication = "internal_plain"
 
 REC-JIBRI
+
 #Enable Jibri withelist
 sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
 
 #Fix Jibri conectivity issues
-#if dpkg-compare prosody lt 0.11.0 ; then
 sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
 sed -i "/c2s_require_encryption = false/a \\
 \\
 consider_bosh_secure = true" $PROSODY_SYS
-#fi
 
 if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
@@ -662,15 +695,7 @@ fi
 if [ ! -z $L10N_ME ]; then
 	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
 fi
-if [ ! -f $MOD_LIST_FILE ]; then
-echo -e "\n-> Adding external module to list prosody users...\n"
-curl -s $MOD_LISTU > $MOD_LIST_FILE
 
-echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
-else
-echo -e "Prosody support for listing users seems to be enabled.
-check with: prosodyctl mod_listusers\n"
-fi
 
 ### Prosody users
 prosodyctl register jibri auth.$DOMAIN $JB_AUTH_PASS
@@ -680,13 +705,13 @@ prosodyctl register recorder recorder.$DOMAIN $JB_REC_PASS
 # /etc/jitsi/jicofo/sip-communicator.properties
 cat  << BREWERY >> $JICOFO_SIP
 #org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
+#org.jitsi.jicofo.auth.URL=EXT_JWT:$DOMAIN
 org.jitsi.jicofo.jibri.BREWERY=$JibriBrewery@internal.auth.$DOMAIN
 org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 #org.jitsi.jicofo.auth.DISABLE_AUTOLOGIN=true
 BREWERY
 
 # Jibri tweaks for /etc/jitsi/meet/$DOMAIN-config.js
-sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 sed -i "s|conference.$DOMAIN|internal.auth.$DOMAIN|" $MEET_CONF
 sed -i "s|// fileRecordingsEnabled: false,|fileRecordingsEnabled: true,| " $MEET_CONF
 sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
@@ -694,13 +719,13 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
     hiddenDomain: \'recorder.$DOMAIN\',|" $MEET_CONF
 
 #Dropbox feature
-if [ "$ENABLE_DB" = "yes" ]; then
-DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
-DB_END=$((DB_STR + 10))
-sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
-sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" $MEET_CONF
-sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
-fi
+#if [ "$ENABLE_DB" = "yes" ]; then
+#DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
+#DB_END=$((DB_STR + 10))
+#sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
+#sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" $MEET_CONF
+#sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
+#fi
 
 #LocalRecording
 if [ "$ENABLE_LAR" = "yes" ]; then
@@ -842,7 +867,6 @@ sudo su $MJS_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N
 sed -i "s|PasswordAuthentication .*|PasswordAuthentication yes|" /etc/ssh/sshd_config
 systemctl restart sshd
 
-
 #Setting varibales for add-jibri-node.sh
 sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jibri-node.sh
 sed -i "s|MAIN_SRV_REPO=.*|MAIN_SRV_REPO=\"$JITSI_REPO\"|" add-jibri-node.sh
@@ -855,6 +879,51 @@ sed -i "s|MJS_USER=.*|MJS_USER=\"$MJS_USER\"|" add-jibri-node.sh
 sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
 echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
+
+#-- Setting variables for add-jvb2-node.sh
+g_conf_value() {
+  grep "$1" $JVB2_CONF|sed "s|$1||"
+}
+JVB_HOSTNAME=$(g_conf_value JVB_HOSTNAME=)
+JVB_HOST=$(g_conf_value JVB_HOST=)
+JVB_PORT=$(g_conf_value JVB_PORT=)
+JVB_SECRET=$(g_conf_value JVB_SECRET=)
+JVB_OPTS=$(g_conf_value JVB_OPTS=)
+JAVA_SYS_PROPS=$(g_conf_value JAVA_SYS_PROPS=)
+
+g_sip_value() {
+  grep "$1" $JVB2_SIP |cut -d "=" -f2 
+}
+DISABLE_AWS_HARVESTER=$(g_sip_value DISABLE_AWS_HARVESTER=)
+STUN_MAPPING_HARVESTER_ADDRESSES=$(g_sip_value STUN_MAPPING_HARVESTER_ADDRESSES=)
+ENABLE_STATISTICS=$(g_sip_value ENABLE_STATISTICS=)
+SHARD_HOSTNAME=$(g_sip_value shard.HOSTNAME=)
+SHARD_DOMAIN=$(g_sip_value shard.DOMAIN=)
+SHARD_PASSWORD=$(g_sip_value shard.PASSWORD=)
+MUC_JID=$(g_sip_value MUC_JIDS=)
+
+##-- Replacing on add-jvb2-node.sh
+sed -i "s|JVB_HOSTNAME=.*|JVB_HOSTNAME=$JVB_HOSTNAME|" add-jvb2-node.sh
+sed -i "s|JVB_HOST=.*|JVB_HOST=$JVB_HOST|" add-jvb2-node.sh
+sed -i "s|JVB_PORT=.*|JVB_PORT=$JVB_PORT|" add-jvb2-node.sh
+sed -i "s|JVB_SECRET=.*|JVB_SECRET=$JVB_SECRET|" add-jvb2-node.sh
+sed -i "s|JVB_OPTS=.*|JVB_OPTS=$JVB_OPTS|" add-jvb2-node.sh
+sed -i "s|SYS_PROPS=.*|SYS_PROPS=$JAVA_SYS_PROPS|" add-jvb2-node.sh
+#-
+sed -i "s|AWS_HARVEST=.*|AWS_HARVEST=$DISABLE_AWS_HARVESTER|" add-jvb2-node.sh
+sed -i "s|STUN_MAPPING=.*|STUN_MAPPING=$STUN_MAPPING_HARVESTER_ADDRESSES|" add-jvb2-node.sh
+sed -i "s|ENABLE_STATISTICS=.*|ENABLE_STATISTICS=$ENABLE_STATISTICS|" add-jvb2-node.sh
+sed -i "s|SHARD_HOSTNAME=.*|SHARD_HOSTNAME=$SHARD_HOSTNAME|" add-jvb2-node.sh
+sed -i "s|SHARD_DOMAIN=.*|SHARD_DOMAIN=$SHARD_DOMAIN|" add-jvb2-node.sh
+sed -i "s|SHARD_PASS=.*|SHARD_PASS=$SHARD_PASSWORD|" add-jvb2-node.sh
+sed -i "s|MUC_JID=.*|MUC_JID=$MUC_JID|" add-jvb2-node.sh
+
+sed -i "s|MAIN_SRV_DIST=.*|MAIN_SRV_DIST=\"$DIST\"|" add-jvb2-node.sh
+sed -i "s|MAIN_SRV_REPO=.*|MAIN_SRV_REPO=\"$JITSI_REPO\"|" add-jvb2-node.sh
+sed -i "s|MAIN_SRV_DOMAIN=.*|MAIN_SRV_DOMAIN=\"$DOMAIN\"|" add-jvb2-node.sh
+sed -i "s|MJS_USER=.*|MJS_USER=\"$MJS_USER\"|" add-jvb2-node.sh
+sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jvb2-node.sh
+##--
 
 #Tune webserver for Jitsi App control
 if [ -f $WS_CONF ]; then
@@ -900,12 +969,34 @@ sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #================== Setup prosody conf file =================
 
-#Setup secure rooms
+###Setup secure rooms
+if [ "$ENABLE_SC" = "yes" ]; then
 SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
 SRP_END=$((SRP_STR + 10))
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 
-if dpkg-compare prosody gt 0.11.0 ; then
+#Secure room initial user
+read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
+prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
+
+echo -e "\nSecure rooms are being enabled..."
+echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
+or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
+If you have issues with the password refer to your sysadmin."
+sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
+sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
+fi
+
+###JWT
+if [ "$ENABLE_JWT" = "yes" ]; then
+echo -e "\nJWT auth is being setup..."
+bash $PWD/mode/jwt.sh
+fi
+
+#Guest allow
+if [ "$ENABLE_SC" = "yes" ];then
     cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
@@ -924,26 +1015,9 @@ VirtualHost "guest.$DOMAIN"
     }
 
 P_SR
-	else
-    cat << P_SR >> $PROSODY_FILE
-
-VirtualHost "guest.$DOMAIN"
-    authentication = "anonymous"
-    c2s_require_encryption = false
-P_SR
-
 fi
+
 #======================
-#Secure room initial user
-if [ "$ENABLE_SC" = "yes" ]; then
-echo -e "\nSecure rooms are being enabled..."
-echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
-or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
-If you have issues with the password refer to your sysadmin."
-sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
-prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
-sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
-fi
 #Start with video muted by default
 sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
 
@@ -969,11 +1043,13 @@ if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
     systemctl disable jibri
     systemctl disable jibri-xorg
     systemctl disable jibri-icewm
+#Manually apply permissions since finalize_recording.sh won't be triggered on this server.
+    sudo -u jibri bash /home/jibri/finalize_recording.sh
 fi
 
 enable_letsencrypt
 
-if dpkg-compare prosody gt 0.11.0 && [ "$ENABLE_SC" = "yes" ]; then
+if [ "$ENABLE_SC" = "yes" ];then
 echo "Waiting prosody restart to continue configuration, 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112

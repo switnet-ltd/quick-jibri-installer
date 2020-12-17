@@ -53,6 +53,7 @@ DIR_RECORD="/var/jbrecord"
 REC_DIR="/home/jibri/finalize_recording.sh"
 CHD_VER="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
+GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
@@ -226,6 +227,7 @@ if [ "$HWE_VIR_MOD" == "1" ]; then
     linux-modules-extra-virtual-hwe-$(lsb_release -sr)
     else
     apt-get -y install \
+    linux-image-generic \
     linux-modules-extra-$(uname -r)
 fi
 
@@ -239,7 +241,7 @@ apt-get -y install \
                 openjdk-8-jre-headless
 
 echo "# Installing Google Chrome / ChromeDriver"
-if [ -f $GOOGL_REPO ]; then
+if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
 	echo "Google repository already set."
 else
 	echo "Installing Google Chrome Stable"
@@ -404,7 +406,7 @@ INOT_RSYNC
 
 mkdir /var/log/$NJN_USER
 
-cat << LOG_ROT >> /etc/logrotate.d/$NJN_USER
+cat << LOG_ROT > /etc/logrotate.d/$NJN_USER
 /var/log/$NJN_USER/*.log {
     monthly
     missingok
