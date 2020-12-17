@@ -544,8 +544,7 @@ done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
 	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
-thus, Jigasi Transcript can't be enable.
-"
+    thus, Jigasi Transcript can't be enable."
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
 	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
 	do
@@ -656,6 +655,38 @@ restart_services() {
 
 # Configure Jvb2
 sed -i "/shard.HOSTNAME/s|localhost|$DOMAIN|" /etc/jitsi/videobridge/sip-communicator.properties
+
+# Configure Jibri
+if [ "$ENABLE_SC" = "yes" ]; then
+  if [ ! -f $MOD_LIST_FILE ]; then
+  echo -e "\n-> Adding external module to list prosody users...\n"
+  curl -s $MOD_LISTU > $MOD_LIST_FILE
+
+  echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
+    else
+  echo -e "Prosody support for listing users seems to be enabled. \ncheck with: prosodyctl mod_listusers\n"
+  fi
+
+fi
+#Enable jibri recording
+cat  << REC-JIBRI >> $PROSODY_FILE
+
+VirtualHost "recorder.$DOMAIN"
+  modules_enabled = {
+    "ping";
+  }
+  authentication = "internal_plain"
+
+REC-JIBRI
+
+#Enable Jibri withelist
+sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
+
+#Fix Jibri conectivity issues
+sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
+sed -i "/c2s_require_encryption = false/a \\
+\\
+consider_bosh_secure = true" $PROSODY_SYS
 
 if [ ! -z $L10N_PARTICIPANT ]; then
 	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
@@ -955,16 +986,6 @@ or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
 sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
 sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
-
-#Add prosody module
-  if [ ! -f $MOD_LIST_FILE ]; then
-    echo -e "\n-> Adding external module to list prosody users...\n"
-    curl -s $MOD_LISTU > $MOD_LIST_FILE
-
-    echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
-    else
-    echo -e "Prosody support for listing users seems to be enabled. \ncheck with: prosodyctl mod_listusers\n"
-  fi
 fi
 
 ###JWT
@@ -973,28 +994,8 @@ echo -e "\nJWT auth is being setup..."
 bash $PWD/mode/jwt.sh
 fi
 
-if [ "$ENABLE_SC" = "yes" ];then
-#Enable jibri recording
-cat  << REC-JIBRI >> $PROSODY_FILE
-
-VirtualHost "recorder.$DOMAIN"
-  modules_enabled = {
-    "ping";
-  }
-  authentication = "internal_plain"
-
-REC-JIBRI
-
-#Enable Jibri withelist
-sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
-
-#Fix Jibri conectivity issues
-sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
-sed -i "/c2s_require_encryption = false/a \\
-\\
-consider_bosh_secure = true" $PROSODY_SYS
-
 #Guest allow
+if [ "$ENABLE_SC" = "yes" ] || [ "$ENABLE_JWT" = "yes" ];then
     cat << P_SR >> $PROSODY_FILE
 
 VirtualHost "guest.$DOMAIN"
@@ -1014,7 +1015,6 @@ VirtualHost "guest.$DOMAIN"
 
 P_SR
 fi
-
 #======================
 #Start with video muted by default
 sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
