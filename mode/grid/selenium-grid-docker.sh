@@ -13,7 +13,7 @@ fi
 WAN_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 AV_SPACE="$(df -h .|grep -v File|awk '{print$4}'|sed -e 's|G||')"
 
-echo -e "\n-- Make sure you have at least 10GB of disk space"
+echo -e "\n-- Make sure you have at least 10GB of disk space available.\n"
 if [ $(echo "$AV_SPACE > 9" | bc) -ne 0 ]; then
   echo "> Seems we have enough disk space."
 else

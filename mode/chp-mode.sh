@@ -26,8 +26,9 @@ JICOFO_LOG_POP="/etc/jitsi/videobridge/logging.properties"
 MEET_LOG_CONF="/usr/share/jitsi-meet/logging_config.js"
 MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
 MEET_CONF_HP="/etc/jitsi/meet/${DOMAIN}-chp-config.js"
-INT_CONF_JS="/etc/jitsi/meet/meet.switnet.net-interface_config.js"
-INT_CONF_JS_HP="/etc/jitsi/meet/meet.switnet.net-chp-interface_config.js"
+INT_CONF_JS="/etc/jitsi/meet/${DOMAIN}-interface_config.js"
+INT_CONF_JS_HP="/etc/jitsi/meet/${DOMAIN}-chp-interface_config.js"
+WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 FSTAB="/etc/fstab"
 
 if [ -z $LTS_REL ] || [ -z $DOMAIN ];then
@@ -106,32 +107,33 @@ sed -i "s|enableNoAudioDetection:.*|enableNoAudioDetection: false,|" $MEET_CONF_
 sed -i "s|enableNoisyMicDetection:.*|enableNoisyMicDetection: false,|" $MEET_CONF_HP
 sed -i "s|startAudioMuted:.*|startAudioMuted: 5,|" $MEET_CONF_HP
 sed -i "s|// startVideoMuted:.*|startVideoMuted: 5,|" $MEET_CONF_HP
+sed -i "s|startWithVideoMuted: true,|startWithVideoMuted: false,|" $MEET_CONF_HP
 sed -i "s|channelLastN:.*|channelLastN: 10,|" $MEET_CONF_HP
 sed -i "s|// enableLayerSuspension:.*|enableLayerSuspension: true,|" $MEET_CONF_HP
 sed -i "s|// resolution:.*|resolution: 480,|" $MEET_CONF_HP
-sed -i "s|// apiLogLevels:.*|apiLogLevels: ['warn', 'error']," $MEET_CONF_HP
+sed -i "s|// apiLogLevels:.*|apiLogLevels: \['warn', 'error'],|" $MEET_CONF_HP
 
-sed -i "s|// constraints: {| constraints: {|" $MEET_CONF_HP
-sed -i "s|//     video: {|     video: {|" $MEET_CONF_HP
-sed -i "s|//         height: {|         height: {|" $MEET_CONF_HP
-sed -i "s|//             ideal:.*|             ideal: 480,|" $MEET_CONF_HP
-sed -i "s|//             max:.*|             max: 480,|" $MEET_CONF_HP
-sed -i "s|//             min:.*|             min:240|" $MEET_CONF_HP
-sed -i "s|//         }|         }|" $MEET_CONF_HP
-sed -i "s|//     }|     }|" $MEET_CONF_HP
-sed -i "s|// },| },|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|// constraints: {| constraints: {|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//     video: {|     video: {|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//         height: {|         height: {|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//             ideal:.*|             ideal: 480,|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//             max:.*|             max: 480,|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//             min:.*|             min:240|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//         }|         }|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//     }|     }|" $MEET_CONF_HP
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|// },| },|" $MEET_CONF_HP
 
 cp $INT_CONF_JS $INT_CONF_JS_HP
-sed -i "s|CONNECTION_INDICATOR_DISABLED:.*|CONNECTION_INDICATOR_DISABLED: true," $INT_CONF_JS_HP
+sed -i "s|CONNECTION_INDICATOR_DISABLED:.*|CONNECTION_INDICATOR_DISABLED: true,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_DOMINANT_SPEAKER_INDICATOR:.*|DISABLE_DOMINANT_SPEAKER_INDICATOR: true,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_FOCUS_INDICATOR:.*|DISABLE_FOCUS_INDICATOR: false,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_JOIN_LEAVE_NOTIFICATIONS:.*|DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_VIDEO_BACKGROUND:.*|DISABLE_VIDEO_BACKGROUND: true,|" $INT_CONF_JS_HP
 sed -i "s|OPTIMAL_BROWSERS: [.*|OPTIMAL_BROWSERS: [ 'chrome', 'chromium', 'electron' ],|" $INT_CONF_JS_HP
-sed -i "s|UNSUPPORTED_BROWSERS: [|UNSUPPORTED_BROWSERS: [ 'nwjs', 'safari' ],|" $INT_CONF_JS_HP
+sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari' \],|" $INT_CONF_JS_HP
 
 ##Toolbars
-sed "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" $INT_CONF_JS_HP
+sed -i "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" $INT_CONF_JS_HP
 
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ TOOLBAR_BUTTONS: \[" $INT_CONF_JS_HP
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," $INT_CONF_JS_HP
