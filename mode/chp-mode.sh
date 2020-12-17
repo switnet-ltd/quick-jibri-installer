@@ -9,6 +9,20 @@ if ! [ $(id -u) = 0 ]; then
    exit 0
 fi
 
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo ./chp-mode.sh [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
+
 wait_seconds() {
 secs=$(($1))
 while [ $secs -gt 0 ]; do
@@ -74,8 +88,8 @@ sysctl -w net.ipv4.tcp_timestamps=0
 echo 'net.ipv4.tcp_timestamps=0' | tee -a /etc/sysctl.conf
 
 #https://bugzilla.redhat.com/show_bug.cgi?id=1283676
-sysctl -w net.core.netdev_max_backlog = 100000
-echo 'net.core.netdev_max_backlog = 100000' | tee -a /etc/sysctl.conf
+sysctl -w net.core.netdev_max_backlog=100000
+echo 'net.core.netdev_max_backlog=100000' | tee -a /etc/sysctl.conf
 
 ##nginx
 sed -i "s|worker_connections.*|worker_connections 2000;|" /etc/nginx/nginx.conf
@@ -129,7 +143,7 @@ sed -i "s|DISABLE_DOMINANT_SPEAKER_INDICATOR:.*|DISABLE_DOMINANT_SPEAKER_INDICAT
 sed -i "s|DISABLE_FOCUS_INDICATOR:.*|DISABLE_FOCUS_INDICATOR: false,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_JOIN_LEAVE_NOTIFICATIONS:.*|DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_VIDEO_BACKGROUND:.*|DISABLE_VIDEO_BACKGROUND: true,|" $INT_CONF_JS_HP
-sed -i "s|OPTIMAL_BROWSERS: [.*|OPTIMAL_BROWSERS: [ 'chrome', 'chromium', 'electron' ],|" $INT_CONF_JS_HP
+sed -i "s|OPTIMAL_BROWSERS: \[.*|OPTIMAL_BROWSERS: \[ 'chrome', 'chromium', 'electron' \],|" $INT_CONF_JS_HP
 sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari' \],|" $INT_CONF_JS_HP
 
 ##Toolbars
@@ -142,6 +156,11 @@ sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'etherpad', 'settings', 'rais
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," $INT_CONF_JS_HP
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'security'" $INT_CONF_JS_HP
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \]," $INT_CONF_JS_HP
+
+sed -i "s|$MEET_CONF|$MEET_CONF_HP|g" $WS_CONF
+sed -i "s|$INT_CONF_JS|$INT_CONF_JS_HP|" $WS_CONF
+nginx -t
+#systemctl restart nginx
 
 echo "Done!, yeah, that quick ;)"
 
