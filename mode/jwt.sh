@@ -9,6 +9,8 @@ PROSODY_FILE="/etc/prosody/conf.d/$DOMAIN.cfg.lua"
 PROSODY_SYS="/etc/prosody/prosody.cfg.lua"
 APP_ID="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 16 | head -n1)"
 SECRET_APP="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 64 | head -n1)"
+SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+SRP_END=$((SRP_STR + 10))
 
 ## Required  openssl for Focal 20.04
 if [ "$(lsb_release -sc)" = "focal" ]; then
@@ -36,9 +38,13 @@ apt-get install -y jitsi-meet-tokens
 
 #Setting up
 sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" $PROSODY_SYS
+#-
+sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"token\"|}" $PROSODY_FILE
+sed -i "s|--app_id=\"example_app_id\"|app_id=\"$APP_ID\"|" $PROSODY_FILE
+sed -i "s|--app_secret=\"example_app_secret\"|app_secret=\"$SECRET_APP\"|" $PROSODY_FILE
 sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" $PROSODY_FILE
 sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \"RocketChat\" }" $PROSODY_FILE
-#allow_empty_token = true
+#allow_empty_token = false
 
 #Request auth
 sed -i "s|#org.jitsi.jicofo.auth.URL=EXT_JWT:|org.jitsi.jicofo.auth.URL=EXT_JWT:|" $JICOFO_SIP
