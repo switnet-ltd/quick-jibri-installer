@@ -1,6 +1,6 @@
 #!/bin/bash
 # Custom Selenium Grid-Node fro Jitsi Meet
-# Pandian - https://community.jitsi.org/u/Pandian
+# Pandian © - https://community.jitsi.org/u/Pandian
 # SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
 
@@ -43,8 +43,13 @@ ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 cd /opt
 git clone https://github.com/jitsi/jitsi-meet-torture
 cd jitsi-meet-torture/resources
+if [ -f FourPeople_1280x720_30.y4m ] ; then
+echo "FourPeople_1280x720_30.y4m exists"
+else
+echo "FourPeople_1280x720_30.y4m doesn't exists, getting a copy..."
 wget -c https://media.xiph.org/video/derf/y4m/FourPeople_1280x720_60.y4m
 cp FourPeople_1280x720_60.y4m FourPeople_1280x720_30.y4m
+fi
 cd ..
 
 #150 "participants" available

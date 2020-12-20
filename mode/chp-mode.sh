@@ -51,6 +51,18 @@ exit
   else
 echo "This system seems suitable to configure..."
 fi
+echo "What does this script do?
+Overview:
+ - Disables swap partition
+ - Tunes,
+   * Some kernel networking settings
+   * nginx connections number
+   * jvb2 logging
+   * jicofo logging
+   * meet logging
+ - Modify UX by changing session configuration & toolbar.
+ 
+Try to avoid running multiple times on the same machine, idempotence not guaranteed."
 
 while [[ "$CONTINUE_HP" != "yes" && "$CONTINUE_HP" != "no" ]]
     do
@@ -115,6 +127,7 @@ sed -i "/CallStats.js/s|info|error|" $MEET_LOG_CONF
 sed -i "/strophe.util.js/s|log|error|" $MEET_LOG_CONF
 
 #UX - Room settings and interface
+## config.js
 cp $MEET_CONF $MEET_CONF_HP
 sed -i "s|// disableAudioLevels:.*|disableAudioLevels: true,|" $MEET_CONF_HP
 sed -i "s|enableNoAudioDetection:.*|enableNoAudioDetection: false,|" $MEET_CONF_HP
@@ -128,7 +141,11 @@ sed -i "s|// resolution:.*|resolution: 480,|" $MEET_CONF_HP
 sed -i "s|// apiLogLevels:.*|apiLogLevels: \['warn', 'error'],|" $MEET_CONF_HP
 
 sed -i "/w3c spec-compliant/,/disableSimulcast:/s|// constraints: {| constraints: {|" $MEET_CONF_HP
-sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//     video: {|     video: {|" $MEET_CONF_HP
+###Standar 4:3
+#sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//     video: {|     video: {|" $MEET_CONF_HP
+###Widescreen 16:9
+sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//     video: {|     video: {\\
+\ \ \ \ \ \ \ \ \ \ \ \ \ aspectRatio: 16 / 9,|" $MEET_CONF_HP
 sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//         height: {|         height: {|" $MEET_CONF_HP
 sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//             ideal:.*|             ideal: 480,|" $MEET_CONF_HP
 sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//             max:.*|             max: 480,|" $MEET_CONF_HP
@@ -137,6 +154,7 @@ sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//         }|         }|" $MEE
 sed -i "/w3c spec-compliant/,/disableSimulcast:/s|//     }|     }|" $MEET_CONF_HP
 sed -i "/w3c spec-compliant/,/disableSimulcast:/s|// },| },|" $MEET_CONF_HP
 
+## interface_config.js
 cp $INT_CONF_JS $INT_CONF_JS_HP
 sed -i "s|CONNECTION_INDICATOR_DISABLED:.*|CONNECTION_INDICATOR_DISABLED: true,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_DOMINANT_SPEAKER_INDICATOR:.*|DISABLE_DOMINANT_SPEAKER_INDICATOR: true,|" $INT_CONF_JS_HP
@@ -146,7 +164,7 @@ sed -i "s|DISABLE_VIDEO_BACKGROUND:.*|DISABLE_VIDEO_BACKGROUND: true,|" $INT_CON
 sed -i "s|OPTIMAL_BROWSERS: \[.*|OPTIMAL_BROWSERS: \[ 'chrome', 'chromium', 'electron' \],|" $INT_CONF_JS_HP
 sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari' \],|" $INT_CONF_JS_HP
 
-##Toolbars
+### Toolbars
 sed -i "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" $INT_CONF_JS_HP
 
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ TOOLBAR_BUTTONS: \[" $INT_CONF_JS_HP
