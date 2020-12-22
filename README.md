@@ -24,7 +24,6 @@ Copy the modified `add-jibri-node.sh` file from your early cloned installation d
 bash add-jibri-node.sh
 ```
 
-
 Check more details on our wiki.
 
 ## Requirements
@@ -46,7 +45,7 @@ For AWS users or any cloud service provider that might use their own kernel on t
 
 Make sure that you update your grub to boot the right one.
 
-Feel free to use our (new) `test-jibri-env.sh` tool to find some details on your current setup.
+Feel free to use our `test-jibri-env.sh` tool to find some details on your current setup.
 
 ## Features
 * Enabled Session Recording using Jibri
@@ -65,8 +64,8 @@ Feel free to use our (new) `test-jibri-env.sh` tool to find some details on your
 * (New) JWT auth.
 
 ## Tools (New)
-* (New) Jibri Environment Tester
- * (New) Jibri Conf Upgrader (late 2020).
+* Jibri Environment Tester
+ * Jibri Conf Upgrader (late 2020).
 * (New) Selenium Grid via Docker
 
 ## Optional custom changes
