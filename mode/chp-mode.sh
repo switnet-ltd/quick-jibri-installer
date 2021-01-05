@@ -46,6 +46,13 @@ WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 FSTAB="/etc/fstab"
 CHAT_DISABLED="TBD"
 
+if [ -f $MEET_CONF_HP ] || [ -f $INT_CONF_JS_HP ]; then
+echo "
+This script can't be run multiple times on the same system,
+idempotence not guaranteed, exiting..."
+exit
+fi
+
 if [ -z $LTS_REL ] || [ -z $DOMAIN ];then
 echo "This system isn't suitable to configure."
 exit
@@ -61,13 +68,15 @@ Overview:
    * jvb2 logging
    * jicofo logging
    * meet logging
- - Modify UX by changing session configuration & toolbar."
- 
-if [ -f $MEET_CONF_HP ] || [ -f $MEET_CONF_HP ]; then
-echo "Try to avoid running multiple times on the same machine,
-idempotence not guaranteed, exiting..."
-exit
-fi
+ - Modify UX by changing session configuration & toolbar.
+ - Disable browsers not compatible with CHP,
+   * Safari
+   * Firefox*
+"
+
+echo "# Note: As for January 2021 Firefox won't handdle correctly widescreen
+# sizing on lower resolution than HD (nHD & qHD), setting as incompatible for now.
+"
 
 #Tools to consider
 ##Profiling
@@ -270,7 +279,7 @@ sed -i "s|DISABLE_FOCUS_INDICATOR:.*|DISABLE_FOCUS_INDICATOR: false,|" $INT_CONF
 sed -i "s|DISABLE_JOIN_LEAVE_NOTIFICATIONS:.*|DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,|" $INT_CONF_JS_HP
 sed -i "s|DISABLE_VIDEO_BACKGROUND:.*|DISABLE_VIDEO_BACKGROUND: true,|" $INT_CONF_JS_HP
 sed -i "s|OPTIMAL_BROWSERS: \[.*|OPTIMAL_BROWSERS: \[ 'chrome', 'chromium', 'electron' \],|" $INT_CONF_JS_HP
-sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari' \],|" $INT_CONF_JS_HP
+sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari', 'firefox' \],|" $INT_CONF_JS_HP
 
 ### Toolbars
 sed -i "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" $INT_CONF_JS_HP
