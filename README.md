@@ -16,12 +16,22 @@ sudo bash quick_jibri_installer.sh
 
 ### Add Jibri node
 
-Copy the modified `add-jibri-node.sh` file from your early cloned installation directory once it's completed to the new server meant to be a jibri node using your preferred method, then run it
+Copy the modified `add-jibri-node.sh` file from your early cloned installation directory once the installation is completed, to the new server meant to be a jibri node using your preferred method, then run it
 
 **WARNING:** This file contains sensitive information from your setup, please handle with care.
 
 ```
 bash add-jibri-node.sh
+```
+
+### Add JVB2 node
+
+Copy the modified `add-jvb2-node.sh` file from your early cloned installation directory once the installation is completed, to the new server meant to be a jibri node using your preferred method, then run it
+
+**WARNING:** This file contains sensitive information from your setup, please handle with care.
+
+```
+bash add-jvb2-node.sh
 ```
 
 Check more details on our wiki.
@@ -57,8 +67,14 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 * Customized brandless mode
   * Setting up custom interface_config.js
 * Grafana Dashboard
-* Lobby Rooms - Secure Rooms
-* Conference Duration - Secure Rooms
+* Lobby Rooms via
+  * Local (Secure Rooms) auth
+  * JWT auth
+  * None
+* Conference Duration via
+  * Local (Secure Rooms) auth
+  * JWT auth
+  * None
 * Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
 * (New) JVB2 nodes network.
 * (New) JWT auth.

@@ -750,20 +750,6 @@ else
 	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$JB_LANG\',|" $MEET_CONF
 fi
 
-#Check config file
-echo -e "\n# Checking $MEET_CONF file for errors\n"
-CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
-if [[ -z "$CHECKJS" ]]; then
-echo -e "\n# The $MEET_CONF configuration seems correct. =)\n"
-else
-echo "
-Watch out!, there seems to be an issue on $MEET_CONF line:
-$CHECKJS
-Most of the times this is due upstream changes, please report to
-https://github.com/switnet-ltd/quick-jibri-installer/issues
-"
-fi
-
 # Recording directory
 if [ ! -d $DIR_RECORD ]; then
 mkdir $DIR_RECORD
@@ -960,7 +946,7 @@ elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
 elif [ "$DROP_TLS1" = "no" ];then
 	echo "No TLSv1/1.1 dropping was done."
 else
-echo "No contidion meet, please report to
+echo "No condition meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
@@ -1018,6 +1004,7 @@ P_SR
 fi
 
 #======================
+# Custom settings
 #Start with video muted by default
 sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
 
@@ -1033,6 +1020,40 @@ fi
 #Set displayname as not required since jibri can't set it up.
 sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
 
+#Set HD resolution and widescreen format
+sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 720," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 720," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 720," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 1280," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 1280," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" $MEET_CONF
+
+#Check config file
+echo -e "\n# Checking $MEET_CONF file for errors\n"
+CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
+if [[ -z "$CHECKJS" ]]; then
+echo -e "\n# The $MEET_CONF configuration seems correct. =)\n"
+else
+echo "
+Watch out!, there seems to be an issue on $MEET_CONF line:
+$CHECKJS
+Most of the times this is due upstream changes, please report to
+https://github.com/switnet-ltd/quick-jibri-installer/issues
+"
+fi
+
 #Enable jibri services
 systemctl enable jibri
 systemctl enable jibri-xorg
@@ -1043,7 +1064,7 @@ if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
     systemctl disable jibri
     systemctl disable jibri-xorg
     systemctl disable jibri-icewm
-#Manually apply permissions since finalize_recording.sh won't be triggered on this server.
+# Manually apply permissions since finalize_recording.sh won't be triggered under this server options.
     sudo -u jibri bash /home/jibri/finalize_recording.sh
 fi
 
