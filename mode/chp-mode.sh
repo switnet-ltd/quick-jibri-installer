@@ -74,8 +74,10 @@ Overview:
    * Firefox*
 "
 
-echo "# Note: As for January 2021 Firefox won't handdle correctly widescreen
-# sizing on lower resolution than HD (nHD & qHD), setting as incompatible for now.
+echo "# Note: As for January 2021 Firefox can't handle correctly widescreen sizing
+# on lower resolution than HD (nHD & qHD), setting as incompatible for now.
+# (If you know this is no longer the case. Please report it to \
+https://github.com/switnet-ltd/quick-jibri-installer/issues)
 "
 
 #Tools to consider
