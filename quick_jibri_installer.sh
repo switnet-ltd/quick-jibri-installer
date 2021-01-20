@@ -982,22 +982,23 @@ bash $PWD/mode/jwt.sh
 fi
 
 #Guest allow
+#Change back lobby - https://community.jitsi.org/t/64769/136
 if [ "$ENABLE_SC" = "yes" ];then
     cat << P_SR >> $PROSODY_FILE
-
+-- #Change back lobby - https://community.jitsi.org/t/64769/136
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
     speakerstats_component = "speakerstats.$DOMAIN"
-    conference_duration_component = "conferenceduration.$DOMAIN"
-    lobby_muc = "lobby.$DOMAIN"
+--    conference_duration_component = "conferenceduration.$DOMAIN"
+--    lobby_muc = "lobby.$DOMAIN"
     main_muc = "conference.$DOMAIN"
-    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
+--    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
 
     modules_enabled = {
       "speakerstats";
-      "conference_duration";
-      "muc_lobby_rooms";
+--      "conference_duration";
+--      "muc_lobby_rooms";
     }
 
 P_SR
@@ -1074,9 +1075,10 @@ if [ "$ENABLE_SC" = "yes" ];then
 echo "Waiting prosody restart to continue configuration, 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
-sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
-sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
-sed -i "s|        muc_lobby_whitelist = { \"recorder.|--        muc_lobby_whitelist = { \"recorder.|" $PROSODY_FILE
+#Change back - https://community.jitsi.org/t/64769/136
+#sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
+#sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
+sed -i "s|        muc_lobby_whitelist = { \"recorder.*|        muc_lobby_whitelist = { \"recorder.$DOMAIN\", \"auth.$DOMAIN\" }|" $PROSODY_FILE
 #EO_TF
 fi
 
