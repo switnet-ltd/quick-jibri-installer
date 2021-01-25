@@ -27,6 +27,7 @@ DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
+PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 CR=`echo $'\n> '`
 
 exit_ifinstalled() {
@@ -257,7 +258,25 @@ else
 	echo "We'll let you choose later on for it."
 fi
 done
-
+#Set domain
+while [[ $ANS_JD != yes && $ANS_JD != no ]]
+do
+read -p "> Please set your domain (or subdmain) here: (jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
+read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
+if [ "$ANS_JD" = "yes" ]; then
+	echo "Alright, let's use $JITSI_DOMAIN."
+else
+	echo "Please try again."
+fi
+done
+#Simple DNS test
+if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
+echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing..."
+else
+echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
+echo "Please check your dns records are applied and updated. Exiting for now..."
+exit
+fi
 # Requirements
 echo "We'll start by installing system requirements this may take a while please be patient..."
 apt-get update -q2
@@ -300,6 +319,7 @@ echo "
 if [ "$LE_SSL" = "yes" ]; then
 echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
 fi
+echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
 apt-get -y install \
 				jitsi-meet \
 				jibri \
