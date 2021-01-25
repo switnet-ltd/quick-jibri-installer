@@ -29,6 +29,17 @@ GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 CR=`echo $'\n> '`
 
+exit_ifinstalled() {
+if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+	echo " This instance already has $1 installed, exiting..."
+	echo " Please try again on a clean system."
+	echo " If you think this is an error, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+	exit
+fi
+}
+exit_ifinstalled jitsi-meet
+
 if [ $DIST = flidas ]; then
 DIST="xenial"
 fi
