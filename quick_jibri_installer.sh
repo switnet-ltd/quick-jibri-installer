@@ -27,7 +27,19 @@ DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
 PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
+PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 CR=`echo $'\n> '`
+
+exit_ifinstalled() {
+if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+	echo " This instance already has $1 installed, exiting..."
+	echo " Please try again on a clean system."
+	echo " If you think this is an error, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+	exit
+fi
+}
+exit_ifinstalled jitsi-meet
 
 if [ $DIST = flidas ]; then
 DIST="xenial"
@@ -246,7 +258,25 @@ else
 	echo "We'll let you choose later on for it."
 fi
 done
-
+#Set domain
+while [[ $ANS_JD != yes ]]
+do
+read -p "> Please set your domain (or subdmain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
+read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
+if [ "$ANS_JD" = "yes" ]; then
+	echo "Alright, let's use $JITSI_DOMAIN."
+else
+	echo "Please try again."
+fi
+done
+#Simple DNS test
+if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
+echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing..."
+else
+echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
+echo "Please check your dns records are applied and updated. Exiting for now..."
+exit
+fi
 # Requirements
 echo "We'll start by installing system requirements this may take a while please be patient..."
 apt-get update -q2
@@ -289,6 +319,7 @@ echo "
 if [ "$LE_SSL" = "yes" ]; then
 echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
 fi
+echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
 apt-get -y install \
 				jitsi-meet \
 				jibri \
@@ -982,22 +1013,23 @@ bash $PWD/mode/jwt.sh
 fi
 
 #Guest allow
+#Change back lobby - https://community.jitsi.org/t/64769/136
 if [ "$ENABLE_SC" = "yes" ];then
     cat << P_SR >> $PROSODY_FILE
-
+-- #Change back lobby - https://community.jitsi.org/t/64769/136
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
     speakerstats_component = "speakerstats.$DOMAIN"
-    conference_duration_component = "conferenceduration.$DOMAIN"
-    lobby_muc = "lobby.$DOMAIN"
+--    conference_duration_component = "conferenceduration.$DOMAIN"
+--    lobby_muc = "lobby.$DOMAIN"
     main_muc = "conference.$DOMAIN"
-    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
+--    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
 
     modules_enabled = {
       "speakerstats";
-      "conference_duration";
-      "muc_lobby_rooms";
+--      "conference_duration";
+--      "muc_lobby_rooms";
     }
 
 P_SR
@@ -1074,9 +1106,10 @@ if [ "$ENABLE_SC" = "yes" ];then
 echo "Waiting prosody restart to continue configuration, 15s..."
 wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
-sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
-sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
-sed -i "s|        muc_lobby_whitelist = { \"recorder.|--        muc_lobby_whitelist = { \"recorder.|" $PROSODY_FILE
+#Change back - https://community.jitsi.org/t/64769/136
+#sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
+#sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
+sed -i "s|        muc_lobby_whitelist = { \"recorder.*|        muc_lobby_whitelist = { \"recorder.$DOMAIN\", \"auth.$DOMAIN\" }|" $PROSODY_FILE
 #EO_TF
 fi
 

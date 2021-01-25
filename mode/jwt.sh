@@ -63,20 +63,20 @@ REC-JIBRI
 
 #Setup guests and lobby
 cat << P_SR >> $PROSODY_FILE
-
+-- #Change back lobby - https://community.jitsi.org/t/64769/136
 VirtualHost "guest.$DOMAIN"
     authentication = "token"
     allow_empty_token = true
     c2s_require_encryption = false
-    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
+--    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
     speakerstats_component = "speakerstats.$DOMAIN"
-    conference_duration_component = "conferenceduration.$DOMAIN"
+--    conference_duration_component = "conferenceduration.$DOMAIN"
     app_id="$APP_ID";
     app_secret="$SECRET_APP";
 
     modules_enabled = {
       "speakerstats";
-      "conference_duration";
+--      "conference_duration";
     }
 P_SR
 
