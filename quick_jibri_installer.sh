@@ -259,9 +259,9 @@ else
 fi
 done
 #Set domain
-while [[ $ANS_JD != yes && $ANS_JD != no ]]
+while [[ $ANS_JD != yes ]]
 do
-read -p "> Please set your domain (or subdmain) here: (jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
+read -p "> Please set your domain (or subdmain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
 read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
 if [ "$ANS_JD" = "yes" ]; then
 	echo "Alright, let's use $JITSI_DOMAIN."
