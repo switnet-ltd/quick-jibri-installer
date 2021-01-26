@@ -35,7 +35,7 @@ if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" =
 	echo " This instance already has $1 installed, exiting..."
 	echo " Please try again on a clean system."
 	echo " If you think this is an error, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 	exit
 fi
 }
@@ -271,10 +271,12 @@ fi
 done
 #Simple DNS test
 if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
-echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing..."
+echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
+"
 else
 echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
-echo "Please check your dns records are applied and updated. Exiting for now..."
+echo "Please check your dns records are applied and updated. Exiting for now...
+"
 exit
 fi
 # Requirements
@@ -301,8 +303,7 @@ echo "# Check and Install HWE kernel if possible..."
 HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
 if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
-    linux-image-generic-hwe-$(lsb_release -sr) \
-    linux-modules-extra-virtual-hwe-$(lsb_release -sr)
+    linux-image-generic-hwe-$(lsb_release -sr)
     else
     apt-get -y install \
     linux-image-generic \

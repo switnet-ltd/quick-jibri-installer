@@ -106,8 +106,7 @@ if [ -z $SND_AL_MODULE ]; then
 #First make sure the recommended kernel is installed.
   if [ "$HWE_VIR_MOD" = "1" ]; then
       apt-get -y install \
-      linux-image-generic-hwe-$(lsb_release -sr) \
-      linux-modules-extra-virtual-hwe-$(lsb_release -sr)
+      linux-image-generic-hwe-$(lsb_release -sr)
       else
       apt-get -y install \
       linux-image-generic \

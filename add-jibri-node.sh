@@ -223,8 +223,7 @@ echo "# Check and Install HWE kernel if possible..."
 HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
 if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
-    linux-image-generic-hwe-$(lsb_release -sr) \
-    linux-modules-extra-virtual-hwe-$(lsb_release -sr)
+    linux-image-generic-hwe-$(lsb_release -sr)
     else
     apt-get -y install \
     linux-image-generic \
