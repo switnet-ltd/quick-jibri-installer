@@ -298,6 +298,11 @@ echo "or storage provider, etc.) in this script" >> /tmp/finalize.out
 
 chmod -R 770 \$RECORDINGS_DIR
 
+LJF_PATH="\$(find \$RECORDINGS_DIR -exec stat --printf="%Y\t%n\n" {} \; | sort -n -r|awk '{print\$2}'| grep -v "meta\|-" | head -n1)"
+NJF_NAME="\$(find \$LJF_PATH |grep -e "-"|sed "s|\$LJF_PATH/||"|cut -d "." -f1)"
+NJF_PATH="\$RECORDINGS_DIR/\$NJF_NAME"
+mv \$LJF_PATH \$NJF_PATH
+
 exit 0
 REC_DIR
 chown jibri:jibri $REC_DIR
