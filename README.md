@@ -78,6 +78,7 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 * Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
 * (New) JVB2 nodes network.
 * (New) JWT auth.
+* (New) Rename Jibri folder with name room + date.
 
 ## Tools (New)
 * Jibri Environment Tester

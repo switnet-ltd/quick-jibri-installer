@@ -36,7 +36,7 @@ apt-get -yq2 install apt-show-versions
 
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
 SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
-HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
+HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
 CONF_JSON="/etc/jitsi/jibri/config.json"
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
 CHD_VER="$(/usr/local/bin/chromedriver --version 2>/dev/null| awk '{print$1,$2}')"
@@ -104,12 +104,12 @@ fi
 echo -e "\n#4 -- Test kernel modules --\n"
 if [ -z $SND_AL_MODULE ]; then
 #First make sure the recommended kernel is installed.
-  if [ "$HWE_VIR_MOD" == "1" ]; then
+  if [ "$HWE_VIR_MOD" = "1" ]; then
       apt-get -y install \
-      linux-image-generic-hwe-$(lsb_release -sr) \
-      linux-modules-extra-virtual-hwe-$(lsb_release -sr)
-    else
+      linux-image-generic-hwe-$(lsb_release -sr)
+      else
       apt-get -y install \
+      linux-image-generic \
       linux-modules-extra-$(uname -r)
   fi
     echo -e "\nNo module snd_aloop detected. \xE2\x9C\x96 <== IMPORTANT! \nCurrent kernel: $(uname -r)\n"

@@ -293,7 +293,7 @@ sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup'
 else
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," $INT_CONF_JS_HP
 fi
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'etherpad', 'settings', 'raisehand'," $INT_CONF_JS_HP
+sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," $INT_CONF_JS_HP
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," $INT_CONF_JS_HP
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'security'" $INT_CONF_JS_HP
 sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \]," $INT_CONF_JS_HP

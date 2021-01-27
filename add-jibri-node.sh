@@ -220,11 +220,10 @@ fi
 }
 
 echo "# Check and Install HWE kernel if possible..."
-HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
-if [ "$HWE_VIR_MOD" == "1" ]; then
+HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
+if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
-    linux-image-generic-hwe-$(lsb_release -sr) \
-    linux-modules-extra-virtual-hwe-$(lsb_release -sr)
+    linux-image-generic-hwe-$(lsb_release -sr)
     else
     apt-get -y install \
     linux-image-generic \
@@ -297,6 +296,11 @@ echo "You should put any finalize logic (renaming, uploading to a service" >> /t
 echo "or storage provider, etc.) in this script" >> /tmp/finalize.out
 
 chmod -R 770 \$RECORDINGS_DIR
+
+LJF_PATH="\$(find \$RECORDINGS_DIR -exec stat --printf="%Y\t%n\n" {} \; | sort -n -r|awk '{print\$2}'| grep -v "meta\|-" | head -n1)"
+NJF_NAME="\$(find \$LJF_PATH |grep -e "-"|sed "s|\$LJF_PATH/||"|cut -d "." -f1)"
+NJF_PATH="\$RECORDINGS_DIR/\$NJF_NAME"
+mv \$LJF_PATH \$NJF_PATH
 
 exit 0
 REC_DIR
