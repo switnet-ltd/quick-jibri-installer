@@ -249,35 +249,39 @@ else
 	JITSI_REPO="stable"
 fi
 #Default to LE SSL?
-while [[ $LE_SSL != yes && $LE_SSL != no ]]
+while [[ "$LE_SSL" != "yes" && "$LE_SSL" != "no" ]]
 do
 read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)"$'\n' -r LE_SSL
 if [ $LE_SSL = yes ]; then
-	echo "We'll defaul to Let's Encrypt SSL certs."
+  echo "We'll defaul to Let's Encrypt SSL certs."
 else
-	echo "We'll let you choose later on for it."
+  echo "We'll let you choose later on for it.
+  Please be aware that a valid SSL cert is required for some features to work properly."
 fi
 done
 #Set domain
-while [[ $ANS_JD != yes ]]
-do
-read -p "> Please set your domain (or subdmain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
-read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
-if [ "$ANS_JD" = "yes" ]; then
+if [ "$LE_SSL" = "yes" ]; then
+  while [[ "$ANS_JD" != "yes" ]]
+  do
+    read -p "> Please set your domain (or subdmain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
+    read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
+  if [ "$ANS_JD" = "yes" ]; then
 	echo "Alright, let's use $JITSI_DOMAIN."
-else
+  else
 	echo "Please try again."
-fi
-done
-#Simple DNS test
-if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
-echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
+  fi
+  done
+
+  #Simple DNS test
+  if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
+    echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
 "
-else
-echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
-echo "Please check your dns records are applied and updated. Exiting for now...
+  else
+    echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
+    echo "Please check your dns records are applied and updated. Exiting for now...
 "
-exit
+  exit
+  fi
 fi
 # Requirements
 echo "We'll start by installing system requirements this may take a while please be patient..."
@@ -292,12 +296,16 @@ apt-get -y install \
 				git \
 				htop \
 				jq \
-				letsencrypt \
 				net-tools \
 				rsync \
 				ssh \
 				unzip \
 				wget
+
+if [ "$LE_SSL" = "yes" ]; then
+apt-get -y install \
+				letsencrypt
+fi
 
 echo "# Check and Install HWE kernel if possible..."
 HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
@@ -319,8 +327,8 @@ echo "
 "
 if [ "$LE_SSL" = "yes" ]; then
 echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
-fi
 echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
+fi
 apt-get -y install \
 				jitsi-meet \
 				jibri \
@@ -459,20 +467,6 @@ elif [ "$DROP_TLS1" = "yes" ]; then
 	echo "TLSv1.0/1.1 will be dropped"
 fi
 done
-#SSL LE
-if [ "$LE_SSL" = "yes" ]; then
-    ENABLE_SSL=yes
-else
-        while [[ "$ENABLE_SSL" != "yes" && "$ENABLE_SSL" != "no" ]]
-        do
-        read -p "> Do you want to setup LetsEncrypt with your domain: (yes or no)"$'\n' -r ENABLE_SSL
-        if [ "$ENABLE_SSL" = "no" ]; then
-	    echo "Please run letsencrypt.sh manually post-installation."
-        else
-            echo "SSL will be enabled."
-        fi
-        done
-fi
 #Dropbox -- no longer requirement for localrecording
 #while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
 #do
@@ -627,6 +621,7 @@ INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
 WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 ssl_wa() {
+if [ "$LE_SSL" = "yes" ]; then
 systemctl stop $1
 	letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
 	sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
@@ -635,11 +630,12 @@ systemctl restart $1
 	#Add cron
 	crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
 	crontab -l
+fi
 }
 
 enable_letsencrypt() {
-if [ "$ENABLE_SSL" = "yes" ]; then
-echo '
+if [ "$LE_SSL" = "yes" ]; then
+  echo '
 #--------------------------------------------------
 # Starting LetsEncrypt configuration
 #--------------------------------------------------
@@ -647,23 +643,23 @@ echo '
 #Disabled 'til fixed upstream
 #bash /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
 
-echo "#Set and upgrade certbot PPA if posssible..."
-if [ "$CERTBOT_REPO" = "certbot" ]; then
+  echo "#Set and upgrade certbot PPA if posssible..."
+  if [ "$CERTBOT_REPO" = "certbot" ]; then
 	echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
 	apt-get -q2 update
 	apt-get -yq2 dist-upgrade
-elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
+  elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
 		echo -e "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
 		echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
 		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
 		apt-get -q2 update
 		apt-get -yq2 dist-upgrade
-elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
+  elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
 		echo -e "\nCertbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...\n"
-fi
+  fi
 
 else
-echo "SSL setup will be skipped."
+  echo "SSL setup will be skipped."
 fi
 }
 
