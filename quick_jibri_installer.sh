@@ -284,7 +284,7 @@ if [ "$LE_SSL" = "yes" ]; then
   fi
 fi
 # Requirements
-echo "We'll start by installing system requirements this may take a while please be patient..."
+echo -e "\nWe'll start by installing system requirements this may take a while please be patient...\n"
 apt-get update -q2
 apt-get dist-upgrade -yq2
 
@@ -433,10 +433,12 @@ MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 #sed -i "1i ${PUBLIC_IP} jitsi.${DOMAIN}" /etc/hosts
 
 #Sysadmin email
-while [[ -z $SYSADMIN_EMAIL ]]
-do
-read -p "Set sysadmin email (this is a mandatory field):"$'\n' -r SYSADMIN_EMAIL
-done
+if [ "$LE_SSL" = "yes" ]; then
+  while [[ -z $SYSADMIN_EMAIL ]]
+  do
+    read -p "Set sysadmin email (this is a mandatory field):"$'\n' -r SYSADMIN_EMAIL
+  done
+fi
 #Language
 echo "## Setting up Jitsi Meet language ##
 You can define the language, for a complete list of the supported languages
