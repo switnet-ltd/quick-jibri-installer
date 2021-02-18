@@ -360,7 +360,7 @@ elif [ "$(npm list -g esprima 2>/dev/null | grep -c "esprima")" == "1" ]; then
 	echo "Good. Esprima package is already installed"
 fi
 
-CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+CHD_LTST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
 echo "# Installing Google Chrome / ChromeDriver"
@@ -379,7 +379,7 @@ if [ -f /usr/local/bin/chromedriver ]; then
 	echo "Chromedriver already installed."
 else
 	echo "Installing Chromedriver"
-	wget -q https://chromedriver.storage.googleapis.com/$CHD_VER/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+	wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
 	unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
 	chown root:root /usr/local/bin/chromedriver
 	chmod 0755 /usr/local/bin/chromedriver
@@ -758,7 +758,7 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 #sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 #fi
 
-#LocalRecording
+#LocalAudioRecording
 if [ "$ENABLE_LAR" = "yes" ]; then
 echo "# Enabling local recording (audio only)."
 LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
