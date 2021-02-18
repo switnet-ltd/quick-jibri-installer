@@ -379,7 +379,8 @@ if [ -f /usr/local/bin/chromedriver ]; then
 	echo "Chromedriver already installed."
 else
 	echo "Installing Chromedriver"
-	wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+	wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
+	     -O /tmp/chromedriver_linux64.zip
 	unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
 	chown root:root /usr/local/bin/chromedriver
 	chmod 0755 /usr/local/bin/chromedriver

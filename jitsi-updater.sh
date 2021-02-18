@@ -44,8 +44,8 @@ fi
 if [ -z $CHDB ]; then
 	echo "Seems no chromedriver installed"
 else
-    CHD_AVB="$($CHDB -v | awk '{print $2}')"
-    CHD_AVB_2D="$(echo $CHD_AVB|cut -d "." -f 1,2)"
+    CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
+    CHD_VER_2D="$(echo $CHD_VER_LOCAL|cut -d "." -f 1,2)"
 fi
 
 # True if $1 is greater than $2
@@ -90,16 +90,17 @@ upgrade_cd() {
 if [ ! -z $GOOGL_VER_2D ]; then
     if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" && \
     [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
-    then
         echo "Upgrading Chromedriver to Google Chromes version"
-        wget https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo cp chromedriver $CHDB
-        rm -rf chromedriver chromedriver_linux64.zip
+        wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
+             -O /tmp/chromedriver_linux64.zip
+        unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+        chown root:root $CHDB
+        chmod 0755 $CHDB
+        rm -rf /tpm/chromedriver_linux64.zip
         chromedriver -v
     else
         echo "No need to upgrade Chromedriver"
-        printf "Current version: ${Green} $CHD_AVB_2D ${Color_Off}\n"
+        printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
     fi
 else
   printf "${Yellow} -> No Google Chrome versión to match, leaving untouched.${Color_Off}\n"
@@ -109,7 +110,7 @@ fi
 check_lst_cd() {
 printf "${Purple}Checking for the latest Chromedriver${Color_Off}\n"
 if [ -f $CHDB ]; then
-        printf "Current installed Chromedriver: ${Yellow} $CHD_AVB_2D ${Color_Off}\n"
+        printf "Current installed Chromedriver: ${Yellow} $CHD_VER_2D ${Color_Off}\n"
         printf "Current installed Google Chrome: ${Green} $GOOGL_VER_2D ${Color_Off}\n"
         upgrade_cd
 else
