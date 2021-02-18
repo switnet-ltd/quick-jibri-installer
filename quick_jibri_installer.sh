@@ -32,10 +32,11 @@ CR=`echo $'\n> '`
 
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-	echo " This instance already has $1 installed, exiting..."
-	echo " Please try again on a clean system."
-	echo " If you think this is an error, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+	echo "
+This instance already has $1 installed, exiting...
+Please try again on a clean system.
+ If you think this is an error, please report to:
+  -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 	exit
 fi
 }
