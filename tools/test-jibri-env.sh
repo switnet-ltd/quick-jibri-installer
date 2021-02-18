@@ -43,24 +43,20 @@ else
 fi
 }
 
-vlt() {
-    [ "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
-}
-
-fc_ver() {
-vlt $1 $2 && echo "yes" || echo "no"
-}
+# True if $1 is greater than $2
+version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
 JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
 SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
 HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
 CONF_JSON="/etc/jitsi/jibri/config.json"
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
-CHD_VER_LOCAL="$(/usr/local/bin/chromedriver --version 2>/dev/null| awk '{print$1,$2}')"
+CHDB="$(whereis chromedriver | awk '{print$2}')"
+CHD_VER_LOCAL="$($CHDB --version 2>/dev/null| awk '{print$1,$2}')"
 GOOGL_VER_LOCAL="$(/usr/bin/google-chrome --version 2>/dev/null)"
 CHD_VER_2D="$(echo $CHD_VER_LOCAL|awk '{print$2}'|cut -d "." -f 1,2)"
 GOOGL_VER_2D="$(echo $GOOGL_VER_LOCAL|awk '{print$3}'|cut -d "." -f 1,2)"
-CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+CHD_LTST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 
 #T1
 echo -e "\n#1 -- Check repository --\n"
@@ -93,15 +89,14 @@ else
 fi
 
 if [ "$(apt-show-versions jibri | grep -c "uptodate")" = "1" ]; then
-echo -e "Jibri is already up to date: \xE2\x9C\x94"
+    echo -e "Jibri is already up to date: \xE2\x9C\x94"
 else
-echo -e "\nAttempting jibri upgrade!"
-apt -y install --only-upgrade jibri
+    echo -e "\nAttempting jibri upgrade!"
+    apt-get -y install --only-upgrade jibri
 fi
 T2=1
 
 #T3
-
 echo -e "\n#3 -- Check Google Chrome/driver software.  --\n"
 check_google_binaries "Google Chrome" "$GOOGL_VER_LOCAL"
 check_google_binaries "Chromedriver" "$CHD_VER_LOCAL"
@@ -112,21 +107,20 @@ if [ ! -z "$CHD_VER_LOCAL" ] && [ ! -z "$GOOGL_VER_LOCAL" ]; then
     echo -e "Google Chrome is already up to date: \xE2\x9C\x94"
   else
     echo -e "\nAttempting Google Chrome upgrade!"
-    apt -yq install --only-upgrade google-chrome-stable
+    apt-get -yq install --only-upgrade google-chrome-stable
   fi
 # Only upgrade chromedriver if it's on a lower version, not just a different one.
   if [ $CHD_VER_2D = $GOOGL_VER_2D ]; then
       echo -e "\nChromedriver version seems according to Google Chrome: \xE2\x9C\x94"
       T3=1
-      elif [ "$(fc_ver $GOOGL_VER_2D $CHD_VER_2D)" = "no" ]; then
+      elif version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" ; then
           echo -e "\nAttempting  Chromedriver update!"
-          wget -q https://chromedriver.storage.googleapis.com/$CHD_VER/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+          wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
           unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
-          chown root:root /usr/local/bin/chromedriver
-          chmod 0755 /usr/local/bin/chromedriver
+          chown root:root $CHDB
+          chmod 0755 $CHDB
           rm -rf /tpm/chromedriver_linux64.zip
-          CHD_VER2D_U2D="$(echo $CHD_VER_LOCAL|awk '{print$2}'|cut -d "." -f 1,2)"
-          if [ "$(fc_ver $GOOGL_VER_2D $CHD_VER2D_U2D)" = "yes" ]; then
+          if [ "$CHD_VER_2D" = "$GOOGL_VER_2D" ]; then
               echo "Successfull update"
               T3=1
           else
