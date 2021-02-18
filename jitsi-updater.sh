@@ -23,7 +23,8 @@ support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 LOC_REC="TBD"
 ENABLE_BLESSM="TBD"
-CHD_LST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
+CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
+CHD_LTST_2D="$(echo $CHD_LTST|cut -d "." -f 1,2)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
 DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
 NC_DOMAIN="TBD"
@@ -33,19 +34,21 @@ PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
-jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages |sort -u|awk '{print $2}'|sed 's|jigasi||'|paste -s -d ' ')"
+jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages |sort -u|awk '{print $2}'|sed 's|jigasi||')"
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f $apt_repo/google-chrome.list ]; then
-    google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2 | paste -s -d ' ')
+    google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2)
 else
     echo "Seems no Google repo installed"
 fi
 if [ -z $CHDB ]; then
 	echo "Seems no chromedriver installed"
 else
-    CHD_AVB=$(chromedriver -v | awk '{print $2}')
+    CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
+    CHD_VER_2D="$(echo $CHD_VER_LOCAL|cut -d "." -f 1,2)"
 fi
 
+# True if $1 is greater than $2
 version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
 check_jibri() {
@@ -67,21 +70,6 @@ restart_services() {
 	systemctl restart prosody
 }
 
-upgrade_cd() {
-if version_gt $CHD_LST $CHD_AVB
-then
-	echo "Upgrading ..."
-	wget https://chromedriver.storage.googleapis.com/$CHD_LST/chromedriver_linux64.zip
-	unzip chromedriver_linux64.zip
-	sudo cp chromedriver $CHDB
-	rm -rf chromedriver chromedriver_linux64.zip
-	chromedriver -v
-else
-	echo "No need to upgrade Chromedriver"
-	printf "Current version: ${Green} $CHD_AVB ${Color_Off}\n"
-fi
-}
-
 update_jitsi_repo() {
     apt-get update -o Dir::Etc::sourcelist="sources.list.d/jitsi-$1.list" \
         -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
@@ -97,19 +85,40 @@ update_google_repo() {
 		echo "No Google repository found"
 	fi
 }
+GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{print$3}'|cut -d "." -f 1,2)"
+upgrade_cd() {
+if [ ! -z $GOOGL_VER_2D ]; then
+    if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" && \
+    [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
+        echo "Upgrading Chromedriver to Google Chromes version"
+        wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
+             -O /tmp/chromedriver_linux64.zip
+        unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+        chown root:root $CHDB
+        chmod 0755 $CHDB
+        rm -rf /tpm/chromedriver_linux64.zip
+        printf "Current version: ${Green} "$($CHDB -v | awk '{print $2}'|cut -d "." -f 1,2)" ${Color_Off}\n"
+    else
+        echo "No need to upgrade Chromedriver"
+        printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
+    fi
+else
+  printf "${Yellow} -> No Google Chrome versión to match, leaving untouched.${Color_Off}\n"
+fi
+}
 
 check_lst_cd() {
 printf "${Purple}Checking for the latest Chromedriver${Color_Off}\n"
 if [ -f $CHDB ]; then
-        printf "Current installed Chromedriver: ${Yellow} $CHD_AVB ${Color_Off}\n"
-        printf "Latest Chromedriver version available: ${Green} $CHD_LST ${Color_Off}\n"
+        printf "Current installed Chromedriver: ${Yellow} $CHD_VER_2D ${Color_Off}\n"
+        printf "Current installed Google Chrome: ${Green} $GOOGL_VER_2D ${Color_Off}\n"
         upgrade_cd
 else
 	printf "${Yellow} -> Seems there is no Chromedriver installed${Color_Off}\n"
 fi
 }
 
-printf "${Blue}Update & upgrade Jitsi and components - v2.3${Color_Off}\n"
+printf "${Blue}Update & upgrade Jitsi and components${Color_Off}\n"
 if [ -f $apt_repo/jitsi-unstable.list ]; then
 	update_jitsi_repo unstable
 	update_google_repo

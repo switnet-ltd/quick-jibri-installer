@@ -53,7 +53,7 @@ sed -i "s|jitsilogo.png|watermark2.png|g" $TITLE_FILE
 sed -i "s|logo-deep-linking.png|watermark2.png|g" $BUNDLE_JS
 sed -i "s|jitsiLogo_square.png|gnome_record.png|g" $BUNDLE_JS
 #Disable logo and url
-if [ -z $(grep -nr ".leftwatermark{display:none" $CSS_FILE) ]; then
+if [ -z "$(grep -nr ".leftwatermark{display:none" "$CSS_FILE")" ]; then
 sed -i "s|.leftwatermark{|.leftwatermark{display:none;|" $CSS_FILE
 fi
 
