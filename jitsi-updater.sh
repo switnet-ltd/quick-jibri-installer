@@ -24,6 +24,7 @@ apt_repo="/etc/apt/sources.list.d"
 LOC_REC="TBD"
 ENABLE_BLESSM="TBD"
 CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
+CHD_LTST_2D="$(echo $CHD_LTST|cut -d "." -f 1,2)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
 DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
 NC_DOMAIN="TBD"
@@ -43,7 +44,8 @@ fi
 if [ -z $CHDB ]; then
 	echo "Seems no chromedriver installed"
 else
-    CHD_AVB=$($CHDB -v | awk '{print $2}')
+    CHD_AVB="$($CHDB -v | awk '{print $2}')"
+    CHD_AVB_2D="$(echo $CHD_AVB|cut -d "." -f 1,2)"
 fi
 
 # True if $1 is greater than $2
@@ -86,9 +88,10 @@ update_google_repo() {
 GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{print$3}'|cut -d "." -f 1,2)"
 upgrade_cd() {
 if [ ! -z $GOOGL_VER_2D ]; then
-    if version_gt $GOOGL_VER_2D "$($CHD_AVB|cut -d "." -f 1,2)"
+    if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" && \
+    [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
     then
-        echo "Upgrading ..."
+        echo "Upgrading Chromedriver to Google Chromes version"
         wget https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip
         unzip chromedriver_linux64.zip
         sudo cp chromedriver $CHDB
@@ -96,7 +99,7 @@ if [ ! -z $GOOGL_VER_2D ]; then
         chromedriver -v
     else
         echo "No need to upgrade Chromedriver"
-        printf "Current version: ${Green} $CHD_AVB ${Color_Off}\n"
+        printf "Current version: ${Green} $CHD_AVB_2D ${Color_Off}\n"
     fi
 else
   printf "${Yellow} -> No Google Chrome versión to match, leaving untouched.${Color_Off}\n"
@@ -106,15 +109,15 @@ fi
 check_lst_cd() {
 printf "${Purple}Checking for the latest Chromedriver${Color_Off}\n"
 if [ -f $CHDB ]; then
-        printf "Current installed Chromedriver: ${Yellow} $CHD_AVB ${Color_Off}\n"
-        printf "Latest Chromedriver version available: ${Green} $CHD_LTST ${Color_Off}\n"
+        printf "Current installed Chromedriver: ${Yellow} $CHD_AVB_2D ${Color_Off}\n"
+        printf "Current installed Google Chrome: ${Green} $GOOGL_VER_2D ${Color_Off}\n"
         upgrade_cd
 else
 	printf "${Yellow} -> Seems there is no Chromedriver installed${Color_Off}\n"
 fi
 }
 
-printf "${Blue}Update & upgrade Jitsi and components - v2.3${Color_Off}\n"
+printf "${Blue}Update & upgrade Jitsi and components${Color_Off}\n"
 if [ -f $apt_repo/jitsi-unstable.list ]; then
 	update_jitsi_repo unstable
 	update_google_repo

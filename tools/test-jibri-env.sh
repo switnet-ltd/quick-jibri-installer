@@ -56,7 +56,8 @@ CHD_VER_LOCAL="$($CHDB --version 2>/dev/null| awk '{print$1,$2}')"
 GOOGL_VER_LOCAL="$(/usr/bin/google-chrome --version 2>/dev/null)"
 CHD_VER_2D="$(echo $CHD_VER_LOCAL|awk '{print$2}'|cut -d "." -f 1,2)"
 GOOGL_VER_2D="$(echo $GOOGL_VER_LOCAL|awk '{print$3}'|cut -d "." -f 1,2)"
-CHD_LTST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
+CHD_LTST_2D="$(echo $CHD_LTST|cut -d "." -f 1,2)"
 
 #T1
 echo -e "\n#1 -- Check repository --\n"
@@ -113,7 +114,8 @@ if [ ! -z "$CHD_VER_LOCAL" ] && [ ! -z "$GOOGL_VER_LOCAL" ]; then
   if [ $CHD_VER_2D = $GOOGL_VER_2D ]; then
       echo -e "\nChromedriver version seems according to Google Chrome: \xE2\x9C\x94"
       T3=1
-      elif version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" ; then
+      elif version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" && \
+      [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
           echo -e "\nAttempting  Chromedriver update!"
           wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
           unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
