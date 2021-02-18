@@ -112,14 +112,14 @@ if [ ! -z "$CHD_VER_LOCAL" ] && [ ! -z "$GOOGL_VER_LOCAL" ]; then
     echo -e "Google Chrome is already up to date: \xE2\x9C\x94"
   else
     echo -e "\nAttempting Google Chrome upgrade!"
-    apt -y install --only-upgrade google-chrome-stable
+    apt -yq install --only-upgrade google-chrome-stable
   fi
 # Only upgrade chromedriver if it's on a lower version, not just a different one.
   if [ $CHD_VER_2D = $GOOGL_VER_2D ]; then
-      echo "Chromedriver version seems acording to Google Chrome"
+      echo -e "\nChromedriver version seems according to Google Chrome: \xE2\x9C\x94"
       T3=1
       elif [ "$(fc_ver $GOOGL_VER_2D $CHD_VER_2D)" = "no" ]; then
-          echo "Updating Chromedriver"
+          echo -e "\nAttempting  Chromedriver update!"
           wget -q https://chromedriver.storage.googleapis.com/$CHD_VER/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
           unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
           chown root:root /usr/local/bin/chromedriver
