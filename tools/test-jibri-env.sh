@@ -123,7 +123,7 @@ if [ ! -z "$CHD_VER_LOCAL" ] && [ ! -z "$GOOGL_VER_LOCAL" ]; then
           chown root:root $CHDB
           chmod 0755 $CHDB
           rm -rf /tpm/chromedriver_linux64.zip
-          if [ "$CHD_VER_2D" = "$GOOGL_VER_2D" ]; then
+          if [ "$($CHDB -v | awk '{print $2}'|cut -d "." -f 1,2)" = "$GOOGL_VER_2D" ]; then
               echo "Successfull update"
               T3=1
           else

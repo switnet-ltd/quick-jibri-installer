@@ -97,7 +97,7 @@ if [ ! -z $GOOGL_VER_2D ]; then
         chown root:root $CHDB
         chmod 0755 $CHDB
         rm -rf /tpm/chromedriver_linux64.zip
-        printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
+        printf "Current version: ${Green} "$($CHDB -v | awk '{print $2}'|cut -d "." -f 1,2)" ${Color_Off}\n"
     else
         echo "No need to upgrade Chromedriver"
         printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
