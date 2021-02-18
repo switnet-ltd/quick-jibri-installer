@@ -119,7 +119,7 @@ if [ ! -z "$CHD_VER_LOCAL" ] && [ ! -z "$GOOGL_VER_LOCAL" ]; then
           echo -e "\nAttempting  Chromedriver update!"
           wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
                -O /tmp/chromedriver_linux64.zip
-          unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+          unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
           chown root:root $CHDB
           chmod 0755 $CHDB
           rm -rf /tpm/chromedriver_linux64.zip

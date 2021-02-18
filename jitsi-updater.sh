@@ -93,11 +93,11 @@ if [ ! -z $GOOGL_VER_2D ]; then
         echo "Upgrading Chromedriver to Google Chromes version"
         wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
              -O /tmp/chromedriver_linux64.zip
-        unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+        unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
         chown root:root $CHDB
         chmod 0755 $CHDB
         rm -rf /tpm/chromedriver_linux64.zip
-        chromedriver -v
+        printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
     else
         echo "No need to upgrade Chromedriver"
         printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
