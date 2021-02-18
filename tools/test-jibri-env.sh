@@ -32,15 +32,8 @@ fi
 
 echo "Checking for updates...."
 apt-get -q2 update
-apt-get -yq2 install apt-show-versions
-
-JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
-SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
-HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
-CONF_JSON="/etc/jitsi/jibri/config.json"
-JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
-CHD_VER="$(/usr/local/bin/chromedriver --version 2>/dev/null| awk '{print$1,$2}')"
-GOOGL_VER="$(/usr/bin/google-chrome --version 2>/dev/null)"
+apt-get -yq2 install apt-show-versions \
+                     curl
 
 check_google_binaries() {
 if [ -z "$2" ]; then
@@ -49,6 +42,25 @@ else
   echo $2
 fi
 }
+
+vlt() {
+    [ "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+fc_ver() {
+vlt $1 $2 && echo "yes" || echo "no"
+}
+
+JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
+SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
+HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
+CONF_JSON="/etc/jitsi/jibri/config.json"
+JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
+CHD_VER_LOCAL="$(/usr/local/bin/chromedriver --version 2>/dev/null| awk '{print$1,$2}')"
+GOOGL_VER_LOCAL="$(/usr/bin/google-chrome --version 2>/dev/null)"
+CHD_VER_2D="$(echo $CHD_VER_LOCAL|awk '{print$2}'|cut -d "." -f 1,2)"
+GOOGL_VER_2D="$(echo $GOOGL_VER_LOCAL|awk '{print$3}'|cut -d "." -f 1,2)"
+CHD_VER=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 
 #T1
 echo -e "\n#1 -- Check repository --\n"
@@ -62,7 +74,7 @@ if [ -z $JITSI_REPO ]; then
         exit
       elif [ "$CONT_TEST" = "yes" ]; then
         echo "Hmm, seems there won't be anything to test, continuing anyway..."
-        T=0
+        T1=0
       fi
     done
 else
@@ -89,15 +101,43 @@ fi
 T2=1
 
 #T3
+
 echo -e "\n#3 -- Check Google Chrome/driver software.  --\n"
-check_google_binaries "Chromedriver" "$CHD_VER"
-check_google_binaries "Google Chrome" "$GOOGL_VER"
-if [ ! -z "$CHD_VER" ] && [ ! -z "$GOOGL_VER" ]; then
-T3=1
-elif [ -z "$CHD_VER" ] || [ -z "$GOOGL_VER" ]; then
-T3=0
-else
-T3=0
+check_google_binaries "Google Chrome" "$GOOGL_VER_LOCAL"
+check_google_binaries "Chromedriver" "$CHD_VER_LOCAL"
+
+if [ ! -z "$CHD_VER_LOCAL" ] && [ ! -z "$GOOGL_VER_LOCAL" ]; then
+# Chrome upgrade process
+  if [ "$(apt-show-versions google-chrome-stable | grep -c "uptodate")" = "1" ]; then
+    echo -e "Google Chrome is already up to date: \xE2\x9C\x94"
+  else
+    echo -e "\nAttempting Google Chrome upgrade!"
+    apt -y install --only-upgrade google-chrome-stable
+  fi
+# Only upgrade chromedriver if it's on a lower version, not just a different one.
+  if [ $CHD_VER_2D = $GOOGL_VER_2D ]; then
+      echo "Chromedriver version seems acording to Google Chrome"
+      T3=1
+      elif [ "$(fc_ver $GOOGL_VER_2D $CHD_VER_2D)" = "no" ]; then
+          echo "Updating Chromedriver"
+          wget -q https://chromedriver.storage.googleapis.com/$CHD_VER/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+          unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+          chown root:root /usr/local/bin/chromedriver
+          chmod 0755 /usr/local/bin/chromedriver
+          rm -rf /tpm/chromedriver_linux64.zip
+          CHD_VER2D_U2D="$(echo $CHD_VER_LOCAL|awk '{print$2}'|cut -d "." -f 1,2)"
+          if [ "$(fc_ver $GOOGL_VER_2D $CHD_VER2D_U2D)" = "yes" ]; then
+              echo "Successfull update"
+              T3=1
+          else
+              echo "Something might gone wrong on the update process, please report."
+              T3=0
+          fi
+      else
+      T3=0
+  fi
+ else
+  T3=0
 fi
 
 #T4
