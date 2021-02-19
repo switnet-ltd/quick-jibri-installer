@@ -312,6 +312,19 @@ mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
 cat << NEW_CONF > $JIBRI_CONF
 // New XMPP environment config.
 jibri {
+    chrome {
+        // The flags which will be passed to chromium when launching
+        flags = [
+          "--use-fake-ui-for-media-stream",
+          "--start-maximized",
+          "--kiosk",
+          "--enabled",
+          "--disable-infobars",
+          "--autoplay-policy=no-user-gesture-required",
+          "--ignore-certificate-errors",
+          "--disable-dev-shm-usage"
+        ]
+    }
     recording {
          recordings-directory = $DIR_RECORD
          finalize-script = $REC_DIR
