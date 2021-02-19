@@ -189,27 +189,39 @@ echo -e "What config version is this using?"
 if [ -f ${CONF_JSON}_disabled ] && \
    [ -f $JIBRI_CONF ] && \
    [ -f $JIBRI_CONF-dpkg-file ]; then
-    echo -e "\n> This jibri config has been upgraded already.\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+    echo -e "\n> This jibri config has been upgraded already. \xE2\x9C\x94 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 T6=1
 elif [ ! -f $CONF_JSON ] && \
    [ -f $JIBRI_CONF ] && \
    [ -f ${JIBRI_CONF}-dpkg-file ]; then
-    echo -e "\n> This jibri seems to be running the lastest configuration already.\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+    echo -e "\n> This jibri seems to be running the lastest configuration already. \xE2\x9C\x94 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 T6=1
 elif [ -f ${CONF_JSON} ] && \
    [ -f $JIBRI_CONF ]; then
-    echo -e "\n> This jibri config seems to be candidate for upgrading.\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+    echo -e "\n> This jibri config seems to be candidate for upgrading. \xE2\x9C\x96 \nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 T6=0
 fi
 
-TEST_TOTAL=$((T1 + T2 + T3 + T4 + T5 + T6))
+#T6.1
+echo -e "\n#6.1 -- Check for specific Chrome flag --\n"
+if [ "$(grep -c "ignore-certificate-errors"  $JIBRI_CONF)" != 0 ]; then
+    echo -e "\n> Seems you have the \"--ignore-certificate-errors\" flag required for Chrome v88 and later. \xE2\x9C\x94 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+T6_1="0.1"
+else
+echo -e "\n> The jibri config may be missing the required chrome flags. \xE2\x9C\x96 \nPlease check:\n https://github.com/switnet-ltd/quick-jibri-installer/blob/unstable/quick_jibri_installer.sh#L820 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+T6_1=0
+fi
+
+TEST_TOTAL=$(awk "BEGIN{ print $T1 + $T2 + $T3 + $T4 + $T5 + $T6 + $T6_1 }")
 echo "
 ###########################
      \
-Score: $TEST_TOTAL out of 6
+Score: $TEST_TOTAL out of 6.1
 ###########################
 "
 echo -e "\nJibri Test complete, thanks for testing.\n"
