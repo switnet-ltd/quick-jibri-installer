@@ -212,16 +212,16 @@ if [ "$(grep -c "ignore-certificate-errors"  $JIBRI_CONF)" != 0 ]; then
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 T6_1="0.1"
 else
-echo -e "\n> The jibri config may be missing the required chrome flags. \xE2\x9C\x96 \nPlease check:\n https://github.com/switnet-ltd/quick-jibri-installer/blob/unstable/quick_jibri_installer.sh#L820 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+echo -e "\n> The jibri config may be missing the required chrome flags. \xE2\x9C\x96 \nPlease check:\n https://github.com/switnet-ltd/quick-jibri-installer/blob/master/quick_jibri_installer.sh#L820 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 T6_1=0
 fi
 
 TEST_TOTAL=$(awk "BEGIN{ print $T1 + $T2 + $T3 + $T4 + $T5 + $T6 + $T6_1 }")
 echo "
-###########################
+##############################
      \
 Score: $TEST_TOTAL out of 6.1
-###########################
+##############################
 "
 echo -e "\nJibri Test complete, thanks for testing.\n"
