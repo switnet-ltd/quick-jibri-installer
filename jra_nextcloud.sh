@@ -160,12 +160,12 @@ apt-get install -y \
             php$PHPVER-ldap \
             php$PHPVER-mbstring \
             php$PHPVER-pgsql \
+            php$PHPVER-redis \
             php$PHPVER-soap \
             php$PHPVER-xml \
             php$PHPVER-xmlrpc \
             php$PHPVER-zip \
             php-imagick \
-            php-redis \
             redis-server \
             unzip
 
@@ -386,7 +386,7 @@ if [ "$ENABLE_HSTS" = "yes" ]; then
 sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
-if [ "$DISTRO_RELEASE" != "xenial" ] && [ -z $PREAD_PROXY ]; then
+if [ "$DISTRO_RELEASE" != "xenial" ] && [ ! -z $PREAD_PROXY ]; then
 echo "
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "

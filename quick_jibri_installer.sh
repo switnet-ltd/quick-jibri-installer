@@ -1071,6 +1071,10 @@ fi
 #Set displayname as not required since jibri can't set it up.
 sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
 
+#Add pre-join screen by default, since it improves YouTube autoplay capabilities
+#pre-join screen by itself don't require autorization by moderator, don't confuse with lobby which does.
+sed -i "s|// prejoinPageEnabled:.*|// prejoinPageEnabled: true,|" $MEET_CONF
+
 #Set HD resolution and widescreen format
 sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" $MEET_CONF
 sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 720," $MEET_CONF
