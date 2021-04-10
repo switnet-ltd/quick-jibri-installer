@@ -45,7 +45,7 @@ if [ -z $CHDB ]; then
 	echo "Seems no chromedriver installed"
 else
     CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
-    CHD_VER_2D="$(echo $CHD_VER_LOCAL|cut -d "." -f 1,2)"
+    CHD_VER_2D="$(echo $CHD_VER_LOCAL|awk '{printf "%.1f\n", $NF}')"
 fi
 
 # True if $1 is greater than $2
@@ -85,7 +85,7 @@ update_google_repo() {
 		echo "No Google repository found"
 	fi
 }
-GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{print$3}'|cut -d "." -f 1,2)"
+GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{printf "%.1f\n", $NF}')"
 upgrade_cd() {
 if [ ! -z $GOOGL_VER_2D ]; then
     if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" && \
@@ -97,7 +97,7 @@ if [ ! -z $GOOGL_VER_2D ]; then
         chown root:root $CHDB
         chmod 0755 $CHDB
         rm -rf /tpm/chromedriver_linux64.zip
-        printf "Current version: ${Green} "$($CHDB -v | awk '{print $2}'|cut -d "." -f 1,2)" ${Color_Off}\n"
+        printf "Current version: ${Green} "$($CHDB -v |awk '{print $2}'|awk '{printf "%.1f\n", $NF}')" ${Color_Off}\n"
     else
         echo "No need to upgrade Chromedriver"
         printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"

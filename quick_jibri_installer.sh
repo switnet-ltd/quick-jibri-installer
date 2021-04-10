@@ -7,11 +7,11 @@ echo "Started at $(date +'%Y-%m-%d %H:%M:%S')" >> qj-installer.log
 
 while getopts m: option
 do
-	case "${option}"
-	in
-		m) MODE=${OPTARG};;
-		\?) echo "Usage: sudo ./quick_jibri_installer.sh [-m debug]" && exit;;
-	esac
+    case "${option}"
+    in
+        m) MODE=${OPTARG};;
+        \?) echo "Usage: sudo ./quick_jibri_installer.sh [-m debug]" && exit;;
+    esac
 done
 
 #DEBUG
@@ -32,12 +32,12 @@ CR=`echo $'\n> '`
 
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-	echo "
+    echo "
 This instance already has $1 installed, exiting...
 Please try again on a clean system.
  If you think this is an error, please report to:
   -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
-	exit
+    exit
 fi
 }
 exit_ifinstalled jitsi-meet
@@ -50,18 +50,18 @@ DIST="bionic"
 fi
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-	echo " $1 is installed, skipping..."
+    echo " $1 is installed, skipping..."
     else
-    	echo -e "\n---- Installing $1 ----"
-		apt-get -yq2 install $1
+        echo -e "\n---- Installing $1 ----"
+        apt-get -yq2 install $1
 fi
 }
 check_serv() {
 if [ "$APACHE_2" -eq 1 ]; then
-	echo "
+    echo "
 The recommended setup is using NGINX, exiting...
 "
-	exit
+    exit
 elif [ "$NGINX" -eq 1 ]; then
 
 echo "
@@ -69,10 +69,10 @@ Webserver already installed!
 "
 
 else
-	echo "
+    echo "
 Installing nginx webserver!
 "
-	install_ifnot nginx
+    install_ifnot nginx
 fi
 }
 check_snd_driver() {
@@ -80,12 +80,12 @@ echo -e "\n# Checking ALSA - Loopback module..."
 echo "snd-aloop" | tee -a /etc/modules
 modprobe snd-aloop
 if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
-	echo "
+    echo "
 #-----------------------------------------------------------------------
 # Audio driver seems - OK.
 #-----------------------------------------------------------------------"
 else
-	echo "
+    echo "
 #-----------------------------------------------------------------------
 # Your audio driver might not be able to load.
 # We'll check the state of this Jibri with our 'test-jibri-env.sh' tool.
@@ -106,10 +106,10 @@ var_dlim() {
 add_prosody_repo() {
 echo "Add Prosody repo"
 if [ "$PROSODY_REPO" = "main" ]; then
-	echo "Prosody repository already installed"
+    echo "Prosody repository already installed"
 else
-	echo "deb http://packages.prosody.im/debian $(lsb_release -sc) main" > /etc/apt/sources.list.d/prosody.list
-	wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
+    echo "deb http://packages.prosody.im/debian $(lsb_release -sc) main" > /etc/apt/sources.list.d/prosody.list
+    wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
 fi
 }
 dpkg-compare() {
@@ -151,12 +151,12 @@ fi
 if [ "$DIST" = "xenial" ] || \
    [ "$DIST" = "bionic" ] || \
    [ "$DIST" = "focal" ]; then
-	echo "OS: $(lsb_release -sd)"
-	echo "Good, this is a supported platform!"
+    echo "OS: $(lsb_release -sd)"
+    echo "Good, this is a supported platform!"
 else
-	echo "OS: $(lsb_release -sd)"
-	echo "Sorry, this platform is not supported... exiting"
-	exit
+    echo "OS: $(lsb_release -sd)"
+    echo "Sorry, this platform is not supported... exiting"
+    exit
 fi
 #Suggest 18.04 LTS release over 16.04
 if [ "$DIST" = "xenial" ]; then
@@ -243,11 +243,11 @@ add_prosody_repo
 # Jitsi-Meet Repo
 echo -e "\nAdd Jitsi repo\n"
 if [ "$JITSI_REPO" = "stable" ]; then
-	echo "Jitsi stable repository already installed"
+    echo "Jitsi stable repository already installed"
 else
-	echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
-	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
-	JITSI_REPO="stable"
+    echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
+    wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
+    JITSI_REPO="stable"
 fi
 #Default to LE SSL?
 while [[ "$LE_SSL" != "yes" && "$LE_SSL" != "no" ]]
@@ -267,9 +267,9 @@ if [ "$LE_SSL" = "yes" ]; then
     read -p "> Please set your domain (or subdmain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
     read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
   if [ "$ANS_JD" = "yes" ]; then
-	echo "Alright, let's use $JITSI_DOMAIN."
+    echo "Alright, let's use $JITSI_DOMAIN."
   else
-	echo "Please try again."
+    echo "Please try again."
   fi
   done
 
@@ -279,9 +279,14 @@ if [ "$LE_SSL" = "yes" ]; then
 "
   else
     echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
-    echo "Please check your dns records are applied and updated. Exiting for now...
-"
-  exit
+    echo "  > Please check your dns records are applied and updated, otherwise components may fail."
+      read -p "  > Do you want to continue?: (yes or no)"$'\n' -r DNS_CONTINUE
+        if [ "$DNS_CONTINUE" = "yes" ]; then
+          echo "  - We'll continue anyway..."
+        else
+          echo "  - Exiting for now..."
+          exit
+        fi
   fi
 fi
 # Requirements
@@ -290,22 +295,22 @@ apt-get update -q2
 apt-get dist-upgrade -yq2
 
 apt-get -y install \
-				apt-show-versions \
-				bmon \
-				curl \
-				ffmpeg \
-				git \
-				htop \
-				jq \
-				net-tools \
-				rsync \
-				ssh \
-				unzip \
-				wget
+                apt-show-versions \
+                bmon \
+                curl \
+                ffmpeg \
+                git \
+                htop \
+                jq \
+                net-tools \
+                rsync \
+                ssh \
+                unzip \
+                wget
 
 if [ "$LE_SSL" = "yes" ]; then
 apt-get -y install \
-				letsencrypt
+                letsencrypt
 fi
 
 echo "# Check and Install HWE kernel if possible..."
@@ -327,13 +332,13 @@ echo "
 #--------------------------------------------------
 "
 if [ "$LE_SSL" = "yes" ]; then
-echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
-echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
+echo "set jitsi-meet/cert-choice    select    Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
+echo "jitsi-videobridge2    jitsi-videobridge/jvb-hostname    string    $JITSI_DOMAIN" | debconf-set-selections
 fi
 apt-get -y install \
-				jitsi-meet \
-				jibri \
-				openjdk-8-jre-headless
+                jitsi-meet \
+                jibri \
+                openjdk-8-jre-headless
 
 # Fix RAND_load_file error
 #https://github.com/openssl/openssl/issues/7754#issuecomment-444063355
@@ -345,19 +350,19 @@ echo "
 #--------------------------------------------------
 "
 if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" ]; then
-		echo "Nodejs is installed, skipping..."
+        echo "Nodejs is installed, skipping..."
     else
-		curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-		apt-get install -yq2 nodejs
-		echo "Installing nodejs esprima package..."
-		npm install -g esprima
+        curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+        apt-get install -yq2 nodejs
+        echo "Installing nodejs esprima package..."
+        npm install -g esprima
 fi
 
 if [ "$(npm list -g esprima 2>/dev/null | grep -c "empty")" == "1" ]; then
-	echo "Installing nodejs esprima package..."
-	npm install -g esprima
+    echo "Installing nodejs esprima package..."
+    npm install -g esprima
 elif [ "$(npm list -g esprima 2>/dev/null | grep -c "esprima")" == "1" ]; then
-	echo "Good. Esprima package is already installed"
+    echo "Good. Esprima package is already installed"
 fi
 
 CHD_LTST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
@@ -365,26 +370,26 @@ GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
 echo "# Installing Google Chrome / ChromeDriver"
 if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
-	echo "Google repository already set."
+    echo "Google repository already set."
 else
-	echo "Installing Google Chrome Stable"
-	wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
-	echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee $GOOGL_REPO
+    echo "Installing Google Chrome Stable"
+    wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee $GOOGL_REPO
 fi
 apt-get -q2 update
 apt-get install -yq2 google-chrome-stable
 rm -rf /etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list
 
 if [ -f /usr/local/bin/chromedriver ]; then
-	echo "Chromedriver already installed."
+    echo "Chromedriver already installed."
 else
-	echo "Installing Chromedriver"
-	wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
-	     -O /tmp/chromedriver_linux64.zip
-	unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
-	chown root:root /usr/local/bin/chromedriver
-	chmod 0755 /usr/local/bin/chromedriver
-	rm -rf /tpm/chromedriver_linux64.zip
+    echo "Installing Chromedriver"
+    wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
+         -O /tmp/chromedriver_linux64.zip
+    unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+    chown root:root /usr/local/bin/chromedriver
+    chmod 0755 /usr/local/bin/chromedriver
+    rm -rf /tpm/chromedriver_linux64.zip
 fi
 
 echo "
@@ -466,9 +471,9 @@ while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
 read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
 if [ "$DROP_TLS1" = "no" ]; then
-	echo "TLSv1.0/1.1 will remain."
+    echo "TLSv1.0/1.1 will remain."
 elif [ "$DROP_TLS1" = "yes" ]; then
-	echo "TLSv1.0/1.1 will be dropped"
+    echo "TLSv1.0/1.1 will be dropped"
 fi
 done
 #Dropbox -- no longer requirement for localrecording
@@ -476,9 +481,9 @@ done
 #do
 #read -p "> Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
 #if [ $ENABLE_DB = no ]; then
-#	echo "Dropbox won't be enable"
+#    echo "Dropbox won't be enable"
 #elif [ $ENABLE_DB = yes ]; then
-#	read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
+#    read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
 #fi
 #done
 #Brandless  Mode
@@ -486,9 +491,9 @@ while [[ "$ENABLE_BLESSM" != "yes" && "$ENABLE_BLESSM" != "no" ]]
 do
 read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
 if [ "$ENABLE_BLESSM" = "no" ]; then
-	echo "Brandless mode won't be set."
+    echo "Brandless mode won't be set."
 elif [ "$ENABLE_BLESSM" = "yes" ]; then
-	echo "Brandless mode will be set."
+    echo "Brandless mode will be set."
 fi
 done
 #Welcome Page
@@ -496,9 +501,9 @@ while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
 read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
 if [ "$ENABLE_WELCP" = "yes" ]; then
-	echo "Welcome page will be disabled."
+    echo "Welcome page will be disabled."
 elif [ "$ENABLE_WELCP" = "no" ]; then
-	echo "Welcome page will be enabled."
+    echo "Welcome page will be enabled."
 fi
 done
 #Enable static avatar
@@ -506,9 +511,9 @@ while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
 read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
 if [ "$ENABLE_SA" = "no" ]; then
-	echo "Static avatar won't be enabled"
+    echo "Static avatar won't be enabled"
 elif [ "$ENABLE_SA" = "yes" ]; then
-	echo "Static avatar will be enabled"
+    echo "Static avatar will be enabled"
 fi
 done
 # #Enable local audio recording - disabling
@@ -516,9 +521,9 @@ done
 #do
 #read -p "> Do you want to enable local audio recording option?: (yes or no)"$'\n' -r ENABLE_LAR
 #if [ "$ENABLE_LAR" = "no" ]; then
-#	echo "Local audio recording option won't be enabled"
+#    echo "Local audio recording option won't be enabled"
 #elif [ "$ENABLE_LAR" = "yes" ]; then
-#	echo "Local audio recording option will be enabled"
+#    echo "Local audio recording option will be enabled"
 #fi
 #done
 
@@ -527,11 +532,11 @@ done
 #do
 #read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
 #if [ "$ENABLE_SC" = "no" ]; then
-#	echo "-- Secure rooms won't be enabled."
+#    echo "-- Secure rooms won't be enabled."
 #elif [ "$ENABLE_SC" = "yes" ]; then
-#	echo "-- Secure rooms will be enabled."
-#	read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-#	read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
+#    echo "-- Secure rooms will be enabled."
+#    read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+#    read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
 #fi
 #done
 echo "
@@ -566,29 +571,29 @@ do
 read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
 if [ "$ENABLE_NC_ACCESS" = "no" ]; then
-	echo -e "-- JRA via Nextcloud won't be enabled.\n"
+    echo -e "-- JRA via Nextcloud won't be enabled.\n"
 elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo -e "-- JRA via Nextcloud will be enabled.\n"
+    echo -e "-- JRA via Nextcloud will be enabled.\n"
 fi
 done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
-	echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
+    echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
     thus, Jigasi Transcript can't be enable.
 "
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
-	while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
-	do
+    while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
+    do
 read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
-	if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
-		echo -e "-- Jigasi Transcription won't be enabled.\n"
-	elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-		echo -e "-- Jigasi Transcription will be enabled.\n"
-	fi
-	done
+    if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
+        echo -e "-- Jigasi Transcription won't be enabled.\n"
+    elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
+        echo -e "-- Jigasi Transcription will be enabled.\n"
+    fi
+    done
 else
-	echo "No valid option for Jigasi. Please report this to
+    echo "No valid option for Jigasi. Please report this to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 #Grafana
@@ -597,9 +602,9 @@ do
 read -p "> Do you want to setup Grafana Dashboard: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
 if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
-	echo -e "-- Grafana Dashboard won't be enabled.\n"
+    echo -e "-- Grafana Dashboard won't be enabled.\n"
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-	echo -e "-- Grafana Dashboard will be enabled. \n"
+    echo -e "-- Grafana Dashboard will be enabled. \n"
 fi
 done
 #Docker Etherpad
@@ -608,9 +613,9 @@ done
 #read -p "> Do you want to setup Docker Etherpad: (yes or no)
 #( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_DOCKERPAD
 #if [ "$ENABLE_DOCKERPAD" = "no" ]; then
-#	echo -e "-- Docker Etherpad won't be enabled.\n"
+#    echo -e "-- Docker Etherpad won't be enabled.\n"
 #elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-#	echo -e "-- Docker Etherpad will be enabled.\n"
+#    echo -e "-- Docker Etherpad will be enabled.\n"
 #fi
 #done
 #Start configuration
@@ -627,13 +632,13 @@ WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 ssl_wa() {
 if [ "$LE_SSL" = "yes" ]; then
 systemctl stop $1
-	letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
-	sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
-	sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
+    letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
+    sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
+    sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
 systemctl restart $1
-	#Add cron
-	crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
-	crontab -l
+    #Add cron
+    crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
+    crontab -l
 fi
 }
 
@@ -649,17 +654,17 @@ if [ "$LE_SSL" = "yes" ]; then
 
   echo "#Set and upgrade certbot PPA if posssible..."
   if [ "$CERTBOT_REPO" = "certbot" ]; then
-	echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
-	apt-get -q2 update
-	apt-get -yq2 dist-upgrade
+    echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
+    apt-get -q2 update
+    apt-get -yq2 dist-upgrade
   elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
-		echo -e "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
-		echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
-		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
-		apt-get -q2 update
-		apt-get -yq2 dist-upgrade
+        echo -e "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
+        echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
+        apt-get -q2 update
+        apt-get -yq2 dist-upgrade
   elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
-		echo -e "\nCertbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...\n"
+        echo -e "\nCertbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...\n"
   fi
 
 else
@@ -670,20 +675,20 @@ fi
 check_jibri() {
 if [ "$(dpkg-query -W -f='${Status}' "jibri" 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
-	systemctl restart jibri
-	systemctl restart jibri-icewm
-	systemctl restart jibri-xorg
+    systemctl restart jibri
+    systemctl restart jibri-icewm
+    systemctl restart jibri-xorg
 else
-	echo "Jibri service not installed"
+    echo "Jibri service not installed"
 fi
 }
 
 # Restarting services
 restart_services() {
-	systemctl restart jitsi-videobridge2
-	systemctl restart jicofo
-	systemctl restart prosody
-	check_jibri
+    systemctl restart jitsi-videobridge2
+    systemctl restart jicofo
+    systemctl restart prosody
+    check_jibri
 }
 
 # Configure Jvb2
@@ -722,10 +727,10 @@ sed -i "/c2s_require_encryption = false/a \\
 consider_bosh_secure = true" $PROSODY_SYS
 
 if [ ! -z $L10N_PARTICIPANT ]; then
-	sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
+    sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
 fi
 if [ ! -z $L10N_ME ]; then
-	sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
+    sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
 fi
 
 
@@ -775,11 +780,11 @@ fi
 
 #Setup main language
 if [ -z $JB_LANG ] || [ "$JB_LANG" = "en" ]; then
-	echo "Leaving English (en) as default language..."
-	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
+    echo "Leaving English (en) as default language..."
+    sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
 else
-	echo "Changing default language to: $JB_LANG"
-	sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$JB_LANG\',|" $MEET_CONF
+    echo "Changing default language to: $JB_LANG"
+    sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$JB_LANG\',|" $MEET_CONF
 fi
 
 # Recording directory
@@ -836,57 +841,57 @@ jibri {
         xmpp {
             environments = [
                 {
-				// A user-friendly name for this environment
-				name = "$JB_NAME"
+                // A user-friendly name for this environment
+                name = "$JB_NAME"
 
-				// A list of XMPP server hosts to which we'll connect
-				xmpp-server-hosts = [ "$DOMAIN" ]
+                // A list of XMPP server hosts to which we'll connect
+                xmpp-server-hosts = [ "$DOMAIN" ]
 
-				// The base XMPP domain
-				xmpp-domain = "$DOMAIN"
+                // The base XMPP domain
+                xmpp-domain = "$DOMAIN"
 
-				// The MUC we'll join to announce our presence for
-				// recording and streaming services
-				control-muc {
-					domain = "internal.auth.$DOMAIN"
-					room-name = "$JibriBrewery"
-					nickname = "Live"
-				}
+                // The MUC we'll join to announce our presence for
+                // recording and streaming services
+                control-muc {
+                    domain = "internal.auth.$DOMAIN"
+                    room-name = "$JibriBrewery"
+                    nickname = "Live"
+                }
 
-				// The login information for the control MUC
-				control-login {
-					domain = "auth.$DOMAIN"
-					username = "jibri"
-					password = "$JB_AUTH_PASS"
-				}
+                // The login information for the control MUC
+                control-login {
+                    domain = "auth.$DOMAIN"
+                    username = "jibri"
+                    password = "$JB_AUTH_PASS"
+                }
 
-				// An (optional) MUC configuration where we'll
-				// join to announce SIP gateway services
-			//	sip-control-muc {
-			//		domain = "domain"
-			//		room-name = "room-name"
-			//		nickname = "nickname"
-			//	}
+                // An (optional) MUC configuration where we'll
+                // join to announce SIP gateway services
+            //    sip-control-muc {
+            //        domain = "domain"
+            //        room-name = "room-name"
+            //        nickname = "nickname"
+            //    }
 
-				// The login information the selenium web client will use
-				call-login {
-					domain = "recorder.$DOMAIN"
-					username = "recorder"
-					password = "$JB_REC_PASS"
-				}
+                // The login information the selenium web client will use
+                call-login {
+                    domain = "recorder.$DOMAIN"
+                    username = "recorder"
+                    password = "$JB_REC_PASS"
+                }
 
-				// The value we'll strip from the room JID domain to derive
-				// the call URL
-				strip-from-room-domain = "conference."
+                // The value we'll strip from the room JID domain to derive
+                // the call URL
+                strip-from-room-domain = "conference."
 
-				// How long Jibri sessions will be allowed to last before
-				// they are stopped.  A value of 0 allows them to go on
-				// indefinitely
-				usage-timeout = 0 hour
+                // How long Jibri sessions will be allowed to last before
+                // they are stopped.  A value of 0 allows them to go on
+                // indefinitely
+                usage-timeout = 0 hour
 
-				// Whether or not we'll automatically trust any cert on
-				// this XMPP domain
-				trust-all-xmpp-certs = true
+                // Whether or not we'll automatically trust any cert on
+                // this XMPP domain
+                trust-all-xmpp-certs = true
                 }
             ]
         }
@@ -963,38 +968,38 @@ sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jvb2-node.sh
 
 #Tune webserver for Jitsi App control
 if [ -f $WS_CONF ]; then
-	sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ location = \/external_api.min.js {" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ alias \/usr\/share\/jitsi-meet\/libs\/external_api.min.js;" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
-	sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
-	systemctl reload nginx
+    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ location = \/external_api.min.js {" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ alias \/usr\/share\/jitsi-meet\/libs\/external_api.min.js;" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
+    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+    systemctl reload nginx
 else
-	echo "No app configuration done to server file, please report to:
+    echo "No app configuration done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
 #Static avatar
 if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
-	#wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
-	cp images/avatar2.png /usr/share/jitsi-meet/images/
-	sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {" $WS_CONF
-	sed -i "/location \/external_api.min.js/i \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;" $WS_CONF
-	sed -i "/location \/external_api.min.js/i \ \ \ \ }\\
+    #wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
+    cp images/avatar2.png /usr/share/jitsi-meet/images/
+    sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {" $WS_CONF
+    sed -i "/location \/external_api.min.js/i \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;" $WS_CONF
+    sed -i "/location \/external_api.min.js/i \ \ \ \ }\\
 \ " $WS_CONF
-	sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" $INT_CONF
-	sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+    sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" $INT_CONF
+    sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
-	echo -e "\nDropping TLSv1/1.1 in favor of v1.3"
-	sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
-	#sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
+    echo -e "\nDropping TLSv1/1.1 in favor of v1.3"
+    sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
+    #sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
 elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
-	echo -e "\nOnly dropping TLSv1/1.1"
-	sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
-	sed -i "s| TLSv1.3||" $WS_CONF
+    echo -e "\nOnly dropping TLSv1/1.1"
+    sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
+    sed -i "s| TLSv1.3||" $WS_CONF
 elif [ "$DROP_TLS1" = "no" ];then
-	echo "No TLSv1/1.1 dropping was done."
+    echo "No TLSv1/1.1 dropping was done."
 else
 echo "No condition meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
@@ -1064,9 +1069,9 @@ sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
 
 #Disable/enable welcome page
 if [ "$ENABLE_WELCP" = "yes" ]; then
-	sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" $MEET_CONF
+    sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" $MEET_CONF
 elif [ "$ENABLE_WELCP" = "no" ]; then
-	sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" $MEET_CONF
+    sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" $MEET_CONF
 fi
 #Set displayname as not required since jibri can't set it up.
 sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
@@ -1142,16 +1147,16 @@ chmod -R 650 /etc/prosody/certs/
 
 #SSL workaround
 if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
-	ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
-	install_ifnot python3-certbot-nginx
+    ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
+    install_ifnot python3-certbot-nginx
 else
-	echo "No webserver found please report."
+    echo "No webserver found please report."
 fi
 #Brandless  Mode
 if [ "$ENABLE_BLESSM" = "yes" ]; then
-	echo "Custom brandless mode will be enabled."
-	sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
-	bash $PWD/jm-bm.sh
+    echo "Custom brandless mode will be enabled."
+    sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
+    bash $PWD/jm-bm.sh
 fi
 # Applying best practives for interface config.js
 echo -e "\n> Setting up custom interface_config.js according to best practices."
@@ -1159,58 +1164,58 @@ cp "$INT_CONF" "$INT_CONF_ETC"
 
 #Tune webserver for interface_config.js
 if [ -f $WS_CONF ]; then
-	sed -i "/external_api.js/i \\\n" $WS_CONF
-	sed -i "/external_api.js/i \ \ \ \ location = \/interface_config.js {" $WS_CONF
-	sed -i "/external_api.js/i \ \ \ \ \ \ \ \ alias \/etc\/jitsi\/meet\/$DOMAIN-interface_config.js;" $WS_CONF
-	sed -i "/external_api.js/i \ \ \ \ }" $WS_CONF
-	sed -i "/external_api.js/i \\\n" $WS_CONF
-	systemctl reload nginx
+    sed -i "/external_api.js/i \\\n" $WS_CONF
+    sed -i "/external_api.js/i \ \ \ \ location = \/interface_config.js {" $WS_CONF
+    sed -i "/external_api.js/i \ \ \ \ \ \ \ \ alias \/etc\/jitsi\/meet\/$DOMAIN-interface_config.js;" $WS_CONF
+    sed -i "/external_api.js/i \ \ \ \ }" $WS_CONF
+    sed -i "/external_api.js/i \\\n" $WS_CONF
+    systemctl reload nginx
 else
-	echo "No interface_config.js configuration done to server file, please report to:
+    echo "No interface_config.js configuration done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-	echo -n "\nJRA via Nextcloud will be enabled."
-	if [ "$MODE" = "debug" ]; then
-	    bash $PWD/jra_nextcloud.sh -m debug
-	else
-	    bash $PWD/jra_nextcloud.sh
-	fi
+    echo -n "\nJRA via Nextcloud will be enabled."
+    if [ "$MODE" = "debug" ]; then
+        bash $PWD/jra_nextcloud.sh -m debug
+    else
+        bash $PWD/jra_nextcloud.sh
+    fi
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
 #Jigasi Transcript
 if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-	echo -e "\nJigasi Transcription will be enabled."
-	# ToDo: Analyze behavior on debug
-	#if [ "$MODE" = "debug" ]; then
-	#    bash $PWD/jigasi.sh -m debug
-	#else
-	    bash $PWD/jigasi.sh
-	#fi
+    echo -e "\nJigasi Transcription will be enabled."
+    # ToDo: Analyze behavior on debug
+    #if [ "$MODE" = "debug" ]; then
+    #    bash $PWD/jigasi.sh -m debug
+    #else
+        bash $PWD/jigasi.sh
+    #fi
 fi
 {
 #Grafana Dashboard
 if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-	echo -e "\nGrafana Dashboard will be enabled."
-	if [ "$MODE" = "debug" ]; then
-	    bash $PWD/grafana.sh -m debug
-	else
-	    bash $PWD/grafana.sh
-	fi
+    echo -e "\nGrafana Dashboard will be enabled."
+    if [ "$MODE" = "debug" ]; then
+        bash $PWD/grafana.sh -m debug
+    else
+        bash $PWD/grafana.sh
+    fi
 fi
 #Docker Etherpad
 if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-	echo -e "\nDocker Etherpad will be enabled."
-	if [ "$MODE" = "debug" ]; then
-	    bash $PWD/etherpad.sh -m debug
-	else
-	    bash $PWD/etherpad.sh
-	fi
+    echo -e "\nDocker Etherpad will be enabled."
+    if [ "$MODE" = "debug" ]; then
+        bash $PWD/etherpad.sh -m debug
+    else
+        bash $PWD/etherpad.sh
+    fi
 fi
 #Prevent Jibri conecction issue
 if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
-sed -i "/127.0.0.1/a \\
+    sed -i "/127.0.0.1/a \\
 127.0.0.1       $DOMAIN" /etc/hosts
 else
   echo "Local host already in place..."
