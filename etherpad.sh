@@ -6,11 +6,11 @@
 
 while getopts m: option
 do
-	case "${option}"
-	in
-		m) MODE=${OPTARG};;
-		\?) echo "Usage: sudo ./etherpad.sh [-m debug]" && exit;;
-	esac
+    case "${option}"
+    in
+        m) MODE=${OPTARG};;
+        \?) echo "Usage: sudo ./etherpad.sh [-m debug]" && exit;;
+    esac
 done
 
 #DEBUG
@@ -19,8 +19,8 @@ set -x
 fi
 
 if ! [ $(id -u) = 0 ]; then
-   echo "You need to be root or have sudo privileges!"
-   exit 0
+    echo "You need to be root or have sudo privileges!"
+    exit 0
 fi
 
 clear
@@ -41,10 +41,10 @@ cut -d "/" -f2
 }
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-	echo " $1 is installed, skipping..."
-    else
-    	echo -e "\n---- Installing $1 ----"
-		apt-get -yq2 install $1
+    echo " $1 is installed, skipping..."
+else
+    echo -e "\n---- Installing $1 ----"
+    apt-get -yq2 install $1
 fi
 }
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
@@ -63,10 +63,10 @@ ETHERPAD_SYSTEMD="/etc/systemd/system/etherpad-lite.service"
 echo "Addin NodeJS repo..."
 
 if [ "$NODE_JS_REPO" = "main" ]; then
-	echo "NodeJS repository already installed"
+    echo "NodeJS repository already installed"
 else
-		curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-		apt-get update
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    apt-get update
 fi
 
 read -p "Set your etherpad docker admin password: " -r ETHERPAD_ADMIN_PASS
@@ -162,15 +162,15 @@ if [ $(grep -c "etherpad" $WS_CONF) != 0 ]; then
     echo "> Webserver seems configured, skipping..."
 elif [ -f $WS_CONF ]; then
     echo "> Setting up webserver configuration file..."
-	sed -i "/Anything that didn't match above/i \ \ \ \ location \^\~\ \/etherpad\/ {" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:9001\/;" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_set_header X-Forwarded-For \$remote_addr;" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_buffering off;" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ location \^\~\ \/etherpad\/ {" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:9001\/;" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_set_header X-Forwarded-For \$remote_addr;" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_buffering off;" $WS_CONF
     sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_set_header       Host \$host;" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
-	sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
+    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
 else
-	echo "> No etherpad config done to server file, please report to:
+    echo "> No etherpad config done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
     
@@ -186,10 +186,10 @@ echo "> Checking nginx configuration..."
 nginx -t 2>/dev/null
 
 if [ $? = 0 ]; then
-	echo -e "  -- Docker configuration seems fine, enabling it."
-	systemctl reload nginx
+    echo -e "  -- Docker configuration seems fine, enabling it."
+    systemctl reload nginx
 else
-	echo "Please check your configuration, something may be wrong."
-	echo "Will not try to enable etherpad nginx configuration, please report to:
+    echo "Please check your configuration, something may be wrong."
+    echo "Will not try to enable etherpad nginx configuration, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi

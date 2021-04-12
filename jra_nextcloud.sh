@@ -4,11 +4,11 @@
 # GPLv3 or later.
 while getopts m: option
 do
-	case "${option}"
-	in
-		m) MODE=${OPTARG};;
-		\?) echo "Usage: sudo ./jra_nextcloud.sh [-m debug]" && exit;;
-	esac
+    case "${option}"
+    in
+        m) MODE=${OPTARG};;
+        \?) echo "Usage: sudo ./jra_nextcloud.sh [-m debug]" && exit;;
+    esac
 done
 
 #DEBUG
@@ -22,10 +22,10 @@ if ! [ $(id -u) = 0 ]; then
 fi
 exit_if_not_installed() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" != "1" ]; then
-	echo " This instance doesn't have $1 installed, exiting..."
-	echo " If you think this is an error, please report to:
+    echo " This instance doesn't have $1 installed, exiting..."
+    echo " If you think this is an error, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
-	exit
+    exit
 fi
 }
 clear
@@ -63,40 +63,39 @@ fi
 
 while [[ -z "$NC_DOMAIN" ]]
 do
-read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
-if [ -z "$NC_DOMAIN" ];then
-	echo "-- This field is mandatory."
-elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
-	echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
-fi
+    read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
+    if [ -z "$NC_DOMAIN" ];then
+        echo "-- This field is mandatory."
+    elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
+        echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
+    fi
 done
 NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
 while [[ -z "$NC_USER" ]]
 do
-read -p "Nextcloud user: " -r NC_USER
-if [ -z "$NC_USER" ]; then
-	echo "-- This field is mandatory."
-fi
+    read -p "Nextcloud user: " -r NC_USER
+    if [ -z "$NC_USER" ]; then
+        echo "-- This field is mandatory."
+    fi
 done
 while [ -z "$NC_PASS" ]  || [ ${#NC_PASS} -lt 6 ]
 do
-read -p "Nextcloud user password: " -r NC_PASS
-
-if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt 6 ]; then
-	echo -e "-- This field is mandatory. \nPlease make sure it's at least 6 caracters.\n"
-fi
+    read -p "Nextcloud user password: " -r NC_PASS
+    if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt 6 ]; then
+        echo -e "-- This field is mandatory. \nPlease make sure it's at least 6 caracters.\n"
+    fi
 done
 #Enable HSTS
 while [[ "$ENABLE_HSTS" != "yes" && "$ENABLE_HSTS" != "no" ]]
 do
-read -p "> Do you want to enable HSTS for this domain?: (yes or no)
+    read -p "> Do you want to enable HSTS for this domain?: (yes or no)
   Be aware this option apply mid-term effects on the domain, choose \"no\"
   in case you don't know what you are doing. More at https://hstspreload.org/"$'\n' -r ENABLE_HSTS
-if [ "$ENABLE_HSTS" = "no" ]; then
-	echo "-- HSTS won't be enabled."
-elif [ "$ENABLE_HSTS" = "yes" ]; then
-	echo "-- HSTS will be enabled."
-fi
+    if [ "$ENABLE_HSTS" = "no" ]; then
+        echo "-- HSTS won't be enabled."
+    elif [ "$ENABLE_HSTS" = "yes" ]; then
+        echo "-- HSTS will be enabled."
+    fi
 done
 
 echo -e "\n# Check for jitsi-meet/jibri\n"
@@ -111,31 +110,31 @@ fi
 
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-	echo " This instance already has $1 installed, exiting..."
-	echo " If you think this is an error, please report to:
+    echo " This instance already has $1 installed, exiting..."
+    echo " If you think this is an error, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
-	exit
+    exit
 fi
 }
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-	echo " $1 is installed, skipping..."
-    else
-    	echo -e "\n---- Installing $1 ----"
-		apt-get -yq2 install $1
+    echo " $1 is installed, skipping..."
+else
+    echo -e "\n---- Installing $1 ----"
+    apt-get -yq2 install $1
 fi
 }
 add_php74() {
-	if [ "$PHP_REPO" = "php" ]; then
-		echo "PHP $PHPVER already installed"
-		apt-get -q2 update
-		apt-get -yq2 dist-upgrade
-	else
-		echo "# Adding Ondrej PHP $PHPVER PPA Repository"
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com E5267A6C
-		echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php7x.list
-		apt-get update -q2
-	fi
+if [ "$PHP_REPO" = "php" ]; then
+    echo "PHP $PHPVER already installed"
+    apt-get -q2 update
+    apt-get -yq2 dist-upgrade
+else
+    echo "# Adding Ondrej PHP $PHPVER PPA Repository"
+    apt-key adv --recv-keys --keyserver keyserver.ubuntu.com E5267A6C
+    echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php7x.list
+    apt-get update -q2
+fi
 }
 #Prevent root folder permission issues
 cp $PWD/files/jra-nc-app-ef.json /tmp
@@ -374,26 +373,26 @@ NC_NGINX
 systemctl stop nginx
 letsencrypt certonly --standalone --renew-by-default --agree-tos -d $NC_DOMAIN
 if [ -f /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem ];then
-	ln -s $NC_NGINX_CONF /etc/nginx/sites-enabled/
+    ln -s $NC_NGINX_CONF /etc/nginx/sites-enabled/
 else
-	echo "There are issues on getting the SSL certs..."
-	read -n 1 -s -r -p "Press any key to continue"
+    echo "There are issues on getting the SSL certs..."
+    read -n 1 -s -r -p "Press any key to continue"
 fi
 nginx -t
 systemctl restart nginx
 
 if [ "$ENABLE_HSTS" = "yes" ]; then
-sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
+    sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
-if [ "$DISTRO_RELEASE" != "xenial" ] && [ ! -z $PREAD_PROXY ]; then
-echo "
+if [ "$DISTRO_RELEASE" != "xenial" ] && [ ! -z "$PREAD_PROXY" ]; then
+    echo "
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "
-	sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" $JITSI_MEET_PROXY
-	sed -i "/server {/i \ \ \ \ \ \ $DOMAIN      web;" $JITSI_MEET_PROXY
-	sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN web;" $JITSI_MEET_PROXY
-	sed -i "/server {/i \ \ }" $JITSI_MEET_PROXY
+    sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" $JITSI_MEET_PROXY
+    sed -i "/server {/i \ \ \ \ \ \ $DOMAIN      web;" $JITSI_MEET_PROXY
+    sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN web;" $JITSI_MEET_PROXY
+    sed -i "/server {/i \ \ }" $JITSI_MEET_PROXY
 fi
 
 echo "

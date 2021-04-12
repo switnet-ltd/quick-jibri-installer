@@ -15,9 +15,9 @@ if ! [ $(id -u) = 0 ]; then
    exit 0
 fi
 if [ ! -f jm-bm.sh ]; then
-        echo "Please check that you are running the jitsi updater while being on the project folder"
-        echo "other wise the updater might have errors or be incomplete. Exiting..."
-        exit
+    echo "Please check that you are running the jitsi updater while being on the project folder"
+    echo "other wise the updater might have errors or be incomplete. Exiting..."
+    exit
 fi
 support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
@@ -26,7 +26,7 @@ ENABLE_BLESSM="TBD"
 CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 CHD_LTST_2D="$(echo $CHD_LTST|cut -d "." -f 1,2)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
-DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
+DOMAIN="$(ls /etc/prosody/conf.d|awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 NC_DOMAIN="TBD"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f $JITSI_MEET_PROXY ];then
@@ -42,10 +42,10 @@ else
     echo "Seems no Google repo installed"
 fi
 if [ -z $CHDB ]; then
-	echo "Seems no chromedriver installed"
+    echo "Seems no chromedriver installed"
 else
     CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
-    CHD_VER_2D="$(echo $CHD_VER_LOCAL|cut -d "." -f 1,2)"
+    CHD_VER_2D="$(echo $CHD_VER_LOCAL|awk '{printf "%.1f\n", $NF}')"
 fi
 
 # True if $1 is greater than $2
@@ -54,20 +54,20 @@ version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 check_jibri() {
 if [ "$(dpkg-query -W -f='${Status}' "jibri" 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
-	systemctl restart jibri
-	systemctl restart jibri-icewm
-	systemctl restart jibri-xorg
+    systemctl restart jibri
+    systemctl restart jibri-icewm
+    systemctl restart jibri-xorg
 else
-	echo "Jibri service not installed"
+    echo "Jibri service not installed"
 fi
 }
 
 # Restarting services
 restart_services() {
-	systemctl restart jitsi-videobridge2
-	systemctl restart jicofo
-	check_jibri
-	systemctl restart prosody
+    systemctl restart jitsi-videobridge2
+    systemctl restart jicofo
+    check_jibri
+    systemctl restart prosody
 }
 
 update_jitsi_repo() {
@@ -77,27 +77,27 @@ update_jitsi_repo() {
 }
 
 update_google_repo() {
-	if [ -f $apt_repo/google-chrome.list ]; then
+    if [ -f $apt_repo/google-chrome.list ]; then
     apt-get update -o Dir::Etc::sourcelist="sources.list.d/google-chrome.list" \
         -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
     apt-get install -qq --only-upgrade $google_package
     else
-		echo "No Google repository found"
-	fi
+        echo "No Google repository found"
+    fi
 }
-GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{print$3}'|cut -d "." -f 1,2)"
+GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{printf "%.1f\n", $NF}')"
 upgrade_cd() {
-if [ ! -z $GOOGL_VER_2D ]; then
+if [ ! -z "$GOOGL_VER_2D" ]; then
     if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" && \
     [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
         echo "Upgrading Chromedriver to Google Chromes version"
-        wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
+        wget -q https://chromedriver.storage.googleapis.com/"$CHD_LTST"/chromedriver_linux64.zip \
              -O /tmp/chromedriver_linux64.zip
         unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
-        chown root:root $CHDB
-        chmod 0755 $CHDB
+        chown root:root "$CHDB"
+        chmod 0755 "$CHDB"
         rm -rf /tpm/chromedriver_linux64.zip
-        printf "Current version: ${Green} "$($CHDB -v | awk '{print $2}'|cut -d "." -f 1,2)" ${Color_Off}\n"
+        printf "Current version: ${Green} "$($CHDB -v |awk '{print $2}'|awk '{printf "%.1f\n", $NF}')" ${Color_Off}\n"
     else
         echo "No need to upgrade Chromedriver"
         printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
@@ -110,26 +110,26 @@ fi
 check_lst_cd() {
 printf "${Purple}Checking for the latest Chromedriver${Color_Off}\n"
 if [ -f $CHDB ]; then
-        printf "Current installed Chromedriver: ${Yellow} $CHD_VER_2D ${Color_Off}\n"
-        printf "Current installed Google Chrome: ${Green} $GOOGL_VER_2D ${Color_Off}\n"
-        upgrade_cd
+    printf "Current installed Chromedriver: ${Yellow} $CHD_VER_2D ${Color_Off}\n"
+    printf "Current installed Google Chrome: ${Green} $GOOGL_VER_2D ${Color_Off}\n"
+    upgrade_cd
 else
-	printf "${Yellow} -> Seems there is no Chromedriver installed${Color_Off}\n"
+    printf "${Yellow} -> Seems there is no Chromedriver installed${Color_Off}\n"
 fi
 }
 
 printf "${Blue}Update & upgrade Jitsi and components${Color_Off}\n"
 if [ -f $apt_repo/jitsi-unstable.list ]; then
-	update_jitsi_repo unstable
-	update_google_repo
-	check_lst_cd
+    update_jitsi_repo unstable
+    update_google_repo
+    check_lst_cd
 elif [ -f $apt_repo/jitsi-stable.list ]; then
-	update_jitsi_repo stable
-	update_google_repo
-	check_lst_cd
+    update_jitsi_repo stable
+    update_google_repo
+    check_lst_cd
 else
-	echo "Please check your repositories, something is not right."
-	exit 1
+    echo "Please check your repositories, something is not right."
+    exit 1
 fi
 # Any customization, image, name or link change for any purpose should
 # be documented here so new updates won't remove those changes.
@@ -146,32 +146,28 @@ if [ -f "$INT_CONF_ETC" ]; then
     echo "Static interface_config.js exists, skipping modification..."
 else
     echo "This setup doesn't have a static interface_config.js, checking changes..."
-	printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
-	if [[ -z "$AVATAR" ]]; then
-		echo "Moving on..."
-	else
-		echo "Setting Static Avatar"
-		sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
-		sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
-	fi
-
-	printf "${Purple}========== Setting Support Link  ==========${Color_Off}\n"
-	if [[ -z $support ]]; then
-		echo "Moving on..."
-	else
-		echo "Setting Support custom link"
-		sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
-	fi
-
-	printf "${Purple}========== Disable Localrecording  ==========${Color_Off}\n"
-	if [ "$LOC_REC" != "on" ]; then
-			echo "Removing localrecording..."
-			sed -i "s|'localrecording',||" $INT_CONF
-	fi
-
-	printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
-	sed -i "s|'videobackgroundblur', ||" $INT_CONF
-
+    printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
+    if [[ -z "$AVATAR" ]]; then
+        echo "Moving on..."
+    else
+        echo "Setting Static Avatar"
+        sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
+        sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+    fi
+    printf "${Purple}========== Setting Support Link  ==========${Color_Off}\n"
+    if [[ -z $support ]]; then
+        echo "Moving on..."
+    else
+        echo "Setting Support custom link"
+        sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
+    fi
+    printf "${Purple}========== Disable Localrecording  ==========${Color_Off}\n"
+    if [ "$LOC_REC" != "on" ]; then
+            echo "Removing localrecording..."
+            sed -i "s|'localrecording',||" $INT_CONF
+    fi
+    printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
+    sed -i "s|'videobackgroundblur', ||" $INT_CONF
 fi
 
 if [  "$NC_DOMAIN" != "TBD" ]; then
@@ -181,21 +177,19 @@ printf "${Purple}========== Enable $NC_DOMAIN for sync client ==========${Color_
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "
         sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" $JITSI_MEET_PROXY
-        sed -i "/server {/i \ \ \ \ \ \ $DOMAIN      web;" $JITSI_MEET_PROXY
-        sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN web;" $JITSI_MEET_PROXY
+        sed -i "/server {/i \ \ \ \ \ \ $DOMAIN    web;" $JITSI_MEET_PROXY
+        sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN    web;" $JITSI_MEET_PROXY
         sed -i "/server {/i \ \ }" $JITSI_MEET_PROXY
       else
         echo "$NC_DOMAIN seems to be on place, skipping..."
     fi
 fi
-
 restart_services
-
 
 ########################################################################
 #                         Brandless mode                               #
 ########################################################################
-if [ $ENABLE_BLESSM = on ]; then
-	bash $PWD/jm-bm.sh
+if [ "$ENABLE_BLESSM" = "on" ]; then
+    bash $PWD/jm-bm.sh
 fi
 printf "${Blue}Script completed \o/! ${Color_Off}\n"
