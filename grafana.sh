@@ -14,11 +14,11 @@
 
 while getopts m: option
 do
-	case "${option}"
-	in
-		m) MODE=${OPTARG};;
-		\?) echo "Usage: sudo ./grafana.sh [-m debug]" && exit;;
-	esac
+    case "${option}"
+    in
+        m) MODE=${OPTARG};;
+        \?) echo "Usage: sudo ./grafana.sh [-m debug]" && exit;;
+    esac
 done
 
 #DEBUG
@@ -51,14 +51,18 @@ WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 
 # Min requirements
-apt update && apt install -y gnupg2 curl wget jq
+apt-get update && \
+apt-get install -y gnupg2 \
+                   curl \
+                   wget \
+                   jq
 
 echo "
 # Setup InfluxDB Packages
 "
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
-apt update && apt install influxdb -y
+apt-get update && apt-get install influxdb -y
 run_service influxdb
 
 echo "
@@ -66,7 +70,7 @@ echo "
 "
 curl -s https://packages.grafana.com/gpg.key | sudo apt-key add -
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
-apt update && apt install grafana -y
+apt-get update && apt-get install grafana -y
 run_service grafana-server
 
 echo "
@@ -74,7 +78,7 @@ echo "
 "
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
 echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
-apt update && apt install telegraf -y
+apt-get update && apt-get install telegraf -y
 mv /etc/telegraf/telegraf.conf /etc/telegraf/telegraf.conf.original
 
 echo "
@@ -159,13 +163,13 @@ while [ $secs -gt 0 ]; do
 done
 
 if [ -f $WS_CONF ]; then
-	sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" $WS_CONF
-	sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
-	sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
-	systemctl restart nginx
+    sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" $WS_CONF
+    sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
+    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+    systemctl restart nginx
 else
-	echo "No app configuration done to server file, please report to:
+    echo "No app configuration done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
 
@@ -186,12 +190,12 @@ echo "
 curl -s -k -u "admin:$GRAFANA_PASS" -X \
 POST -H 'Content-Type: application/json;charset=UTF-8' -d \
 '{
-	"name": "InfluxDB",
-	"type": "influxdb",
-	"url": "http://localhost:8086",
-	"access": "proxy",
-	"isDefault": true,
-	"database": "jitsi"
+    "name": "InfluxDB",
+    "type": "influxdb",
+    "url": "http://localhost:8086",
+    "access": "proxy",
+    "isDefault": true,
+    "database": "jitsi"
 }' http://localhost:3000/api/datasources; echo ""
 
 echo "
