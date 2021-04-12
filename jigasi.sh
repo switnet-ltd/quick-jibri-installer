@@ -35,17 +35,17 @@ DIST=$(lsb_release -sc)
 CHECK_GC_REPO=$(apt-cache policy | grep http | grep cloud-sdk | head -n1 | awk '{print $3}' | awk -F '/' '{print $1}')
 
 install_gc_repo() {
-	if [ "$CHECK_GC_REPO" = "cloud-sdk-$DIST" ]; then
-	echo "
+if [ "$CHECK_GC_REPO" = "cloud-sdk-$DIST" ]; then
+    echo "
 Google Cloud SDK repository already on the system!
 "
 else
-	echo "
+    echo "
 Adding Google Cloud SDK repository for latest updates
 "
-	export CLOUD_SDK_REPO="cloud-sdk-$DIST"
-	echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-	curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+    export CLOUD_SDK_REPO="cloud-sdk-$DIST"
+    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 
 fi
 }
@@ -56,14 +56,14 @@ apt-get -y install google-cloud-sdk google-cloud-sdk-app-engine-java
 echo "Please select one of the current options:
 [1] I want to configure a new project, service account, billing and JSON credentials.
 [2] I already have one project configured and already have a JSON key file from Google"
-while [[ $SETUP_TYPE != 1 && $SETUP_TYPE != 2 ]]
+while [[ "$SETUP_TYPE" != "1" && "$SETUP_TYPE" != "2" ]]
 do
-read -p "What option suits your setup?: (1 or 2)"$'\n' -r SETUP_TYPE
-if [ $SETUP_TYPE = 1 ]; then
-	echo "We'll setup a GC Projects from scratch"
-elif [ $SETUP_TYPE = 2 ]; then
-	echo "We'll setup only the proect and JSON key."
-fi
+    read -p "What option suits your setup?: (1 or 2)"$'\n' -r SETUP_TYPE
+    if [ "$SETUP_TYPE" = "1" ]; then
+      echo "We'll setup a GC Projects from scratch"
+    elif [ "$SETUP_TYPE" = "2" ]; then
+      echo "We'll setup only the proect and JSON key."
+    fi
 done
 
 if [ $SETUP_TYPE = 1 ]; then
@@ -84,10 +84,10 @@ while [ -z $PROJECT_GC_ID ]
 do
 read -p "Enter the project name you just created for Jigasi Speech-to-Text"$'\n' -r GC_PROJECT_NAME
 if [ -z PROJECT_GC_ID ]; then
-	echo "Please check your project name,
-	There is no project listed with the provided name: $GC_PROJECT_NAME"
-	PROJECT_GC_ID=$(gcloud projects list | grep $GC_PROJECT_NAME | awk '{print$3}')
-fi
+    echo "Please check your project name,"
+    echo "There is no project listed with the provided name: $GC_PROJECT_NAME"
+        PROJECT_GC_ID=$(gcloud projects list | grep $GC_PROJECT_NAME | awk '{print$3}')
+    fi
 done
 echo "Your $GC_PROJECT_NAME ID's project is: $PROJECT_GC_ID"
 
@@ -101,8 +101,8 @@ while [[ $? -eq 1 ]]
 do
 CHECK_BILLING="$(gcloud services enable speech.googleapis.com 2>/dev/null)"
 if [[ $? -eq 1 ]]; then
-        echo "Seems you haven't enabled billing for this project: $GC_PROJECT_NAME
-    For that go to: https://console.developers.google.com/project/$PROJECT_GC_ID/settings
+        echo "Seems you haven't enabled billing for this project: $GC_PROJECT_NAME"
+        exho "  For that go to: https://console.developers.google.com/project/$PROJECT_GC_ID/settings
     "
         read -p "Press Enter to continue"
         CHECK_BILLING="$(gcloud services enable speech.googleapis.com 2>/dev/null)"
@@ -122,7 +122,7 @@ https://console.developers.google.com/apis/credentials?folder=&organizationId=&p
 ### End of new project configuration - Google SDK
 fi
 
-if [ $SETUP_TYPE = 2 ]; then
+if [ "$SETUP_TYPE" = "2" ]; then
 #Setup option 1 - Google Cloud SDK
 echo "Once logged on Google Cloud SDK, please select the project that owns to the JSON key."
 gcloud init
@@ -292,10 +292,10 @@ cat << JIG_JIC >> $JIC_SIP_PROP
 org.jitsi.jicofo.jigasi.BREWERY=JigasiBreweryRoom@internal.auth.$DOMAIN
 JIG_JIC
 
-systemctl restart 	prosody \
-                    jicofo \
-                    jibri* \
-                    jitsi-videobridge2
+systemctl restart prosody \
+                  jicofo \
+                  jibri* \
+                  jitsi-videobridge2
 
 echo "
 Full transcript files are available at:
