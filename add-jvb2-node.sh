@@ -9,18 +9,18 @@
 
 #Make sure the file name is the required one
 if [ ! "$(basename $0)" = "add-jvb2-node.sh" ]; then
-	echo "For most cases naming won't matter, for this one it does."
-	echo "Please use the original name for this script: \`add-jvb2-node.sh', and run again."
-	exit
+    echo "For most cases naming won't matter, for this one it does."
+    echo "Please use the original name for this script: \`add-jvb2-node.sh', and run again."
+    exit
 fi
 
 while getopts m: option
 do
-	case "${option}"
-	in
-		m) MODE=${OPTARG};;
-		\?) echo "Usage: sudo ./add-jvb2-node.sh [-m debug]" && exit;;
-	esac
+    case "${option}"
+    in
+        m) MODE=${OPTARG};;
+        \?) echo "Usage: sudo ./add-jvb2-node.sh [-m debug]" && exit;;
+    esac
 done
 
 #DEBUG
@@ -73,33 +73,33 @@ NJN_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 
 # sed limiters for add-jvb2-node.sh variables
 var_dlim() {
-	grep -n $1 add-jvb2-node.sh|head -n1|cut -d ":" -f1
+    grep -n $1 add-jvb2-node.sh|head -n1|cut -d ":" -f1
 }
 
 check_var() {
-	if [ -z "$2" ]; then
-		echo -e "Check if variable $1 is set: \xE2\x9C\x96 \nExiting..."
-		exit
-	else
-		echo -e "Check if variable $1 is set: \xE2\x9C\x94"
-	fi
+    if [ -z "$2" ]; then
+        echo -e "Check if variable $1 is set: \xE2\x9C\x96 \nExiting..."
+        exit
+    else
+        echo -e "Check if variable $1 is set: \xE2\x9C\x94"
+    fi
 }
 
 if [ -z "$LAST" ]; then
-	echo "There is an error on the LAST definition, please report."
-	exit
+    echo "There is an error on the LAST definition, please report."
+    exit
 elif [ "$LAST" = "TBD" ]; then
-	ADDUP=$((START + 1))
+    ADDUP=$((START + 1))
 else
-	ADDUP=$((LAST + 1))
+    ADDUP=$((LAST + 1))
 fi
 
 #Check server and node OS
 if [ ! "$THIS_SRV_DIST" = "$MAIN_SRV_DIST" ]; then
-	echo "Please use the same OS for the JVB2 setup on both servers."
-	echo "This server is based on: $THIS_SRV_DIST"
-	echo "The main server record claims is based on: $MAIN_SRV_DIST"
-	exit
+    echo "Please use the same OS for the JVB2 setup on both servers."
+    echo "This server is based on: $THIS_SRV_DIST"
+    echo "The main server record claims is based on: $MAIN_SRV_DIST"
+    exit
 fi
 
 #Check system resources
@@ -177,15 +177,15 @@ sed -i "1i 127.0.0.1 jvb${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
 if [ -z "$JITSI_REPO" ]; then
-	echo "deb http://download.jitsi.org $MAIN_SRV_REPO/" > /etc/apt/sources.list.d/jitsi-$MAIN_SRV_REPO.list
-	wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
+    echo "deb http://download.jitsi.org $MAIN_SRV_REPO/" > /etc/apt/sources.list.d/jitsi-$MAIN_SRV_REPO.list
+    wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 elif [ ! "$JITSI_REPO" = "$MAIN_SRV_REPO" ]; then
-	echo "Main and node servers repository don't match, extiting.."
-	exit
+    echo "Main and node servers repository don't match, extiting.."
+    exit
 elif [ "$JITSI_REPO" = "$MAIN_SRV_REPO" ]; then
-	echo "Main and node servers repository match, continuing..."
+    echo "Main and node servers repository match, continuing..."
 else
-	echo "Jitsi $JITSI_REPO repository already installed"
+    echo "Jitsi $JITSI_REPO repository already installed"
 fi
 
 # Requirements
@@ -194,14 +194,14 @@ apt-get update -q2
 apt-get dist-upgrade -yq2
 
 apt-get -y install \
-                apt-show-versions \
-                bmon \
-                curl \
-                git \
-                htop \
-                ssh \
-                unzip \
-                wget
+                    apt-show-versions \
+                    bmon \
+                    curl \
+                    git \
+                    htop \
+                    ssh \
+                    unzip \
+                    wget
 
 echo "# Check and Install HWE kernel if possible..."
 HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
@@ -222,8 +222,8 @@ echo "
 echo "jitsi-videobridge jitsi-videobridge/jvb-hostname string $MAIN_SRV_DOMAIN" | debconf-set-selections
 
 apt-get -y install \
-                jitsi-videobridge2 \
-                openjdk-8-jre-headless
+                    jitsi-videobridge2 \
+                    openjdk-8-jre-headless
 
 echo '
 ########################################################################

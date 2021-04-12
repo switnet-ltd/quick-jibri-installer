@@ -174,10 +174,10 @@ else
     do
     read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
     if [ "$CONTINUE_LOW_RES" = "no" ]; then
-            echo "See you next time with more resources!..."
-            exit
+        echo "See you next time with more resources!..."
+        exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
-            echo "Please keep in mind that we might not support underpowered nodes."
+        echo "Please keep in mind that we might not support underpowered nodes."
     fi
     done
 fi
@@ -251,7 +251,7 @@ HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/de
 if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
     linux-image-generic-hwe-$(lsb_release -sr)
-    else
+else
     apt-get -y install \
     linux-image-generic \
     linux-modules-extra-$(uname -r)

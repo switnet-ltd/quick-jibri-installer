@@ -266,19 +266,18 @@ if [ "$LE_SSL" = "yes" ]; then
   do
     read -p "> Please set your domain (or subdmain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
     read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
-  if [ "$ANS_JD" = "yes" ]; then
-    echo "Alright, let's use $JITSI_DOMAIN."
-  else
-    echo "Please try again."
-  fi
+    if [ "$ANS_JD" = "yes" ]; then
+      echo "Alright, let's use $JITSI_DOMAIN."
+    else
+      echo "Please try again."
+    fi
   done
-
   #Simple DNS test
-  if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
-    echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
+    if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
+        echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
 "
-  else
-    echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
+    else
+       echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
     echo "  > Please check your dns records are applied and updated, otherwise components may fail."
       read -p "  > Do you want to continue?: (yes or no)"$'\n' -r DNS_CONTINUE
         if [ "$DNS_CONTINUE" = "yes" ]; then
@@ -295,18 +294,18 @@ apt-get update -q2
 apt-get dist-upgrade -yq2
 
 apt-get -y install \
-                apt-show-versions \
-                bmon \
-                curl \
-                ffmpeg \
-                git \
-                htop \
-                jq \
-                net-tools \
-                rsync \
-                ssh \
-                unzip \
-                wget
+                    apt-show-versions \
+                    bmon \
+                    curl \
+                    ffmpeg \
+                    git \
+                    htop \
+                    jq \
+                    net-tools \
+                    rsync \
+                    ssh \
+                    unzip \
+                    wget
 
 if [ "$LE_SSL" = "yes" ]; then
 apt-get -y install \
@@ -318,7 +317,7 @@ HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/de
 if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
     linux-image-generic-hwe-$(lsb_release -sr)
-    else
+else
     apt-get -y install \
     linux-image-generic \
     linux-modules-extra-$(uname -r)
@@ -350,12 +349,12 @@ echo "
 #--------------------------------------------------
 "
 if [ "$(dpkg-query -W -f='${Status}' nodejs 2>/dev/null | grep -c "ok")" == "1" ]; then
-        echo "Nodejs is installed, skipping..."
-    else
-        curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-        apt-get install -yq2 nodejs
-        echo "Installing nodejs esprima package..."
-        npm install -g esprima
+    echo "Nodejs is installed, skipping..."
+else
+    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+    apt-get install -yq2 nodejs
+    echo "Installing nodejs esprima package..."
+    npm install -g esprima
 fi
 
 if [ "$(npm list -g esprima 2>/dev/null | grep -c "empty")" == "1" ]; then
@@ -469,12 +468,12 @@ read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
-read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
-if [ "$DROP_TLS1" = "no" ]; then
-    echo "TLSv1.0/1.1 will remain."
-elif [ "$DROP_TLS1" = "yes" ]; then
-    echo "TLSv1.0/1.1 will be dropped"
-fi
+    read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
+    if [ "$DROP_TLS1" = "no" ]; then
+        echo "TLSv1.0/1.1 will remain."
+    elif [ "$DROP_TLS1" = "yes" ]; then
+        echo "TLSv1.0/1.1 will be dropped"
+    fi
 done
 #Dropbox -- no longer requirement for localrecording
 #while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
@@ -489,32 +488,32 @@ done
 #Brandless  Mode
 while [[ "$ENABLE_BLESSM" != "yes" && "$ENABLE_BLESSM" != "no" ]]
 do
-read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
-if [ "$ENABLE_BLESSM" = "no" ]; then
-    echo "Brandless mode won't be set."
-elif [ "$ENABLE_BLESSM" = "yes" ]; then
-    echo "Brandless mode will be set."
-fi
+    read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
+    if [ "$ENABLE_BLESSM" = "no" ]; then
+        echo "Brandless mode won't be set."
+    elif [ "$ENABLE_BLESSM" = "yes" ]; then
+        echo "Brandless mode will be set."
+    fi
 done
 #Welcome Page
 while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
-read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
-if [ "$ENABLE_WELCP" = "yes" ]; then
-    echo "Welcome page will be disabled."
-elif [ "$ENABLE_WELCP" = "no" ]; then
-    echo "Welcome page will be enabled."
-fi
+    read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
+    if [ "$ENABLE_WELCP" = "yes" ]; then
+        echo "Welcome page will be disabled."
+    elif [ "$ENABLE_WELCP" = "no" ]; then
+        echo "Welcome page will be enabled."
+    fi
 done
 #Enable static avatar
 while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
-read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
-if [ "$ENABLE_SA" = "no" ]; then
-    echo "Static avatar won't be enabled"
-elif [ "$ENABLE_SA" = "yes" ]; then
-    echo "Static avatar will be enabled"
-fi
+    read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
+    if [ "$ENABLE_SA" = "no" ]; then
+        echo "Static avatar won't be enabled"
+    elif [ "$ENABLE_SA" = "yes" ]; then
+        echo "Static avatar will be enabled"
+    fi
 done
 # #Enable local audio recording - disabling
 #while [[ "$ENABLE_LAR" != "yes" && "$ENABLE_LAR" != "no" ]]
@@ -568,13 +567,13 @@ done
 #Jibri Records Access (JRA) via Nextcloud
 while [[ "$ENABLE_NC_ACCESS" != "yes" && "$ENABLE_NC_ACCESS" != "no" ]]
 do
-read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
+    read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
-if [ "$ENABLE_NC_ACCESS" = "no" ]; then
-    echo -e "-- JRA via Nextcloud won't be enabled.\n"
-elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-    echo -e "-- JRA via Nextcloud will be enabled.\n"
-fi
+    if [ "$ENABLE_NC_ACCESS" = "no" ]; then
+    	echo -e "-- JRA via Nextcloud won't be enabled.\n"
+    elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
+    	echo -e "-- JRA via Nextcloud will be enabled.\n"
+    fi
 done
 #Jigasi
 if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
@@ -584,13 +583,13 @@ if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; t
 elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
     while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
     do
-read -p "> Do you want to setup Jigasi Transcription: (yes or no)
+        read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
-    if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
-        echo -e "-- Jigasi Transcription won't be enabled.\n"
-    elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-        echo -e "-- Jigasi Transcription will be enabled.\n"
-    fi
+        if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
+            echo -e "-- Jigasi Transcription won't be enabled.\n"
+        elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
+            echo -e "-- Jigasi Transcription will be enabled.\n"
+        fi
     done
 else
     echo "No valid option for Jigasi. Please report this to
@@ -644,7 +643,7 @@ fi
 
 enable_letsencrypt() {
 if [ "$LE_SSL" = "yes" ]; then
-  echo '
+    echo '
 #--------------------------------------------------
 # Starting LetsEncrypt configuration
 #--------------------------------------------------
@@ -652,23 +651,22 @@ if [ "$LE_SSL" = "yes" ]; then
 #Disabled 'til fixed upstream
 #bash /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
 
-  echo "#Set and upgrade certbot PPA if posssible..."
-  if [ "$CERTBOT_REPO" = "certbot" ]; then
-    echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
-    apt-get -q2 update
-    apt-get -yq2 dist-upgrade
-  elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
+    echo "#Set and upgrade certbot PPA if posssible..."
+    if [ "$CERTBOT_REPO" = "certbot" ]; then
+        echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
+        apt-get -q2 update
+        apt-get -yq2 dist-upgrade
+    elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
         echo -e "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
         echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
         apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
         apt-get -q2 update
         apt-get -yq2 dist-upgrade
-  elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
+    elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
         echo -e "\nCertbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...\n"
-  fi
-
+    fi
 else
-  echo "SSL setup will be skipped."
+    echo "SSL setup will be skipped."
 fi
 }
 
@@ -766,16 +764,15 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 
 #LocalAudioRecording
 if [ "$ENABLE_LAR" = "yes" ]; then
-echo "# Enabling local recording (audio only)."
-LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
-LR_END=$((LR_STR + 18))
-sed -i "$LR_STR,$LR_END{s|// localRecording: {|localRecording: {|}" $MEET_CONF
-sed -i "$LR_STR,$LR_END{s|//     enabled: true,|enabled: true,|}" $MEET_CONF
-sed -i "$LR_STR,$LR_END{s|//     format: 'flac'|format: 'flac'|}" $MEET_CONF
-sed -i "$LR_STR,$LR_END{s|// }|}|}" $MEET_CONF
-
-sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
-sed -i "s|LOC_REC=.*|LOC_REC=\"on\"|" jitsi-updater.sh
+    echo "# Enabling local recording (audio only)."
+    LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
+    LR_END=$((LR_STR + 18))
+    sed -i "$LR_STR,$LR_END{s|// localRecording: {|localRecording: {|}" $MEET_CONF
+    sed -i "$LR_STR,$LR_END{s|//     enabled: true,|enabled: true,|}" $MEET_CONF
+    sed -i "$LR_STR,$LR_END{s|//     format: 'flac'|format: 'flac'|}" $MEET_CONF
+    sed -i "$LR_STR,$LR_END{s|// }|}|}" $MEET_CONF
+    sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
+    sed -i "s|LOC_REC=.*|LOC_REC=\"on\"|" jitsi-updater.sh
 fi
 
 #Setup main language
@@ -789,7 +786,7 @@ fi
 
 # Recording directory
 if [ ! -d $DIR_RECORD ]; then
-mkdir $DIR_RECORD
+    mkdir $DIR_RECORD
 fi
 chown -R jibri:jibri $DIR_RECORD
 
@@ -1001,7 +998,7 @@ elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
 elif [ "$DROP_TLS1" = "no" ];then
     echo "No TLSv1/1.1 dropping was done."
 else
-echo "No condition meet, please report to
+    echo "No condition meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
@@ -1012,28 +1009,28 @@ sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 ###Setup secure rooms
 if [ "$ENABLE_SC" = "yes" ]; then
-SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
-SRP_END=$((SRP_STR + 10))
-sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
-sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+    SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+    SRP_END=$((SRP_STR + 10))
+    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+    sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 
-#Secure room initial user
-read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
-prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
+    #Secure room initial user
+    read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
+    read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
+    prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
 
-echo -e "\nSecure rooms are being enabled..."
-echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
+    echo -e "\nSecure rooms are being enabled..."
+    echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
 or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
-sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
-sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
+    sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
+    sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
 fi
 
 ###JWT
 if [ "$ENABLE_JWT" = "yes" ]; then
-echo -e "\nJWT auth is being setup..."
-bash $PWD/mode/jwt.sh
+    echo -e "\nJWT auth is being setup..."
+    bash $PWD/mode/jwt.sh
 fi
 
 #Guest allow
@@ -1104,9 +1101,9 @@ sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" $MEET_CONF
 echo -e "\n# Checking $MEET_CONF file for errors\n"
 CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
 if [[ -z "$CHECKJS" ]]; then
-echo -e "\n# The $MEET_CONF configuration seems correct. =)\n"
+    echo -e "\n# The $MEET_CONF configuration seems correct. =)\n"
 else
-echo "
+    echo "
 Watch out!, there seems to be an issue on $MEET_CONF line:
 $CHECKJS
 Most of the times this is due upstream changes, please report to
@@ -1131,13 +1128,13 @@ fi
 enable_letsencrypt
 
 if [ "$ENABLE_SC" = "yes" ];then
-echo "Waiting prosody restart to continue configuration, 15s..."
-wait_seconds 15
+    echo "Waiting prosody restart to continue configuration, 15s..."
+    wait_seconds 15
 #Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
 #Change back - https://community.jitsi.org/t/64769/136
 #sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
 #sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
-sed -i "s|        muc_lobby_whitelist = { \"recorder.*|        muc_lobby_whitelist = { \"recorder.$DOMAIN\", \"auth.$DOMAIN\" }|" $PROSODY_FILE
+    sed -i "s|        muc_lobby_whitelist = { \"recorder.*|        muc_lobby_whitelist = { \"recorder.$DOMAIN\", \"auth.$DOMAIN\" }|" $PROSODY_FILE
 #EO_TF
 fi
 
@@ -1191,7 +1188,7 @@ if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
     #if [ "$MODE" = "debug" ]; then
     #    bash $PWD/jigasi.sh -m debug
     #else
-        bash $PWD/jigasi.sh
+    bash $PWD/jigasi.sh
     #fi
 fi
 {
