@@ -331,8 +331,8 @@ echo "
 #--------------------------------------------------
 "
 if [ "$LE_SSL" = "yes" ]; then
-echo "set jitsi-meet/cert-choice    select    Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
-echo "jitsi-videobridge2    jitsi-videobridge/jvb-hostname    string    $JITSI_DOMAIN" | debconf-set-selections
+echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
+echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
 fi
 apt-get -y install \
                 jitsi-meet \
@@ -409,7 +409,7 @@ echo '
 ########################################################################
 '
 # MEET / JIBRI SETUP
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+DOMAIN=$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')
 WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 JB_AUTH_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 JB_REC_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
