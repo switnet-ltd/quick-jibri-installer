@@ -45,7 +45,7 @@ JB_REC_PASS=TBD
 MJS_USER=TBD
 MJS_USER_PASS=TBD
 THIS_SRV_DIST=$(lsb_release -sc)
-JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
+JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR==1{print$1}')
 START=0
 LAST=TBD
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
@@ -53,7 +53,7 @@ DIR_RECORD="/var/jbrecord"
 REC_DIR="/home/jibri/finalize_recording.sh"
 CHD_VER="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
-GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
+GOOGLE_ACTIVE_REPO=$(apt-cache policy | awk '/chrome/{print$3}' | awk -F "/" 'NR==1{print$2}')
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
@@ -425,7 +425,7 @@ echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 echo -e "\n---- We'll connect to main server ----"
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
-echo "Remote pass: $MJS_USER_PASS"
+echo -e "\n\n##################\nRemote pass: $MJS_USER_PASS\n################## \n\n"
 ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
 sudo su $NJN_USER -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
@@ -497,7 +497,7 @@ systemctl start remote_jnsync.service
 echo "Writting last node number..."
 sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
-echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
+echo "Last file edition at: $(awk -F 'LETS:' '/LETS/{print$2}' add-jibri-node.sh|head -n1)"
 
 #Enable jibri services
 systemctl enable jibri
