@@ -4,7 +4,7 @@
 # 2020 - SwITNet Ltd
 # GNU GPLv3 or later.
 
-DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
+DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 CSS_FILE="/usr/share/jitsi-meet/css/all.css"
 TITLE_FILE="/usr/share/jitsi-meet/title.html"
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"

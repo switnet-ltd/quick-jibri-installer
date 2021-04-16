@@ -88,8 +88,7 @@ update_google_repo() {
 GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{printf "%.1f\n", $NF}')"
 upgrade_cd() {
 if [ ! -z "$GOOGL_VER_2D" ]; then
-    if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" && \
-    [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
+    if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" ; then
         echo "Upgrading Chromedriver to Google Chromes version"
         wget -q https://chromedriver.storage.googleapis.com/"$CHD_LTST"/chromedriver_linux64.zip \
              -O /tmp/chromedriver_linux64.zip
@@ -97,8 +96,8 @@ if [ ! -z "$GOOGL_VER_2D" ]; then
         chown root:root "$CHDB"
         chmod 0755 "$CHDB"
         rm -rf /tpm/chromedriver_linux64.zip
-        printf "Current version: ${Green} "$($CHDB -v |awk '{print $2}'|awk '{printf "%.1f\n", $NF}')" ${Color_Off}\n"
-    else
+        printf "Current version: ${Green} "$($CHDB -v |awk '{print $2}'|awk '{printf "%.1f\n", $NF}')" ${Color_Off} (latest available)\n"
+    elif [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
         echo "No need to upgrade Chromedriver"
         printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
     fi
