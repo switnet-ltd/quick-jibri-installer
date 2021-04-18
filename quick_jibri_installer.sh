@@ -335,7 +335,7 @@ echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (
 echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
 fi
 apt-get -y install \
-                jitsi-meet=2.0.5390-3 \
+                jitsi-meet \
                 jibri \
                 openjdk-8-jre-headless
 
