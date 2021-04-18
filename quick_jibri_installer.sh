@@ -20,13 +20,13 @@ set -x
 fi
 
 # SYSTEM SETUP
-JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
+JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR==1{print$1}')
 APACHE_2=$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")
 NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
-GOOGLE_ACTIVE_REPO=$(apt-cache policy | grep http | grep chrome| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
-PROSODY_REPO=$(apt-cache policy | grep http | grep prosody| awk '{print $3}' | head -n 1 | cut -d "/" -f2)
+GOOGLE_ACTIVE_REPO=$(apt-cache policy | awk '/chrome/{print$3}' | awk -F "/" 'NR==1{print$2}')
+PROSODY_REPO=$(apt-cache policy | awk '/prosody/{print$3}' | awk -F "/" 'NR==1{print$2}')
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 CR=`echo $'\n> '`
 
@@ -79,7 +79,7 @@ check_snd_driver() {
 echo -e "\n# Checking ALSA - Loopback module..."
 echo "snd-aloop" | tee -a /etc/modules
 modprobe snd-aloop
-if [ "$(lsmod | grep snd_aloop | head -n 1 | cut -d " " -f1)" = "snd_aloop" ]; then
+if [ "$(lsmod|awk '/snd_aloop/{print$1}'|awk 'NR==1')" = "snd_aloop" ]; then
     echo "
 #-----------------------------------------------------------------------
 # Audio driver seems - OK.
@@ -409,7 +409,7 @@ echo '
 ########################################################################
 '
 # MEET / JIBRI SETUP
-DOMAIN=$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')
+DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 JB_AUTH_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 JB_REC_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
@@ -427,7 +427,7 @@ LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
 MOD_LIST_FILE="/usr/lib/prosody/modules/mod_listusers.lua"
 ENABLE_SA="yes"
-CERTBOT_REPO=$(apt-cache policy | grep http | grep certbot | head -n 1 | awk '{print $2}' | cut -d "/" -f4)
+CERTBOT_REPO="$(apt-cache policy | awk '/certbot/{print$2}' | awk -F '/' 'NR==1{print$4}')"
 CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
 GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
 MJS_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"

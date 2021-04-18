@@ -38,10 +38,10 @@ echo -e '\n
 exit_if_not_installed jitsi-meet
 
 DISTRO_RELEASE="$(lsb_release -sc)"
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
-PHP_REPO=$(apt-cache policy | grep http | grep php | head -n 1 | awk '{print $2}' | cut -d "/" -f5)
+DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
+PHP_REPO="$(apt-cache policy | awk '/http/&&/php/{print$2}' | awk -F "/" 'NR==1{print$5}')"
 PHPVER="7.4"
-PSGVER="$(apt-cache madison postgresql | head -n1 | awk '{print $3}' | cut -d "+" -f1)"
+PSGVER="$(apt-cache madison postgresql | awk -F '[|+]' 'NR==1{print $2}')"
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"

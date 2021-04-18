@@ -76,14 +76,14 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
   * JWT auth
   * None
 * Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
-* (New) JVB2 nodes network.
-* (New) JWT auth.
-* (New) Rename Jibri folder with name room + date.
+* JVB2 nodes network.
+* JWT auth.
+* Rename Jibri folder with name room + date.
 
-## Tools (New)
+## Tools
 * Jibri Environment Tester
  * Jibri Conf Upgrader (late 2020).
-* (New) Selenium Grid via Docker
+* Selenium Grid via Docker
 
 ## Optional custom changes
 * Optional default language
@@ -91,7 +91,7 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 * Option to enable Welcome Page
 
 ### Modes
-* (New) Custom High Performance config
+* Custom High Performance config
 
 ## Custom changes
 * Start with video muted by default
