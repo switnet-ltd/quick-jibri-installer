@@ -1002,9 +1002,6 @@ else
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
-#echo -e "\nDisable \"Blur my background\" until new notice\n"
-#sed -i "s|'videobackgroundblur', ||" $INT_CONF
-
 #================== Setup prosody conf file =================
 
 ###Setup secure rooms
