@@ -76,4 +76,5 @@ else
     sed -i "s|SUPPORT_URL: .*|SUPPORT_URL: '#',|g" "$INT_CONF"
     #Logo 2
     sed -i "s|watermark.png|watermark2.png|g" "$INT_CONF"
+    sed -i "s|watermark.svg|watermark2.png|g" "$INT_CONF"
 fi
