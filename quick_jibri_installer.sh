@@ -716,7 +716,7 @@ VirtualHost "recorder.$DOMAIN"
 REC-JIBRI
 
 #Enable Jibri withelist
-sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
+sed -i "s|-- muc_lobby_whitelist|muc_lobby_whitelist|" $PROSODY_FILE
 
 #Fix Jibri conectivity issues
 sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
@@ -1002,16 +1002,16 @@ else
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
-echo -e "\nDisable \"Blur my background\" until new notice\n"
-sed -i "s|'videobackgroundblur', ||" $INT_CONF
+#echo -e "\nDisable \"Blur my background\" until new notice\n"
+#sed -i "s|'videobackgroundblur', ||" $INT_CONF
 
 #================== Setup prosody conf file =================
 
 ###Setup secure rooms
 if [ "$ENABLE_SC" = "yes" ]; then
-    SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+    SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | awk -F ':' 'NR==1{print$1}')
     SRP_END=$((SRP_STR + 10))
-    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_hashed\"|}" $PROSODY_FILE
     sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 
     #Secure room initial user
