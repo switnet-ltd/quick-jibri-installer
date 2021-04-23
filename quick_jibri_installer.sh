@@ -1039,15 +1039,10 @@ VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
     speakerstats_component = "speakerstats.$DOMAIN"
---    conference_duration_component = "conferenceduration.$DOMAIN"
---    lobby_muc = "lobby.$DOMAIN"
     main_muc = "conference.$DOMAIN"
---    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
 
     modules_enabled = {
       "speakerstats";
---      "conference_duration";
---      "muc_lobby_rooms";
     }
 
 P_SR
