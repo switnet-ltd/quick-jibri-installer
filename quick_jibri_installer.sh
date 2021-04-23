@@ -505,6 +505,16 @@ do
         echo "Welcome page will be enabled."
     fi
 done
+#Close page
+while [[ "$ENABLE_CLOCP" != "yes" && "$ENABLE_CLOCP" != "no" ]]
+do
+    read -p "> Do you want to enable the actual close page: (yes or no)"$'\n' -r ENABLE_CLOCP
+    if [ "$ENABLE_CLOCP" = "yes" ]; then
+        echo "Close page will be enabled."
+    elif [ "$ENABLE_CLOCP" = "no" ]; then
+        echo "Close page will be keept disabled."
+    fi
+done
 #Enable static avatar
 while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
@@ -711,7 +721,7 @@ VirtualHost "recorder.$DOMAIN"
   modules_enabled = {
     "ping";
   }
-  authentication = "internal_plain"
+  authentication = "internal_hashed"
 
 REC-JIBRI
 
@@ -1061,6 +1071,12 @@ if [ "$ENABLE_WELCP" = "yes" ]; then
     sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" $MEET_CONF
 elif [ "$ENABLE_WELCP" = "no" ]; then
     sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" $MEET_CONF
+fi
+#Enable close page
+if [ "$ENABLE_CLOCP" = "yes" ]; then
+    sed -i "s|.*enableClosePage:.*|    enableClosePage: true,|" $MEET_CONF
+elif [ "$ENABLE_CLOCP" = "no" ]; then
+    sed -i "s|.*enableClosePage:.*|    enableClosePage: false,|" $MEET_CONF
 fi
 #Set displayname as not required since jibri can't set it up.
 sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
