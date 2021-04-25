@@ -324,10 +324,19 @@ echo "or storage provider, etc.) in this script" >> /tmp/finalize.out
 
 chmod -R 770 \$RECORDINGS_DIR
 
+#Rename folder.
 LJF_PATH="\$(find \$RECORDINGS_DIR -exec stat --printf="%Y\t%n\n" {} \; | sort -n -r|awk '{print\$2}'| grep -v "meta\|-" | head -n1)"
 NJF_NAME="\$(find \$LJF_PATH |grep -e "-"|sed "s|\$LJF_PATH/||"|cut -d "." -f1)"
 NJF_PATH="\$RECORDINGS_DIR/\$NJF_NAME"
-mv \$LJF_PATH \$NJF_PATH
+
+##Prevent empty recording directory failsafe
+if [ "\$LJF_PATH" != "\$RECORDINGS_DIR" ]; then
+  mv \$LJF_PATH \$NJF_PATH
+  #Workaround for jibri to do cleaning.
+  ssh -i /home/jibri/jbsync.pem $MJS_USER@$MAIN_SRV_DOMAIN "rm -r \$LJF_PATH"
+else
+  echo "No new folder recorded, not removing anything."
+fi
 
 exit 0
 REC_DIR
@@ -425,6 +434,11 @@ echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 echo -e "\n---- We'll connect to main server ----"
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+
+#Workaround for jibri to do cleaning.
+install -m 0600 -o jibri /home/$NJN_USER/.ssh/id_rsa /home/jibri/jbsync.pem
+sudo su jibri -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts"
+
 echo -e "\n\n##################\nRemote pass: $MJS_USER_PASS\n################## \n\n"
 ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
