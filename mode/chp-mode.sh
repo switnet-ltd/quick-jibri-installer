@@ -31,9 +31,20 @@ while [ $secs -gt 0 ]; do
    : $((secs--))
 done
 }
+set_once() {
+if [ -z "$(awk '!/^ *#/ && NF {print}' "$2"|grep $(echo $1|awk -F '=' '{print$1}'))" ]; then
+  echo "Setting "$1" on "$2"..."
+  echo "$1" | tee -a "$2"
+else
+  echo " \"$(echo $1|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
+fi
+}
+# True if $1 is greater than $2
+version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
+
 
 LTS_REL="$(lsb_release -d | awk '{print$4}')"
-DOMAIN="$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')"
+DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 JVB_LOG_POP="/etc/jitsi/videobridge/logging.properties"
 JVB_RC="/usr/share/jitsi-videobridge/lib/videobridge.rc"
 JICOFO_LOG_POP="/etc/jitsi/videobridge/logging.properties"
@@ -102,7 +113,7 @@ echo "
 #--------------------------------------------------
 "
 echo "If you are using a high volume of users we recommend to use nHD (640x360),
-or at most qHD (960x540) resolution as default, since bandwith increase 
+or at most qHD (960x540) resolution as default, since bandwith increase
 exponentially with the more concurrent users on a meeting.
 Either way, choose your desired video resolution.
 "
@@ -160,18 +171,18 @@ sysctl -w net.core.rmem_default=262144
 sysctl -w net.core.wmem_default=262144
 sysctl -w net.core.rmem_max=262144
 sysctl -w net.core.wmem_max=262144
-echo 'net.core.rmem_default=262144' | tee -a /etc/sysctl.conf
-echo 'net.core.wmem_default=262144' | tee -a /etc/sysctl.conf
-echo 'net.core.rmem_max=262144' | tee -a /etc/sysctl.conf
-echo 'net.core.wmem_max=262144' | tee -a /etc/sysctl.conf
+set_once "net.core.rmem_default=262144" "/etc/sysctl.conf"
+set_once "net.core.wmem_default=262144" "/etc/sysctl.conf"
+set_once "net.core.rmem_max=262144" "/etc/sysctl.conf"
+set_once "net.core.wmem_max=262144" "/etc/sysctl.conf"
 
 #https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_for_real_time/7/html/tuning_guide/reduce_tcp_performance_spikes
 sysctl -w net.ipv4.tcp_timestamps=0
-echo 'net.ipv4.tcp_timestamps=0' | tee -a /etc/sysctl.conf
+set_once "net.ipv4.tcp_timestamps=0" "/etc/sysctl.conf"
 
 #https://bugzilla.redhat.com/show_bug.cgi?id=1283676
 sysctl -w net.core.netdev_max_backlog=100000
-echo 'net.core.netdev_max_backlog=100000' | tee -a /etc/sysctl.conf
+set_once "net.core.netdev_max_backlog=100000" "/etc/sysctl.conf"
 
 ##nginx
 sed -i "s|worker_connections.*|worker_connections 2000;|" /etc/nginx/nginx.conf
@@ -180,7 +191,7 @@ sed -i "s|worker_connections.*|worker_connections 2000;|" /etc/nginx/nginx.conf
 #sysctl -w net.ipv4.tcp_low_latency=1
 
 #JVB2
-##Loose up logging 
+##Loose up logging
 # https://community.jitsi.org/t/23641/13
 sed -i "/java.util.logging.FileHandler.level/s|ALL|WARNING|g" $JVB_LOG_POP
 sed -i "s|^.level=INFO|.level=WARNING|" $JVB_LOG_POP
@@ -284,19 +295,35 @@ sed -i "s|OPTIMAL_BROWSERS: \[.*|OPTIMAL_BROWSERS: \[ 'chrome', 'chromium', 'ele
 sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari', 'firefox' \],|" $INT_CONF_JS_HP
 
 ### Toolbars
-sed -i "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" $INT_CONF_JS_HP
-
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ TOOLBAR_BUTTONS: \[" $INT_CONF_JS_HP
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," $INT_CONF_JS_HP
-if [ -z "$CHAT_DISABLED" ] || [ "$CHAT_DISABLED" = "yes" ]; then
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'recording'," $INT_CONF_JS_HP
+if version_gt "$(apt-show-versions jitsi-meet|awk '{print$2}')" "2.0.5390-3" ; then
+  #New toolbar in config.js
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ toolbarButtons:: \[" $MEET_CONF_HP
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," $MEET_CONF_HP
+  if [ -z "$CHAT_DISABLED" ] || [ "$CHAT_DISABLED" = "yes" ]; then
+    sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'recording'," $MEET_CONF_HP
+  else
+    sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," $MEET_CONF_HP
+  fi
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," $MEET_CONF_HP
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," $MEET_CONF_HP
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'mute-video-everyone', 'security'" $MEET_CONF_HP
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \]," $MEET_CONF_HP
 else
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," $INT_CONF_JS_HP
+  #Old toolbar in interface.js (soon deprecated on newer versions)
+  sed -i "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" $INT_CONF_JS_HP
+
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ TOOLBAR_BUTTONS: \[" $INT_CONF_JS_HP
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," $INT_CONF_JS_HP
+  if [ -z "$CHAT_DISABLED" ] || [ "$CHAT_DISABLED" = "yes" ]; then
+    sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'recording'," $INT_CONF_JS_HP
+  else
+    sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," $INT_CONF_JS_HP
+  fi
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," $INT_CONF_JS_HP
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," $INT_CONF_JS_HP
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'mute-video-everyone', 'security'" $INT_CONF_JS_HP
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \]," $INT_CONF_JS_HP
 fi
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," $INT_CONF_JS_HP
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," $INT_CONF_JS_HP
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'security'" $INT_CONF_JS_HP
-sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \]," $INT_CONF_JS_HP
 
 #Check config file
 echo -e "\n# Checking $MEET_CONF file for errors\n"
@@ -304,23 +331,19 @@ CHECKJS_MEET_CHP=$(esvalidate $MEET_CONF_HP| cut -d ":" -f2)
 if [ -z "$CHECKJS_MEET_CHP" ]; then
 echo -e "\n# The $MEET_CONF_HP configuration seems correct. =)\n"
 else
-echo "
-Watch out!, there seems to be an issue on $MEET_CONF line:
-$CHECKJS
-Most of the times this is due upstream changes, please report to
-https://github.com/switnet-ltd/quick-jibri-installer/issues
-"
+echo -e "\n  Watch out!, there seems to be an issue on $MEET_CONF_HP line:
+    $CHECKJS_MEET_CHP
+  Most of the times this is due upstream changes, please report to
+  https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 fi
 CHECKJS_INT_CHP=$(esvalidate $INT_CONF_JS_HP| cut -d ":" -f2)
 if [ -z "$CHECKJS_INT_CHP" ]; then
 echo -e "\n# The $INT_CONF_JS_HP configuration seems correct. =)\n"
 else
-echo "
-Watch out!, there seems to be an issue on $MEET_CONF line:
-$CHECKJS
-Most of the times this is due upstream changes, please report to
-https://github.com/switnet-ltd/quick-jibri-installer/issues
-"
+echo -e "\n  Watch out!, there seems to be an issue on $INT_CONF_JS_HP line:
+    $CHECKJS_INT_CHP
+  Most of the times this is due upstream changes, please report to
+  https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 fi
 
 sed -i "s|$MEET_CONF|$MEET_CONF_HP|g" $WS_CONF
