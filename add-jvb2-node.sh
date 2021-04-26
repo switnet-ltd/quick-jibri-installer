@@ -59,7 +59,7 @@ START=0
 LAST=TBD
 
 THIS_SRV_DIST=$(lsb_release -sc)
-JITSI_REPO=$(apt-cache policy | grep http | grep jitsi | grep stable | awk '{print $3}' | head -n 1 | cut -d "/" -f1)
+JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR==1{print$1}')
 JVB2_CONF="/etc/jitsi/videobridge/config"
 JVB2_NCONF="/etc/jitsi/videobridge/jvb.conf"
 JVB2_SIP="/etc/jitsi/videobridge/sip-communicator.properties"
