@@ -433,10 +433,21 @@ GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_rele
 MJS_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
 MJS_USER="jbsync_$MJS_RAND_TAIL"
 MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
+FQDN_HOST="fqdn"
 
 # Rename hostname for jitsi server
-#hostnamectl set-hostname "jitsi.${DOMAIN}"
-#sed -i "1i ${PUBLIC_IP} jitsi.${DOMAIN}" /etc/hosts
+while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && ! -z "$FQDN_HOST" ]]
+do
+  echo -e "> Do you want to use your internet domain ($DOMAIN) as a fqdn hotsname?: (yes or no)" && \
+  read -p "Leave empty to default to your current one ($(hostname -f)): "$'\n' FQDN_HOST
+  if [ "$FQDN_HOST" = "yes" ]; then
+    echo "We'll use your domain ($DOMAIN) as a fqdn hostname, changes will show on reboot."
+    hostnamectl set-hostname "${DOMAIN}"
+    sed -i "1i ${PUBLIC_IP} ${DOMAIN}" /etc/hosts
+  else
+    echo "We'll keep the current one ($(hostname -f)) you're using."
+  fi
+done
 
 #Sysadmin email
 if [ "$LE_SSL" = "yes" ]; then
