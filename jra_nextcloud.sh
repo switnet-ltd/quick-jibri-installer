@@ -171,12 +171,14 @@ install_ifnot postgresql-$PSGVER
 # PHP 7.4
 add_php74
 apt-get install -y \
+            imagemagick \
             php$PHPVER-fpm \
             php$PHPVER-bcmath \
             php$PHPVER-bz2 \
             php$PHPVER-curl \
             php$PHPVER-gd \
             php$PHPVER-gmp \
+            php$PHPVER-imagick \
             php$PHPVER-intl \
             php$PHPVER-json \
             php$PHPVER-ldap \
@@ -187,7 +189,6 @@ apt-get install -y \
             php$PHPVER-xml \
             php$PHPVER-xmlrpc \
             php$PHPVER-zip \
-            php-imagick \
             redis-server \
             unzip
 
@@ -478,6 +479,7 @@ Addding & Setting up Files External App for Local storage...
 "
 sudo -u www-data php $NC_PATH/occ app:install files_external
 sudo -u www-data php $NC_PATH/occ app:enable files_external
+sudo -u www-data php $NC_PATH/occ app:disable support
 sudo -u www-data php $NC_PATH/occ files_external:import /tmp/jra-nc-app-ef.json
 
 usermod -a -G jibri www-data
