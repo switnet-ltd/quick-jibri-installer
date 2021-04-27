@@ -437,7 +437,7 @@ sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N
 
 #Workaround for jibri to do cleaning.
 install -m 0600 -o jibri /home/$NJN_USER/.ssh/id_rsa /home/jibri/jbsync.pem
-sudo su jibri -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts"
+sudo -u jibri ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/jibri/.ssh/known_hosts
 
 echo -e "\n\n##################\nRemote pass: $MJS_USER_PASS\n################## \n\n"
 ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts
