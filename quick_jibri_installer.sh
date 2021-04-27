@@ -518,7 +518,7 @@ done
 #Close page
 while [[ "$ENABLE_CLOCP" != "yes" && "$ENABLE_CLOCP" != "no" ]]
 do
-    read -p "> Do you want to enable the close page on exit the room: (yes or no)"$'\n' -r ENABLE_CLOCP
+    read -p "> Do you want to enable the close page on room exit: (yes or no)"$'\n' -r ENABLE_CLOCP
     if [ "$ENABLE_CLOCP" = "yes" ]; then
         echo "Close page will be enabled."
     elif [ "$ENABLE_CLOCP" = "no" ]; then
