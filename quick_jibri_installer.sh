@@ -148,8 +148,7 @@ if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
-if [ "$DIST" = "xenial" ] || \
-   [ "$DIST" = "bionic" ] || \
+if [ "$DIST" = "bionic" ] || \
    [ "$DIST" = "focal" ]; then
     echo "OS: $(lsb_release -sd)"
     echo "Good, this is a supported platform!"
@@ -158,12 +157,20 @@ else
     echo "Sorry, this platform is not supported... exiting"
     exit
 fi
-#Suggest 18.04 LTS release over 16.04
-if [ "$DIST" = "xenial" ]; then
-echo "  > $(lsb_release -sc), even when it's compatible and functional.
+#Suggest 20.04 LTS release over 18.04 in April 2022
+TODAY=$(date +%s)
+NEXT_LTS_DATE=$(date -d 2022-04-01 +%s)
+
+if [ "$DIST" = "bionic" ]; then
+  if [ "$TODAY" -gt "$NEXT_LTS_DATE" ]; then
+    echo "  > $(lsb_release -sc), even when it's compatible and functional.
     We suggest to use the next (LTS) release, for longer support and security reasons."
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
+    read -n 1 -s -r -p "Press any key to continue..."$'\n'
+  else
+    echo "Bionic is supported."
+  fi
 fi
+
 #Check system resources
 echo "Verifying System Resources:"
 if [ "$(nproc --all)" -lt 4 ];then
