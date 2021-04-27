@@ -438,7 +438,7 @@ FQDN_HOST="fqdn"
 # Rename hostname for jitsi server
 while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && ! -z "$FQDN_HOST" ]]
 do
-  echo -e "> Do you want to use your internet domain ($DOMAIN) as a fqdn hotsname?: (yes or no)" && \
+  echo -e "> Do you want to use your internet domain ($DOMAIN) as a fqdn hostname?: (yes or no)" && \
   read -p "Leave empty to default to your current one ($(hostname -f)): "$'\n' FQDN_HOST
   if [ "$FQDN_HOST" = "yes" ]; then
     echo "We'll use your domain ($DOMAIN) as a fqdn hostname, changes will show on reboot."
@@ -463,8 +463,7 @@ You can define the language, for a complete list of the supported languages
 See here:
 https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 
-Jitsi Meet web interface will be set to use such language.
-"
+Jitsi Meet web interface will be set to use such language."
 read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
 echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
 #Participant
@@ -519,7 +518,7 @@ done
 #Close page
 while [[ "$ENABLE_CLOCP" != "yes" && "$ENABLE_CLOCP" != "no" ]]
 do
-    read -p "> Do you want to enable the actual close page: (yes or no)"$'\n' -r ENABLE_CLOCP
+    read -p "> Do you want to enable the close page on exit the room: (yes or no)"$'\n' -r ENABLE_CLOCP
     if [ "$ENABLE_CLOCP" = "yes" ]; then
         echo "Close page will be enabled."
     elif [ "$ENABLE_CLOCP" = "no" ]; then
@@ -1009,15 +1008,15 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
-    echo -e "\nDropping TLSv1/1.1 in favor of v1.3"
+    echo -e "\nDropping TLSv1/1.1 in favor of v1.3\n"
     sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
     #sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
 elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
-    echo -e "\nOnly dropping TLSv1/1.1"
+    echo -e "\nOnly dropping TLSv1/1.1\n"
     sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
     sed -i "s| TLSv1.3||" $WS_CONF
 elif [ "$DROP_TLS1" = "no" ];then
-    echo "No TLSv1/1.1 dropping was done."
+    echo -e "\nNo TLSv1/1.1 dropping was done.\n"
 else
     echo "No condition meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
