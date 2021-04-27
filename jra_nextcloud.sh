@@ -60,16 +60,39 @@ JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f $JITSI_MEET_PROXY ];then
 PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
+PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 
-while [[ -z "$NC_DOMAIN" ]]
+while [[ "$ANS_NCD" != "yes" ]]
 do
-    read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
-    if [ -z "$NC_DOMAIN" ];then
-        echo "-- This field is mandatory."
-    elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
-        echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
-    fi
+  read -p "> Please set your domain (or subdmain) here for Nextcloud: (e.g.: jitsi.domain.com)"$'\n' -r NC_DOMAIN
+  if [ -z "$NC_DOMAIN" ];then
+    echo "-- This field is mandatory."
+  elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
+    echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
+  fi
+  read -p "> Did you mean?: $NC_DOMAIN (yes or no)"$'\n' -r ANS_NCD
+  if [ "$ANS_NCD" = "yes" ]; then
+    echo "Alright, let's use $NC_DOMAIN."
+  else
+    echo "Please try again."
+  fi
 done
+  #Simple DNS test
+if [ "$PUBLIC_IP" = "$(dig -4 +short $NC_DOMAIN)" ]; then
+  echo "Server public IP  & DNS record for $NC_DOMAIN seems to match, continuing...
+"
+else
+  echo "Server public IP ($PUBLIC_IP) & DNS record for $NC_DOMAIN don't seem to match."
+  echo "  > Please check your dns records are applied and updated, otherwise Nextcloud may fail."
+  read -p "  > Do you want to continue?: (yes or no)"$'\n' -r DNS_CONTINUE
+  if [ "$DNS_CONTINUE" = "yes" ]; then
+    echo "  - We'll continue anyway..."
+  else
+    echo "  - Exiting for now..."
+  exit
+  fi
+fi
+
 NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
 while [[ -z "$NC_USER" ]]
 do
