@@ -41,7 +41,7 @@ DISTRO_RELEASE="$(lsb_release -sc)"
 DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 PHP_REPO="$(apt-cache policy | awk '/http/&&/php/{print$2}' | awk -F "/" 'NR==1{print$5}')"
 PHPVER="7.4"
-PSGVER="$(apt-cache madison postgresql | awk -F '[|+]' 'NR==1{print $2}')"
+PSGVER="$(apt-cache madison postgresql|awk -F'[ +]' 'NR==1{print $3}')"
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
@@ -64,7 +64,7 @@ PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 
 while [[ "$ANS_NCD" != "yes" ]]
 do
-  read -p "> Please set your domain (or subdmain) here for Nextcloud: (e.g.: jitsi.domain.com)"$'\n' -r NC_DOMAIN
+  read -p "> Please set your domain (or subdmain) here for Nextcloud: (e.g.: cloud.domain.com)"$'\n' -r NC_DOMAIN
   if [ -z "$NC_DOMAIN" ];then
     echo "-- This field is mandatory."
   elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
