@@ -154,7 +154,7 @@ if [ -z $SND_AL_MODULE ]; then
 please try rebooting.\nFor now wait 'til the end of the recommended kernel installation."
   echo "# Check and Install HWE kernel if possible..."
   if uname -r | grep -q aws;then
-  KNL_HWE="$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr)|awk 'NR__1{print$3}'|cut -d "." -f1-4)"
+  KNL_HWE="$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr)|awk 'NR==1{print$3}'|cut -d "." -f1-4)"
   KNL_MENU="$(awk -F\' '/menuentry / {print $2}' /boot/grub/grub.cfg|awk '!/recovery/&&/generic/{print$3,$4}'|grep $KNL_HWE)"
       if [ ! -z "$KNL_MENU" ];then
       echo -e "\nSeems you are using an AWS kernel \xE2\x9C\x96 <== IMPORTANT! \nYou might consider modify your grub (/etc/default/grub) to use the following:" && \
