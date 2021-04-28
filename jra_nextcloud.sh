@@ -41,7 +41,7 @@ DISTRO_RELEASE="$(lsb_release -sc)"
 DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 PHP_REPO="$(apt-cache policy | awk '/http/&&/php/{print$2}' | awk -F "/" 'NR==1{print$5}')"
 PHPVER="7.4"
-PSGVER="$(apt-cache madison postgresql | awk -F '[|+]' 'NR==1{print $2}')"
+PSGVER="$(apt-cache madison postgresql|awk -F'[ +]' 'NR==1{print $3}')"
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
@@ -60,16 +60,39 @@ JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f $JITSI_MEET_PROXY ];then
 PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
+PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 
-while [[ -z "$NC_DOMAIN" ]]
+while [[ "$ANS_NCD" != "yes" ]]
 do
-    read -p "Please enter the domain to use for Nextcloud: " -r NC_DOMAIN
-    if [ -z "$NC_DOMAIN" ];then
-        echo "-- This field is mandatory."
-    elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
-        echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
-    fi
+  read -p "> Please set your domain (or subdmain) here for Nextcloud: (e.g.: cloud.domain.com)"$'\n' -r NC_DOMAIN
+  if [ -z "$NC_DOMAIN" ];then
+    echo "-- This field is mandatory."
+  elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
+    echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
+  fi
+  read -p "> Did you mean?: $NC_DOMAIN (yes or no)"$'\n' -r ANS_NCD
+  if [ "$ANS_NCD" = "yes" ]; then
+    echo "Alright, let's use $NC_DOMAIN."
+  else
+    echo "Please try again."
+  fi
 done
+  #Simple DNS test
+if [ "$PUBLIC_IP" = "$(dig -4 +short $NC_DOMAIN)" ]; then
+  echo "Server public IP  & DNS record for $NC_DOMAIN seems to match, continuing...
+"
+else
+  echo "Server public IP ($PUBLIC_IP) & DNS record for $NC_DOMAIN don't seem to match."
+  echo "  > Please check your dns records are applied and updated, otherwise Nextcloud may fail."
+  read -p "  > Do you want to continue?: (yes or no)"$'\n' -r DNS_CONTINUE
+  if [ "$DNS_CONTINUE" = "yes" ]; then
+    echo "  - We'll continue anyway..."
+  else
+    echo "  - Exiting for now..."
+  exit
+  fi
+fi
+
 NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
 while [[ -z "$NC_USER" ]]
 do
@@ -148,12 +171,14 @@ install_ifnot postgresql-$PSGVER
 # PHP 7.4
 add_php74
 apt-get install -y \
+            imagemagick \
             php$PHPVER-fpm \
             php$PHPVER-bcmath \
             php$PHPVER-bz2 \
             php$PHPVER-curl \
             php$PHPVER-gd \
             php$PHPVER-gmp \
+            php$PHPVER-imagick \
             php$PHPVER-intl \
             php$PHPVER-json \
             php$PHPVER-ldap \
@@ -164,7 +189,6 @@ apt-get install -y \
             php$PHPVER-xml \
             php$PHPVER-xmlrpc \
             php$PHPVER-zip \
-            php-imagick \
             redis-server \
             unzip
 
@@ -455,6 +479,7 @@ Addding & Setting up Files External App for Local storage...
 "
 sudo -u www-data php $NC_PATH/occ app:install files_external
 sudo -u www-data php $NC_PATH/occ app:enable files_external
+sudo -u www-data php $NC_PATH/occ app:disable support
 sudo -u www-data php $NC_PATH/occ files_external:import /tmp/jra-nc-app-ef.json
 
 usermod -a -G jibri www-data

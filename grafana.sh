@@ -46,7 +46,7 @@ systemctl status $1
 MAIN_TEL="/etc/telegraf/telegraf.conf"
 TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
 GRAFANA_INI="/etc/grafana/grafana.ini"
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
 GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 

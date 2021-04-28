@@ -148,8 +148,7 @@ if ! [ $(id -u) = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
-if [ "$DIST" = "xenial" ] || \
-   [ "$DIST" = "bionic" ] || \
+if [ "$DIST" = "bionic" ] || \
    [ "$DIST" = "focal" ]; then
     echo "OS: $(lsb_release -sd)"
     echo "Good, this is a supported platform!"
@@ -158,12 +157,20 @@ else
     echo "Sorry, this platform is not supported... exiting"
     exit
 fi
-#Suggest 18.04 LTS release over 16.04
-if [ "$DIST" = "xenial" ]; then
-echo "  > $(lsb_release -sc), even when it's compatible and functional.
+#Suggest 20.04 LTS release over 18.04 in April 2022
+TODAY=$(date +%s)
+NEXT_LTS_DATE=$(date -d 2022-04-01 +%s)
+
+if [ "$DIST" = "bionic" ]; then
+  if [ "$TODAY" -gt "$NEXT_LTS_DATE" ]; then
+    echo "  > $(lsb_release -sc), even when it's compatible and functional.
     We suggest to use the next (LTS) release, for longer support and security reasons."
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
+    read -n 1 -s -r -p "Press any key to continue..."$'\n'
+  else
+    echo "Bionic is supported."
+  fi
 fi
+
 #Check system resources
 echo "Verifying System Resources:"
 if [ "$(nproc --all)" -lt 4 ];then
@@ -433,10 +440,21 @@ GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_rele
 MJS_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
 MJS_USER="jbsync_$MJS_RAND_TAIL"
 MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
+FQDN_HOST="fqdn"
 
 # Rename hostname for jitsi server
-#hostnamectl set-hostname "jitsi.${DOMAIN}"
-#sed -i "1i ${PUBLIC_IP} jitsi.${DOMAIN}" /etc/hosts
+while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && ! -z "$FQDN_HOST" ]]
+do
+  echo -e "> Do you want to use your internet domain ($DOMAIN) as a fqdn hostname?: (yes or no)" && \
+  read -p "Leave empty to default to your current one ($(hostname -f)): "$'\n' FQDN_HOST
+  if [ "$FQDN_HOST" = "yes" ]; then
+    echo "We'll use your domain ($DOMAIN) as a fqdn hostname, changes will show on reboot."
+    hostnamectl set-hostname "${DOMAIN}"
+    sed -i "1i ${PUBLIC_IP} ${DOMAIN}" /etc/hosts
+  else
+    echo "We'll keep the current one ($(hostname -f)) you're using."
+  fi
+done
 
 #Sysadmin email
 if [ "$LE_SSL" = "yes" ]; then
@@ -452,8 +470,7 @@ You can define the language, for a complete list of the supported languages
 See here:
 https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 
-Jitsi Meet web interface will be set to use such language.
-"
+Jitsi Meet web interface will be set to use such language."
 read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
 echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
 #Participant
@@ -503,6 +520,16 @@ do
         echo "Welcome page will be disabled."
     elif [ "$ENABLE_WELCP" = "no" ]; then
         echo "Welcome page will be enabled."
+    fi
+done
+#Close page
+while [[ "$ENABLE_CLOCP" != "yes" && "$ENABLE_CLOCP" != "no" ]]
+do
+    read -p "> Do you want to enable the close page on room exit: (yes or no)"$'\n' -r ENABLE_CLOCP
+    if [ "$ENABLE_CLOCP" = "yes" ]; then
+        echo "Close page will be enabled."
+    elif [ "$ENABLE_CLOCP" = "no" ]; then
+        echo "Close page will be keept disabled."
     fi
 done
 #Enable static avatar
@@ -711,12 +738,12 @@ VirtualHost "recorder.$DOMAIN"
   modules_enabled = {
     "ping";
   }
-  authentication = "internal_plain"
+  authentication = "internal_hashed"
 
 REC-JIBRI
 
 #Enable Jibri withelist
-sed -i "s|        -- muc_lobby_whitelist|        muc_lobby_whitelist|" $PROSODY_FILE
+sed -i "s|-- muc_lobby_whitelist|muc_lobby_whitelist|" $PROSODY_FILE
 
 #Fix Jibri conectivity issues
 sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
@@ -977,7 +1004,6 @@ else
 fi
 #Static avatar
 if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
-    #wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
     cp images/avatar2.png /usr/share/jitsi-meet/images/
     sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {" $WS_CONF
     sed -i "/location \/external_api.min.js/i \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;" $WS_CONF
@@ -988,30 +1014,27 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
-    echo -e "\nDropping TLSv1/1.1 in favor of v1.3"
+    echo -e "\nDropping TLSv1/1.1 in favor of v1.3\n"
     sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
     #sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
 elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
-    echo -e "\nOnly dropping TLSv1/1.1"
+    echo -e "\nOnly dropping TLSv1/1.1\n"
     sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
     sed -i "s| TLSv1.3||" $WS_CONF
 elif [ "$DROP_TLS1" = "no" ];then
-    echo "No TLSv1/1.1 dropping was done."
+    echo -e "\nNo TLSv1/1.1 dropping was done.\n"
 else
     echo "No condition meet, please report to
 https://github.com/switnet-ltd/quick-jibri-installer/issues "
 fi
 
-echo -e "\nDisable \"Blur my background\" until new notice\n"
-sed -i "s|'videobackgroundblur', ||" $INT_CONF
-
 #================== Setup prosody conf file =================
 
 ###Setup secure rooms
 if [ "$ENABLE_SC" = "yes" ]; then
-    SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
+    SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | awk -F ':' 'NR==1{print$1}')
     SRP_END=$((SRP_STR + 10))
-    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_plain\"|}" $PROSODY_FILE
+    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_hashed\"|}" $PROSODY_FILE
     sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
 
     #Secure room initial user
@@ -1042,15 +1065,10 @@ VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
     c2s_require_encryption = false
     speakerstats_component = "speakerstats.$DOMAIN"
---    conference_duration_component = "conferenceduration.$DOMAIN"
---    lobby_muc = "lobby.$DOMAIN"
     main_muc = "conference.$DOMAIN"
---    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
 
     modules_enabled = {
       "speakerstats";
---      "conference_duration";
---      "muc_lobby_rooms";
     }
 
 P_SR
@@ -1069,6 +1087,12 @@ if [ "$ENABLE_WELCP" = "yes" ]; then
     sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" $MEET_CONF
 elif [ "$ENABLE_WELCP" = "no" ]; then
     sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" $MEET_CONF
+fi
+#Enable close page
+if [ "$ENABLE_CLOCP" = "yes" ]; then
+    sed -i "s|.*enableClosePage:.*|    enableClosePage: true,|" $MEET_CONF
+elif [ "$ENABLE_CLOCP" = "no" ]; then
+    sed -i "s|.*enableClosePage:.*|    enableClosePage: false,|" $MEET_CONF
 fi
 #Set displayname as not required since jibri can't set it up.
 sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
