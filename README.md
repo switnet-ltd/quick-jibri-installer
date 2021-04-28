@@ -1,5 +1,5 @@
 # Quick Jibri Installer
-Bash installer for Jibri on **Ubuntu LTS** based systems using **nginx** as default webserver.
+Bash installer for Jibri on supported **Ubuntu LTS** based systems using **nginx** as default webserver.
 
 ## Usage
 As for our current latest release, as we have integrated more and more features, we highly recommend to use a purpose specific-newly spawn server to host the jitsi-meet framework, making sure you stick to the requirements and recommendations as much as possible, in order to avoid issues.
@@ -37,7 +37,7 @@ bash add-jvb2-node.sh
 Check more details on our wiki.
 
 ## Requirements
-* Clean VM/VPS/Server using Ubuntu LTS
+* Clean VM/VPS/Server using a supported Ubuntu LTS
 * Valid domain with DNS record, **mandatory** for SSL certs via Let's Encrypt.
 * Ports open for ACME (SSL) interaction & validation.
 * Highly recommended: 8 GB RAM / 4 Cores.
@@ -61,20 +61,14 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 * Enabled Session Recording using Jibri
 * Enabled Jitsi Electron app detection server side.
 * Standalone SSL Certbot/LE implementation
-* Jigasi Transcript - Speech to Text powered by Google API
+* Jigasi Transcript - Speech to Text powered by Google API (stalled)
 * JRA (Jibri Recordings Access) via Nextcloud
 * Improved recurring updater
 * Customized brandless mode
-  * Setting up custom interface_config.js
+  * Setting up custom interface_config.js (to be deprecated by upstream)
 * Grafana Dashboard
 * Lobby Rooms via
-  * Local (Secure Rooms) auth
-  * JWT auth
-  * None
 * Conference Duration via
-  * Local (Secure Rooms) auth
-  * JWT auth
-  * None
 * Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
 * JVB2 nodes network.
 * JWT auth.
@@ -88,7 +82,9 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 ## Optional custom changes
 * Optional default language
 * Option to enable Secure Rooms
-* Option to enable Welcome Page
+* Option to enable Welcome page
+* Option to enable Close page
+* Option to set domain as hostname on JMS
 
 ### Modes
 * Custom High Performance config
@@ -97,11 +93,11 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 * Start with video muted by default
 * Start with audio muted but moderator
 * Set displayname as not required since jibri can't set it up.
-* Disabled BETA Blur my background
+
 
 ## Documentation
 * Please check our [wiki](https://github.com/switnet-ltd/quick-jibri-installer/wiki) for further documentation.
 
 Please note: This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 
-SwITNet Ltd © - 2020, https://switnet.net/
+SwITNet Ltd © - 2021, https://switnet.net/

@@ -1094,12 +1094,10 @@ if [ "$ENABLE_CLOCP" = "yes" ]; then
 elif [ "$ENABLE_CLOCP" = "no" ]; then
     sed -i "s|.*enableClosePage:.*|    enableClosePage: false,|" $MEET_CONF
 fi
-#Set displayname as not required since jibri can't set it up.
-sed -i "s|// requireDisplayName: true,|requireDisplayName: false,|" $MEET_CONF
 
 #Add pre-join screen by default, since it improves YouTube autoplay capabilities
 #pre-join screen by itself don't require autorization by moderator, don't confuse with lobby which does.
-sed -i "s|// prejoinPageEnabled:.*|// prejoinPageEnabled: true,|" $MEET_CONF
+sed -i "s|// prejoinPageEnabled:.*|prejoinPageEnabled: true,|" $MEET_CONF
 
 #Set HD resolution and widescreen format
 sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" $MEET_CONF
@@ -1146,21 +1144,10 @@ if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
     systemctl disable jibri-xorg
     systemctl disable jibri-icewm
 # Manually apply permissions since finalize_recording.sh won't be triggered under this server options.
-    sudo -u jibri bash /home/jibri/finalize_recording.sh
+    chmod -R 770 $RECORDINGS_DIR
 fi
 
 enable_letsencrypt
-
-if [ "$ENABLE_SC" = "yes" ];then
-    echo "Waiting prosody restart to continue configuration, 15s..."
-    wait_seconds 15
-#Move mucs when using secure rooms - https://community.jitsi.org/t/27752/112
-#Change back - https://community.jitsi.org/t/64769/136
-#sed -i "s|        lobby_muc = \"lobby.|--        lobby_muc = \"lobby.|" $PROSODY_FILE
-#sed -i "s|        main_muc = \"conference.|--        main_muc = \"conference.|" $PROSODY_FILE
-    sed -i "s|        muc_lobby_whitelist = { \"recorder.*|        muc_lobby_whitelist = { \"recorder.$DOMAIN\", \"auth.$DOMAIN\" }|" $PROSODY_FILE
-#EO_TF
-fi
 
 # Fix prosody not able to read SSL Certs
 chown -R root:prosody /etc/prosody/certs/
