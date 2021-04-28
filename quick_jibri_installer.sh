@@ -1004,7 +1004,6 @@ else
 fi
 #Static avatar
 if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
-    #wget https://switnet.net/static/avatar.png -O /usr/share/jitsi-meet/images/avatar2.png
     cp images/avatar2.png /usr/share/jitsi-meet/images/
     sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {" $WS_CONF
     sed -i "/location \/external_api.min.js/i \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;" $WS_CONF
