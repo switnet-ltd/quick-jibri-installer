@@ -1144,7 +1144,7 @@ if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
     systemctl disable jibri-xorg
     systemctl disable jibri-icewm
 # Manually apply permissions since finalize_recording.sh won't be triggered under this server options.
-    chmod -R 770 $RECORDINGS_DIR
+    chmod -R 770 $DIR_RECORD
 fi
 
 enable_letsencrypt

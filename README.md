@@ -92,7 +92,7 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 ## Custom changes
 * Start with video muted by default
 * Start with audio muted but moderator
-* Set displayname as not required since jibri can't set it up.
+* Set pre-join screen by default.
 
 
 ## Documentation
