@@ -1,5 +1,5 @@
 # Quick Jibri Installer
-Bash installer for Jibri on supported **Ubuntu LTS** based systems using **nginx** as default webserver.
+Bash installer for Jitsi Meet standalone along with Jibri on supported**Ubuntu LTS** based systems using **nginx** as default webserver.
 
 ## Usage
 As for our current latest release, as we have integrated more and more features, we highly recommend to use a purpose specific-newly spawn server to host the jitsi-meet framework, making sure you stick to the requirements and recommendations as much as possible, in order to avoid issues.
@@ -13,6 +13,9 @@ git clone https://github.com/switnet-ltd/quick-jibri-installer
 cd quick-jibri-installer
 bash quick-jibri-installer.sh
 ```
+If your server meet the necessary resources, then at the end on the installer you should have a working Jitsi Meet Server along with a Jibri server ready to record.
+
+Additional jibris need to be set on separate servers, only necesary on simultaneous recordings for that please use add-jibri-node.sh.
 
 ### Add Jibri node
 
@@ -23,6 +26,8 @@ Copy the modified `add-jibri-node.sh` file from your early cloned installation d
 ```
 bash add-jibri-node.sh
 ```
+
+Please remember that on newer versions, jibri will record on FHD (1920x1080) so please make sure your server have enough CPU power in orther to handle the encoding load.
 
 ### Add JVB2 node
 
@@ -40,7 +45,7 @@ Check more details on our wiki.
 * Clean VM/VPS/Server using a supported Ubuntu LTS
 * Valid domain with DNS record, **mandatory** for SSL certs via Let's Encrypt.
 * Ports open for ACME (SSL) interaction & validation.
-* Highly recommended: 8 GB RAM / 4 Cores.
+* Highly recommended: Above 8 GB RAM / 4 Cores.
 * Webcam
 
 ### Jigasi Transcript
