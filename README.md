@@ -1,5 +1,5 @@
 # Quick Jibri Installer
-Bash installer for Jitsi Meet standalone along with Jibri on supported**Ubuntu LTS** based systems using **nginx** as default webserver.
+Bash installer for Jitsi Meet standalone along with Jibri on supported **Ubuntu LTS** based systems using **nginx** as default webserver.
 
 ## Usage
 As for our current latest release, as we have integrated more and more features, we highly recommend to use a purpose specific-newly spawn server to host the jitsi-meet framework, making sure you stick to the requirements and recommendations as much as possible, in order to avoid issues.
