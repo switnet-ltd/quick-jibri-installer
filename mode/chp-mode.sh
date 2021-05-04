@@ -1,6 +1,6 @@
 #!/bin/bash
 # Custom High Performance Jitsi conf
-# SwITNet Ltd © - 2020, https://switnet.net/
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 
 #Check if user is root

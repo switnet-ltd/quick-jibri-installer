@@ -1,6 +1,6 @@
 #!/bin/bash
 # Simple Jibri resolution enhancer
-# 2021 - SwITNet Ltd
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GNU GPLv3 or later.
 
 while getopts m: option

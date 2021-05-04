@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick Jibri Installer - *buntu (LTS) based systems.
-# SwITNet Ltd © - 2020, https://switnet.net/
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 {
 echo "Started at $(date +'%Y-%m-%d %H:%M:%S')" >> qj-installer.log

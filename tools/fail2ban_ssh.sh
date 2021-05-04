@@ -1,6 +1,6 @@
 #!/bin/bash
 # Simple Fail2ban configuration
-# 2020 - SwITNet Ltd
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GNU GPLv3 or later.
 
 while getopts m: option

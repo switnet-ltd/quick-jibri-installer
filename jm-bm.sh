@@ -1,7 +1,7 @@
 #!/bin/bash
 # Jitsi Meet brandless mode
 # for Debian/*buntu binaries.
-# 2020 - SwITNet Ltd
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GNU GPLv3 or later.
 
 DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"

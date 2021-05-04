@@ -1,6 +1,6 @@
 #!/bin/bash
 # JWT Mode Setup
-# SwITNet Ltd © - 2020, https://switnet.net/
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
 MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"

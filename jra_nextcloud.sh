@@ -1,6 +1,6 @@
 #!/bin/bash
 # JRA (Jibri Recordings Access) via Nextcloud
-# SwITNet Ltd © - 2020, https://switnet.net/
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 while getopts m: option
 do
