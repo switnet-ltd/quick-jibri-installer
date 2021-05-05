@@ -42,12 +42,16 @@ fi
 }
 exit_ifinstalled jitsi-meet
 
-if [ $DIST = flidas ]; then
-DIST="xenial"
+rename_distro() {
+if [ "$DIST" = "$1" ]; then
+  DIST="$2"
 fi
-if [ $DIST = etiona ]; then
-DIST="bionic"
-fi
+}
+#Trisquel distro renaming
+rename_distro flidas xenial
+rename_distro etiona bionic
+rename_distro nabia  focal
+
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
     echo " $1 is installed, skipping..."
