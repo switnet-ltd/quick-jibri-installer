@@ -32,7 +32,7 @@ Exiting..."
   exit
 fi
 
-apt-get -y install apt-show-version
+apt-get -y install apt-show-versions
 
 JIBRI_OPT="/opt/jitsi/jibri"
 JIBRI_ENH_PATH="/opt/jibri-res-enhancer"
