@@ -81,7 +81,7 @@ JIBRI_JAR="$(ls -Sh $JIBRI_ENH_PATH/target|awk '/dependencies/&&/.jar/{print}'|a
 cp $JIBRI_ENH_PATH/target/$JIBRI_JAR $JIBRI_ENH_PATH/target/jibri.jar
 
 # Backing up default binaries
-if [ "$UPSTREAM_DEB_JAR_SUM" = "$(md5sum $JIBRI_OPT/jibri.jar)" ]; then
+if [ "$UPSTREAM_DEB_JAR_SUM" = "$(md5sum 2>/dev/null $JIBRI_OPT/jibri.jar|awk '{print$1}')" ]; then
   cp $JIBRI_OPT/jibri.jar $JIBRI_OPT/jibri-dpkg-package.jar
 fi
 
