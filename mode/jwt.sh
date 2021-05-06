@@ -42,6 +42,9 @@ sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" $PROSOD
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"token\"|}" $PROSODY_FILE
 sed -i "s|--app_id=\"example_app_id\"|app_id=\"$APP_ID\"|" $PROSODY_FILE
 sed -i "s|--app_secret=\"example_app_secret\"|app_secret=\"$SECRET_APP\"|" $PROSODY_FILE
+sed -i "/app_secret/a \\\\" $PROSODY_FILE
+sed -i "/app_secret/a \ \ \ \ allow_empty_token = false" $PROSODY_FILE
+sed -i "/app_secret/a \\\\" $PROSODY_FILE
 sed -i "/app_secret/a \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" $PROSODY_FILE
 sed -i "/app_secret/a \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \"RocketChat\" }" $PROSODY_FILE
 sed -i "/app_secret/a \\\\" $PROSODY_FILE
