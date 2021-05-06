@@ -1225,8 +1225,8 @@ if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
         bash $PWD/etherpad.sh
     fi
 fi
-#Prevent Jibri conecction issue
-if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
+#Prevent JMS conecction issue
+if [ -z "$(awk "/127.0.0.1/&&/$DOMAIN/{print\$1}" /etc/hosts)" ];then
     sed -i "/127.0.0.1/a \\
 127.0.0.1       $DOMAIN" /etc/hosts
 else
