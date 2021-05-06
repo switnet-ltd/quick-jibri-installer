@@ -31,9 +31,26 @@ while [ $secs -gt 0 ]; do
    : $((secs--))
 done
 }
+remove_residuals() {
+  if [ -d $1 ]; then
+    rm -r $1
+  fi
+}
 purge_debconf() {
   echo PURGE | debconf-communicate $1
 }
+remove_services() {
+  systemctl disable $1
+  systemctl stop $1
+}
+echo -e '
+########################################################################
+                Welcome to the Start Over cleaner script
+########################################################################
+                    by Software, IT & Networks Ltd
+\n'
+
+SYNC_USER="$(ls /home|awk '/jbsync/{print}')"
 
 echo "We are about to remove and clean all the jitsi-meet plaform bits and pieces...
 Please make sure you have backed up anything you don't want to loose."
@@ -62,7 +79,7 @@ if [ "$CONTINUE_PURGE2" = "no" ]; then
     exit
 elif [ "$CONTINUE_PURGE2" = "yes" ]; then
     echo "No going back, lets start..."
-    wait_seconds 3
+    wait_seconds 5
 fi
 done
 
@@ -78,15 +95,18 @@ apt-get -y purge jibri \
                  jitsi-videobridge2 \
                  prosody
 
+#Services stop
+remove_services jibri*
+
 #Cleaning packages
 apt-get -y autoremove
 apt-get clean
 
 #Removing residual files
-rm -r /etc/jitsi
-rm -r /opt/jitsi
-rm -r /usr/share/jicofo
-rm -r /usr/share/jitsi-*
+remove_residuals /etc/jitsi
+remove_residuals /opt/jitsi
+remove_residuals /usr/share/jicofo
+remove_residuals /usr/share/jitsi-*
 
 #Purging debconf db
 purge_debconf jicofo
@@ -96,5 +116,13 @@ purge_debconf jitsi-meet-prosody
 purge_debconf jitsi-meet-turnserver
 purge_debconf jitsi-meet-web-config
 purge_debconf jitsi-videobridge2
+
+#Remove unused users
+if [ ! -z $SYNC_USER ]; then
+  deluser --remove-home $SYNC_USER
+fi
+if [ -d /home/jibri ]; then
+  deluser --remove-home  jibri
+fi
 
 echo "We are done..."
