@@ -42,9 +42,11 @@ sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" $PROSOD
 sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"token\"|}" $PROSODY_FILE
 sed -i "s|--app_id=\"example_app_id\"|app_id=\"$APP_ID\"|" $PROSODY_FILE
 sed -i "s|--app_secret=\"example_app_secret\"|app_secret=\"$SECRET_APP\"|" $PROSODY_FILE
-sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" $PROSODY_FILE
-sed -i "/app_secret/a \ \ \ \ \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \"RocketChat\" }" $PROSODY_FILE
-#allow_empty_token = false
+sed -i "/app_secret/a \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" $PROSODY_FILE
+sed -i "/app_secret/a \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \"RocketChat\" }" $PROSODY_FILE
+sed -i "/app_secret/a \\\\" $PROSODY_FILE
+sed -i "s|--allow_empty_token =.*|allow_empty_token = false|" $PROSODY_FILE
+sed -i 's|--"token_verification"|"token_verification"|' $PROSODY_FILE
 
 #Request auth
 sed -i "s|#org.jitsi.jicofo.auth.URL=EXT_JWT:|org.jitsi.jicofo.auth.URL=EXT_JWT:|" $JICOFO_SIP
@@ -57,7 +59,7 @@ VirtualHost "recorder.$DOMAIN"
   modules_enabled = {
     "ping";
   }
-  authentication = "internal_plain"
+  authentication = "internal_hashed"
 
 REC-JIBRI
 
@@ -68,9 +70,7 @@ VirtualHost "guest.$DOMAIN"
     authentication = "token"
     allow_empty_token = true
     c2s_require_encryption = false
---    muc_lobby_whitelist = { "recorder.$DOMAIN", "auth.$DOMAIN" }
     speakerstats_component = "speakerstats.$DOMAIN"
---    conference_duration_component = "conferenceduration.$DOMAIN"
     app_id="$APP_ID";
     app_secret="$SECRET_APP";
 
@@ -81,8 +81,8 @@ VirtualHost "guest.$DOMAIN"
 P_SR
 
 echo -e "\nUse the following for your App (e.g. Rocket.Chat):\n"
-echo -e "\n$APP_ID" && \
-echo -e "$SECRET_APP\n"
+echo -e "\nAPP_ID: $APP_ID" && \
+echo -e "SECRET_APP: $SECRET_APP\n"
 
 echo -e "You can test JWT authentication with the following token:\n"
 pyjwt3 --key="$SECRET_APP" \
