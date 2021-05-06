@@ -284,7 +284,7 @@ if [ "$LE_SSL" = "yes" ]; then
     fi
   done
   #Simple DNS test
-    if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
+    if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN||awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}')" ]; then
         echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
 "
     else
