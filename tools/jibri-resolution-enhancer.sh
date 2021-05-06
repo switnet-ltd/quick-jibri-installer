@@ -52,7 +52,7 @@ cd /tmp/jibri
 apt-get download jibri=$INSTALLED_JIBRI_VERSION
 ar x jibri_*.deb
 tar xvf data.tar.xz
-UPSTREAM_DEB_JAR_SUM="$(md5sum opt/jitsi/jibri/jibri.jar |awk '{print$1}')"
+UPSTREAM_DEB_JAR_SUM="$(md5sum 2>/dev/null /tmp/jibri/opt/jitsi/jibri/jibri.jar |awk '{print$1}')"
 
 if [ -z $UPSTREAM_DEB_JAR_SUM ]; then
   echo "Not possible to continue, exiting..."
@@ -99,11 +99,13 @@ if [ "$JIBRI_RES_ENH_HASH" = "$USED_JIBRI_HASH" ]; then
 else 
   echo "Something went wrong, restoring default package..."
   if [ "$(md5sum $JIBRI_OPT/jibri-dpkg-package.jar)" = "$UPSTREAM_DEB_JAR_SUM" ]; then
-    cp $JIBRI_OPT/jibri-dpkg-package.jar $JIBRI_OPT/jibri.jar 
+    cp $JIBRI_OPT/jibri-dpkg-package.jar $JIBRI_OPT/jibri.jar
+    CLEAN="true"
   else
     if [ -f /tmp/jibri/opt/jitsi/jibri/jibri.jar ]; then
       echo "Restoring from upstream package..."
       cp /tmp/jibri/opt/jitsi/jibri/jibri.jar $JIBRI_OPT/jibri.jar
+      CLEAN="true"
     else
       echo "Wow, someone took the time to avoid restauration, please manually review your changes."
       echo "Exiting..."
@@ -113,3 +115,8 @@ else
 fi
 systemctl restart jibri*
 
+if [ "$CLEAN" = "true" ]; then
+  rm -r /tmp/jibri
+  rm -r $JIBRI_ENH_PATH
+  rm /opt/jitsi/jibri/jibri-res_enh.jar
+fi
