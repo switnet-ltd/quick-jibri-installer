@@ -96,7 +96,9 @@ apt-get -y purge jibri \
                  prosody
 
 #Services stop
-remove_services jibri*
+remove_services jibri
+remove_services jibri-icewm
+remove_services jibri-xorg
 
 #Cleaning packages
 apt-get -y autoremove
