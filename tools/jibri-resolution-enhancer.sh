@@ -91,14 +91,14 @@ if [ -f $JIBRI_OPT/jibri-dpkg-package.jar ];then
  cp $JIBRI_OPT/jibri-res_enh.jar $JIBRI_OPT/jibri.jar
 fi
 
-JIBRI_RES_ENH_HASH="$(md5sum $JIBRI_OPT/jibri-res_enh.jar)"
-USED_JIBRI_HASH="$(md5sum $JIBRI_OPT/jibri.jar)"
+JIBRI_RES_ENH_HASH="$(md5sum 2>/dev/null $JIBRI_OPT/jibri-res_enh.jar|awk '{print$1}')"
+USED_JIBRI_HASH="$(md5sum 2>/dev/null $JIBRI_OPT/jibri.jar|awk '{print$1}')"
 
 if [ "$JIBRI_RES_ENH_HASH" = "$USED_JIBRI_HASH" ]; then
   echo "Everything seems to have gone well."
 else 
   echo "Something went wrong, restoring default package..."
-  if [ "$(md5sum $JIBRI_OPT/jibri-dpkg-package.jar)" = "$UPSTREAM_DEB_JAR_SUM" ]; then
+  if [ "$(md5sum 2>/dev/null $JIBRI_OPT/jibri-dpkg-package.jar|awk '{print$1}')" = "$UPSTREAM_DEB_JAR_SUM" ]; then
     cp $JIBRI_OPT/jibri-dpkg-package.jar $JIBRI_OPT/jibri.jar
     CLEAN="true"
   else
