@@ -113,10 +113,11 @@ else
     fi
   fi
 fi
-systemctl restart jibri*
-
 if [ "$CLEAN" = "true" ]; then
   rm -r /tmp/jibri
   rm -r $JIBRI_ENH_PATH
   rm /opt/jitsi/jibri/jibri-res_enh.jar
 fi
+
+systemctl restart jibri
+echo "This will be a good time to test the enhanced resolution."
