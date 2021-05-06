@@ -1,7 +1,7 @@
 #!/bin/bash
 # Jitsi Meet recurring upgrader and customization keeper
 # for Debian/*buntu binaries.
-# 2020 - SwITNet Ltd
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GNU GPLv3 or later.
 
 Blue='\e[0;34m'

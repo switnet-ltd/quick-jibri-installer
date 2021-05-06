@@ -1,7 +1,7 @@
 #!/bin/bash
 # Custom Selenium Grid-Node fro Jitsi Meet
 # Pandian © - https://community.jitsi.org/u/Pandian
-# SwITNet Ltd © - 2020, https://switnet.net/
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 
 #Check if user is root

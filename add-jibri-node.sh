@@ -1,6 +1,6 @@
 #!/bin/bash
 # Jibri Node Aggregator
-# SwITNet Ltd © - 2020, https://switnet.net/
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 
 ### 0_LAST EDITION TIME STAMP ###

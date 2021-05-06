@@ -7,8 +7,8 @@
 # - https://grafana.com/grafana/dashboards/11969
 # by "mephisto"
 #
-# Igor Kerstges © - 2020
-# SwITNet Ltd © - 2020, https://switnet.net/
+# Igor Kerstges © - 2021
+# SwITNet Ltd © - 2021, https://switnet.net/
 #
 # GPLv3 or later.
 

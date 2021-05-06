@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick Jibri Installer - *buntu (LTS) based systems.
-# SwITNet Ltd © - 2020, https://switnet.net/
+# SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 {
 echo "Started at $(date +'%Y-%m-%d %H:%M:%S')" >> qj-installer.log
@@ -42,12 +42,16 @@ fi
 }
 exit_ifinstalled jitsi-meet
 
-if [ $DIST = flidas ]; then
-DIST="xenial"
+rename_distro() {
+if [ "$DIST" = "$1" ]; then
+  DIST="$2"
 fi
-if [ $DIST = etiona ]; then
-DIST="bionic"
-fi
+}
+#Trisquel distro renaming
+rename_distro flidas xenial
+rename_distro etiona bionic
+rename_distro nabia  focal
+
 install_ifnot() {
 if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
     echo " $1 is installed, skipping..."
@@ -657,14 +661,14 @@ WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 ssl_wa() {
 if [ "$LE_SSL" = "yes" ]; then
-systemctl stop $1
-    letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
-    sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
-    sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
-systemctl restart $1
-    #Add cron
-    crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
-    crontab -l
+  systemctl stop $1
+  letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
+  sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
+  sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
+  systemctl restart $1
+  #Add cron
+  crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
+  crontab -l
 fi
 }
 
