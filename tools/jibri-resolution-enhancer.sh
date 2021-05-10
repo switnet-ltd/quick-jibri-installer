@@ -74,7 +74,7 @@ cd $JIBRI_ENH_PATH
 # Recomemended values based on: https://trac.ffmpeg.org/wiki/Encode/H.264#crf
 ## videoEncodePreset - "medium" || h264ConstantRateFactor - 15
 sed -i "/videoEncodePreset/s|String =.*|String = \"medium\",|"  src/main/kotlin/org/jitsi/jibri/capture/ffmpeg/FfmpegCapturer.kt
-sed -i "/h264ConstantRateFactor/s|Int =.*|Int = 15,|"  src/main/kotlin/org/jitsi/jibri/capture/ffmpeg/FfmpegCapturer.kt
+sed -i "/h264ConstantRateFactor/s|Int =.*|Int = 17,|"  src/main/kotlin/org/jitsi/jibri/capture/ffmpeg/FfmpegCapturer.kt
 mvn package
 
 JIBRI_JAR="$(ls -Sh $JIBRI_ENH_PATH/target|awk '/dependencies/&&/.jar/{print}'|awk 'NR==1{print}')"
