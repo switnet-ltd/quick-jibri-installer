@@ -791,19 +791,6 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 #sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 #fi
 
-#LocalAudioRecording
-if [ "$ENABLE_LAR" = "yes" ]; then
-    echo "# Enabling local recording (audio only)."
-    LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
-    LR_END=$((LR_STR + 18))
-    sed -i "$LR_STR,$LR_END{s|// localRecording: {|localRecording: {|}" $MEET_CONF
-    sed -i "$LR_STR,$LR_END{s|//     enabled: true,|enabled: true,|}" $MEET_CONF
-    sed -i "$LR_STR,$LR_END{s|//     format: 'flac'|format: 'flac'|}" $MEET_CONF
-    sed -i "$LR_STR,$LR_END{s|// }|}|}" $MEET_CONF
-    sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
-    sed -i "s|LOC_REC=.*|LOC_REC=\"on\"|" jitsi-updater.sh
-fi
-
 #Setup main language
 if [ -z $JB_LANG ] || [ "$JB_LANG" = "en" ]; then
     echo "Leaving English (en) as default language..."
