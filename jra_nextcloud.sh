@@ -409,7 +409,7 @@ if [ "$ENABLE_HSTS" = "yes" ]; then
     sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
-if [ "$DISTRO_RELEASE" != "xenial" ] && [ ! -z "$PREAD_PROXY" ]; then
+if [ ! -z "$PREAD_PROXY" ]; then
     echo "
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "
