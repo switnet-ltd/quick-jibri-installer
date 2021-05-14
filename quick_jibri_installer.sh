@@ -415,6 +415,13 @@ Remove Chrome warning...
 mkdir -p /etc/opt/chrome/policies/managed
 echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
 
+## JMS system tune up
+if [ "$MODE" = "debug" ]; then
+    bash $PWD/mode/jms-stu.sh -m debug
+else
+    bash $PWD/mode/jms-stu.sh
+fi
+
 echo '
 ########################################################################
                     Please Setup Your Installation

@@ -160,35 +160,12 @@ elif [ "$CHAT_DISABLED" = "yes" ] || [ -z "$CHAT_DISABLED" ]; then
 fi
 done
 
-#SYSTEM
-##Disable swap
-swapoff -a
-sed -ir  '/\sswap\s/s/^#?/#/' $FSTAB
-
-##Kernel
-#https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html/tuning_and_optimizing_red_hat_enterprise_linux_for_oracle_9i_and_10g_databases/sect-oracle_9i_and_10g_tuning_guide-adjusting_network_settings-changing_network_kernel_settings
-sysctl -w net.core.rmem_default=262144
-sysctl -w net.core.wmem_default=262144
-sysctl -w net.core.rmem_max=262144
-sysctl -w net.core.wmem_max=262144
-set_once "net.core.rmem_default=262144" "/etc/sysctl.conf"
-set_once "net.core.wmem_default=262144" "/etc/sysctl.conf"
-set_once "net.core.rmem_max=262144" "/etc/sysctl.conf"
-set_once "net.core.wmem_max=262144" "/etc/sysctl.conf"
-
-#https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_for_real_time/7/html/tuning_guide/reduce_tcp_performance_spikes
-sysctl -w net.ipv4.tcp_timestamps=0
-set_once "net.ipv4.tcp_timestamps=0" "/etc/sysctl.conf"
-
-#https://bugzilla.redhat.com/show_bug.cgi?id=1283676
-sysctl -w net.core.netdev_max_backlog=100000
-set_once "net.core.netdev_max_backlog=100000" "/etc/sysctl.conf"
-
-##nginx
-sed -i "s|worker_connections.*|worker_connections 2000;|" /etc/nginx/nginx.conf
-
-#Missing docs
-#sysctl -w net.ipv4.tcp_low_latency=1
+## JMS system tune up
+if [ "$MODE" = "debug" ]; then
+    bash $PWD/jms-stu.sh -m debug
+else
+    bash $PWD/jms-stu.sh
+fi
 
 #JVB2
 ##Loose up logging
