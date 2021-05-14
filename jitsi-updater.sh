@@ -21,7 +21,6 @@ if [ ! -f jm-bm.sh ]; then
 fi
 support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
-LOC_REC="TBD"
 ENABLE_BLESSM="TBD"
 CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 CHD_LTST_2D="$(echo $CHD_LTST|cut -d "." -f 1,2)"
@@ -159,11 +158,6 @@ else
     else
         echo "Setting Support custom link"
         sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
-    fi
-    printf "${Purple}========== Disable Localrecording  ==========${Color_Off}\n"
-    if [ "$LOC_REC" != "on" ]; then
-            echo "Removing localrecording..."
-            sed -i "s|'localrecording',||" $INT_CONF
     fi
     printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
     sed -i "s|'videobackgroundblur', ||" $INT_CONF
