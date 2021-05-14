@@ -555,18 +555,6 @@ do
     fi
 done
 
-#Secure room initial user
-#while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
-#do
-#read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
-#if [ "$ENABLE_SC" = "no" ]; then
-#    echo "-- Secure rooms won't be enabled."
-#elif [ "$ENABLE_SC" = "yes" ]; then
-#    echo "-- Secure rooms will be enabled."
-#    read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-#    read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
-#fi
-#done
 echo "
 > Jitsi Meet Auth Method selection.
 "
