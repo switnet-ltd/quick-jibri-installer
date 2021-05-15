@@ -348,6 +348,18 @@ mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
 cat << NEW_CONF > $JIBRI_CONF
 // New XMPP environment config.
 jibri {
+    streaming {
+        // A list of regex patterns for allowed RTMP URLs.  The RTMP URL used
+        // when starting a stream must match at least one of the patterns in
+        // this list.
+        rtmp-allow-list = [
+          // By default, all services are allowed
+          ".*"
+        ]
+    }
+    ffmpeg {
+        resolution = "1920x1080"
+    }
     chrome {
         // The flags which will be passed to chromium when launching
         flags = [
@@ -360,6 +372,24 @@ jibri {
           "--ignore-certificate-errors",
           "--disable-dev-shm-usage"
         ]
+    }
+    stats {
+        enable-stats-d = true
+    }
+    call-status-checks {
+        // If all clients have their audio and video muted and if Jibri does not
+        // detect any data stream (audio or video) comming in, it will stop
+        // recording after NO_MEDIA_TIMEOUT expires.
+        no-media-timeout = 30 seconds
+
+        // If all clients have their audio and video muted, Jibri consideres this
+        // as an empty call and stops the recording after ALL_MUTED_TIMEOUT expires.
+        all-muted-timeout = 10 minutes
+
+        // When detecting if a call is empty, Jibri takes into consideration for how
+        // long the call has been empty already. If it has been empty for more than
+        // DEFAULT_CALL_EMPTY_TIMEOUT, it will consider it empty and stop the recording.
+        default-call-empty-timeout = 30 seconds
     }
     recording {
          recordings-directory = $DIR_RECORD
