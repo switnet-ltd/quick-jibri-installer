@@ -1,5 +1,7 @@
 #!/bin/bash
-# System-tune-up to remove system restrictions on a huge load of connections.
+# System-tune-up to remove system software restrictions on a huge load of connections.
+# Be aware that hardware/infrastructure resources are the most common limiters.
+#
 # SwITNet Ltd © - 2021, https://switnet.net/
 # GPLv3 or later.
 
@@ -38,13 +40,14 @@ else
   echo " \"$(echo $1|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
 fi
 }
+FSTAB="/etc/fstab"
 
 ##Disable swap
 swapoff -a
 sed -r  '/\sswap\s/s/^#?/#/' -i $FSTAB
 
 ##Alternative swap tuning (need more documentation).
-#vm.swappiness=10
+#vm.swappiness=5
 #vm.vfs_cache_pressure=50
 
 ##Kernel
@@ -60,9 +63,6 @@ set_once "net.core.wmem_max=262144" "/etc/sysctl.conf"
 
 #system
 #https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-quickstart
-sysctl -w DefaultLimitNOFILE=65000
-sysctl -w DefaultLimitNPROC=65000
-sysctl -w DefaultTasksMax=65000
 set_once "DefaultLimitNOFILE=65000" "/etc/sysctl.conf"
 set_once "DefaultLimitNPROC=65000" "/etc/sysctl.conf"
 set_once "DefaultTasksMax=65000" "/etc/sysctl.conf"
