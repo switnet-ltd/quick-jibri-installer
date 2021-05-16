@@ -42,18 +42,21 @@ bash add-jvb2-node.sh
 Check more details on our wiki.
 
 ## Requirements
-* Clean VM/VPS/Server using a supported Ubuntu LTS
-* Valid domain with DNS record, **mandatory** for SSL certs via Let's Encrypt.
-* Ports open for ACME (SSL) interaction & validation.
-* Highly recommended: Above 8 GB RAM / 4 Cores.
-* Webcam
-
-### Jigasi Transcript
-* SIP account
-* Google Cloud Account with Billing setup.
+1. Clean VM/VPS/Server using a supported Ubuntu LTS
+2. Valid domain with DNS record, **mandatory** for SSL certs via Let's Encrypt.
+3. open ports for JMS interaction, [see wiki](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Firewall).
+4. Starting at 8 GB RAM / 4 Cores @ ~3.0GHz
+    *  Adding resources as your audience or features you require, so your experience don't suffer from the lack of resources.
+5. Webcam
 
 ### Jibri Recodings Access via Nextcloud
 * Valid domain with DNS record for Nextcloud SSL.
+ 
+### Jigasi Transcript (stalled)
+* SIP account
+* Google Cloud Account with Billing setup.
+
+
 
 ## Kernel warning
 For AWS users or any cloud service provider that might use their own kernel on their products (servers/vm/vps), might cause Jibri failure to start due not allowing `snd_aloop` module.
@@ -63,26 +66,33 @@ Make sure that you update your grub to boot the right one.
 Feel free to use our `test-jibri-env.sh` tool to find some details on your current setup.
 
 ## Features
-* Enabled Session Recording using Jibri
-* Enabled Jitsi Electron app detection server side.
-* Standalone SSL Certbot/LE implementation
-* Jigasi Transcript - Speech to Text powered by Google API (stalled)
+* Enabled Session Recording via Jibri
+  * Rename Jibri folder with name room + date.
+  * Jibri node network.
+    * Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
 * JRA (Jibri Recordings Access) via Nextcloud
-* Improved recurring updater
+* Grafana Dashboard
+* Etherpad via docker install
+* Authentication
+  1. Local
+  2. JWT
+  3. None
+* Lobby Rooms
+* Conference Duration
 * Customized brandless mode
   * Setting up custom interface_config.js (to be deprecated by upstream)
-* Grafana Dashboard
-* Lobby Rooms via
-* Conference Duration via
-* Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
 * JVB2 nodes network.
-* JWT auth.
-* Rename Jibri folder with name room + date.
+
+* Enabled Jitsi Electron app detection server side.
+* Standalone SSL Certbot/LE implementation
+* Improved recurring updater
+* Jigasi Transcript - Speech to Text powered by Google API (stalled)
 
 ## Tools
 * Jibri Environment Tester
  * Jibri Conf Upgrader (late 2020).
 * Selenium Grid via Docker
+* Start over, installation cleansing tool.
 
 ## Optional custom changes
 * Optional default language

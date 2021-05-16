@@ -457,14 +457,14 @@ FQDN_HOST="fqdn"
 # Rename hostname for jitsi server
 while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && ! -z "$FQDN_HOST" ]]
 do
-  echo -e "> Do you want to use your internet domain ($DOMAIN) as a fqdn hostname?: (yes or no)" && \
+  echo -e "> Set $DOMAIN as a fqdn hostname?: (yes or no)\n" && \
   read -p "Leave empty to default to your current one ($(hostname -f)): "$'\n' FQDN_HOST
   if [ "$FQDN_HOST" = "yes" ]; then
-    echo "We'll use your domain ($DOMAIN) as a fqdn hostname, changes will show on reboot."
+    echo "$DOMAIN will be used as fqdn hostname, changes will show on reboot."
     hostnamectl set-hostname "${DOMAIN}"
     sed -i "1i ${PUBLIC_IP} ${DOMAIN}" /etc/hosts
   else
-    echo "We'll keep the current one ($(hostname -f)) you're using."
+    echo "$(hostname -f) will be keep."
   fi
 done
 
@@ -624,16 +624,15 @@ elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
 fi
 done
 #Docker Etherpad
-#while [[ "$ENABLE_DOCKERPAD" != "yes" && "$ENABLE_DOCKERPAD" != "no" ]]
-#do
-#read -p "> Do you want to setup Docker Etherpad: (yes or no)
-#( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_DOCKERPAD
-#if [ "$ENABLE_DOCKERPAD" = "no" ]; then
-#    echo -e "-- Docker Etherpad won't be enabled.\n"
-#elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-#    echo -e "-- Docker Etherpad will be enabled.\n"
-#fi
-#done
+while [[ "$ENABLE_DOCKERPAD" != "yes" && "$ENABLE_DOCKERPAD" != "no" ]]
+do
+read -p "> Do you want to setup Docker Etherpad: (yes or no)"$'\n' -r ENABLE_DOCKERPAD
+if [ "$ENABLE_DOCKERPAD" = "no" ]; then
+    echo -e "-- Docker Etherpad won't be enabled.\n"
+elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
+    echo -e "-- Docker Etherpad will be enabled.\n"
+fi
+done
 #Start configuration
 echo '
 ########################################################################
@@ -1223,9 +1222,9 @@ fi
 if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
     echo -e "\nDocker Etherpad will be enabled."
     if [ "$MODE" = "debug" ]; then
-        bash $PWD/etherpad.sh -m debug
+        bash $PWD/etherpad-docker.sh -m debug
     else
-        bash $PWD/etherpad.sh
+        bash $PWD/etherpad-docker.sh
     fi
 fi
 #Prevent JMS conecction issue
