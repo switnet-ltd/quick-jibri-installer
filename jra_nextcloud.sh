@@ -78,7 +78,7 @@ do
   fi
 done
   #Simple DNS test
-if [ "$PUBLIC_IP" = "$(dig -4 +short $NC_DOMAIN)" ]; then
+if [ "$PUBLIC_IP" = "$(dig -4 +short $NC_DOMAIN|awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}')" ]; then
   echo "Server public IP  & DNS record for $NC_DOMAIN seems to match, continuing...
 "
 else
@@ -409,7 +409,7 @@ if [ "$ENABLE_HSTS" = "yes" ]; then
     sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
-if [ "$DISTRO_RELEASE" != "xenial" ] && [ ! -z "$PREAD_PROXY" ]; then
+if [ ! -z "$PREAD_PROXY" ]; then
     echo "
   Setting up Nextcloud domain on Jitsi Meet turn proxy
 "

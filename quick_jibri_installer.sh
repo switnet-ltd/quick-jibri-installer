@@ -284,7 +284,7 @@ if [ "$LE_SSL" = "yes" ]; then
     fi
   done
   #Simple DNS test
-    if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN)" ]; then
+    if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN||awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}')" ]; then
         echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
 "
     else
@@ -327,7 +327,8 @@ echo "# Check and Install HWE kernel if possible..."
 HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
 if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
-    linux-image-generic-hwe-$(lsb_release -sr)
+    linux-image-generic-hwe-$(lsb_release -sr) \
+    linux-tools-generic-hwe-$(lsb_release -sr)
 else
     apt-get -y install \
     linux-image-generic \
@@ -413,6 +414,13 @@ Remove Chrome warning...
 "
 mkdir -p /etc/opt/chrome/policies/managed
 echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
+
+## JMS system tune up
+if [ "$MODE" = "debug" ]; then
+    bash $PWD/mode/jms-stu.sh -m debug
+else
+    bash $PWD/mode/jms-stu.sh
+fi
 
 echo '
 ########################################################################
@@ -546,29 +554,7 @@ do
         echo "Static avatar will be enabled"
     fi
 done
-# #Enable local audio recording - disabling
-#while [[ "$ENABLE_LAR" != "yes" && "$ENABLE_LAR" != "no" ]]
-#do
-#read -p "> Do you want to enable local audio recording option?: (yes or no)"$'\n' -r ENABLE_LAR
-#if [ "$ENABLE_LAR" = "no" ]; then
-#    echo "Local audio recording option won't be enabled"
-#elif [ "$ENABLE_LAR" = "yes" ]; then
-#    echo "Local audio recording option will be enabled"
-#fi
-#done
 
-#Secure room initial user
-#while [[ "$ENABLE_SC" != "yes" && "$ENABLE_SC" != "no" ]]
-#do
-#read -p "> Do you want to enable secure rooms?: (yes or no)"$'\n' -r ENABLE_SC
-#if [ "$ENABLE_SC" = "no" ]; then
-#    echo "-- Secure rooms won't be enabled."
-#elif [ "$ENABLE_SC" = "yes" ]; then
-#    echo "-- Secure rooms will be enabled."
-#    read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-#    read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
-#fi
-#done
 echo "
 > Jitsi Meet Auth Method selection.
 "
@@ -793,19 +779,6 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 #sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
 #fi
 
-#LocalAudioRecording
-if [ "$ENABLE_LAR" = "yes" ]; then
-    echo "# Enabling local recording (audio only)."
-    LR_STR=$(grep -n "// Local Recording" $MEET_CONF | cut -d ":" -f1)
-    LR_END=$((LR_STR + 18))
-    sed -i "$LR_STR,$LR_END{s|// localRecording: {|localRecording: {|}" $MEET_CONF
-    sed -i "$LR_STR,$LR_END{s|//     enabled: true,|enabled: true,|}" $MEET_CONF
-    sed -i "$LR_STR,$LR_END{s|//     format: 'flac'|format: 'flac'|}" $MEET_CONF
-    sed -i "$LR_STR,$LR_END{s|// }|}|}" $MEET_CONF
-    sed -i "s|'tileview'|'tileview', 'localrecording'|" $INT_CONF
-    sed -i "s|LOC_REC=.*|LOC_REC=\"on\"|" jitsi-updater.sh
-fi
-
 #Setup main language
 if [ -z $JB_LANG ] || [ "$JB_LANG" = "en" ]; then
     echo "Leaving English (en) as default language..."
@@ -848,6 +821,18 @@ mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
 cat << NEW_CONF > $JIBRI_CONF
 // New XMPP environment config.
 jibri {
+    streaming {
+        // A list of regex patterns for allowed RTMP URLs.  The RTMP URL used
+        // when starting a stream must match at least one of the patterns in
+        // this list.
+        rtmp-allow-list = [
+          // By default, all services are allowed
+          ".*"
+        ]
+    }
+    ffmpeg {
+        resolution = "1920x1080"
+    }
     chrome {
         // The flags which will be passed to chromium when launching
         flags = [
@@ -860,6 +845,24 @@ jibri {
           "--ignore-certificate-errors",
           "--disable-dev-shm-usage"
         ]
+    }
+    stats {
+        enable-stats-d = true
+    }
+    call-status-checks {
+        // If all clients have their audio and video muted and if Jibri does not
+        // detect any data stream (audio or video) comming in, it will stop
+        // recording after NO_MEDIA_TIMEOUT expires.
+        no-media-timeout = 30 seconds
+
+        // If all clients have their audio and video muted, Jibri consideres this
+        // as an empty call and stops the recording after ALL_MUTED_TIMEOUT expires.
+        all-muted-timeout = 10 minutes
+
+        // When detecting if a call is empty, Jibri takes into consideration for how
+        // long the call has been empty already. If it has been empty for more than
+        // DEFAULT_CALL_EMPTY_TIMEOUT, it will consider it empty and stop the recording.
+        default-call-empty-timeout = 30 seconds
     }
     recording {
          recordings-directory = $DIR_RECORD
@@ -1017,11 +1020,11 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
     sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
 fi
 #nginx -tlsv1/1.1
-if [ "$DROP_TLS1" = "yes" ] && [ "$DIST" != "xenial" ];then
+if [ "$DROP_TLS1" = "yes" ];then
     echo -e "\nDropping TLSv1/1.1 in favor of v1.3\n"
     sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
     #sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
-elif [ "$DROP_TLS1" = "yes" ] && [ "$DIST" = "xenial" ];then
+elif [ "$DROP_TLS1" = "yes" ];then
     echo -e "\nOnly dropping TLSv1/1.1\n"
     sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
     sed -i "s| TLSv1.3||" $WS_CONF
@@ -1225,8 +1228,8 @@ if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
         bash $PWD/etherpad.sh
     fi
 fi
-#Prevent Jibri conecction issue
-if [ -z "$(grep -n $DOMAIN /etc/hosts)" ];then
+#Prevent JMS conecction issue
+if [ -z "$(awk "/127.0.0.1/&&/$DOMAIN/{print\$1}" /etc/hosts)" ];then
     sed -i "/127.0.0.1/a \\
 127.0.0.1       $DOMAIN" /etc/hosts
 else
