@@ -40,7 +40,7 @@ else
   echo " \"$(echo $1|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
 fi
 }
-FSTAB="/etc/fstab"
+FSTAB=/etc/fstab
 
 ##Disable swap
 swapoff -a
