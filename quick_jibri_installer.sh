@@ -248,6 +248,24 @@ So you can add a Jibri server on a instance with enough resources.\n"
     fi
     done
 fi
+
+#Check system oriented porpuse
+echo "Cheking system oriented purpose...."
+apt-get -yq2 update
+SYSTEM_DE="$(apt-cache search "ubuntu-(desktop|mate-desktop)"|awk '{print$1}'|xargs|sed 's|$| trisquel triskel trisquel-mini|')"
+SYSTEM_DE_ARRAY=( $SYSTEM_DE )
+for de in "${SYSTEM_DE_ARRAY[@]}"
+do
+    if [ "$(dpkg-query -W -f='${Status}' $de 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+        echo -e "\n > This instance has $de installed, exiting...
+\nPlease avoid using this installer on a desktop-user oriented GNU/Linux system.
+ This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
+        exit
+    else
+        echo -e "\n > No standard desktop environment for user oriented porpuse detected, continuing..."
+    fi
+done
+
 #Prosody repository
 add_prosody_repo
 
