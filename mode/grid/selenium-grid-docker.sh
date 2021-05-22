@@ -133,7 +133,7 @@ SELENIUM_GRID_DOCKER
 docker-compose -f selenium.yml up -d
 
 echo -e "\n#=================== End of Seleniun Grid build ========================#\n"
-echo -e "\nChange the values acording to you test requirements using something like;\n"
+echo -e "\nChange the values according to you test requirements using something like;\n"
 echo "cd /opt/jitsi-meet-torture
 sudo bash /opt/jitsi-meet-torture/scripts/malleus.sh \\
                         --conferences=1 \\

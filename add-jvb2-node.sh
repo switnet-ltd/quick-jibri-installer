@@ -309,7 +309,7 @@ ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts
 ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
 sudo su $NJN_USER -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
 
-echo "Writting last node number..."
+echo "Writing last node number..."
 sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jvb2-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jvb2-node.sh
 echo "Last file edition at: $(grep "LETS:" add-jvb2-node.sh|head -n1|awk -F'LETS:' '{print$2}')"

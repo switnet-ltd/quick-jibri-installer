@@ -62,7 +62,7 @@ do
     if [ "$SETUP_TYPE" = "1" ]; then
       echo "We'll setup a GC Projects from scratch"
     elif [ "$SETUP_TYPE" = "2" ]; then
-      echo "We'll setup only the proect and JSON key."
+      echo "We'll setup only the project and JSON key."
     fi
 done
 

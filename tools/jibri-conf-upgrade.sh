@@ -82,7 +82,7 @@ https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 elif [ ! -f $CONF_JSON ] && \
    [ -f $JIBRI_CONF ] && \
    [ -f $JIBRI_CONF-dpkg-file ]; then
-    echo -e "\n> This jibri seems to be running the lastest configuration already, we'll exit...\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+    echo -e "\n> This jibri seems to be running the latest configuration already, we'll exit...\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
     exit
 elif [ -f $CONF_JSON ] && \
@@ -121,7 +121,7 @@ echo "$JB_NICKN"
 fi
 
 #Backup and setup new conf file
-echo -e "Backing up config.json for historical porpuses at:\n ${CONF_JSON}_disabled"
+echo -e "Backing up config.json for historical purposes at:\n ${CONF_JSON}_disabled"
 mv $CONF_JSON ${CONF_JSON}_disabled
 
 mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file

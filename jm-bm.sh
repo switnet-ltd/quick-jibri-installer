@@ -43,7 +43,7 @@ fi
 if [ ! -f "$REC_ICON_PATH" ];then
     cp images/gnome_record.png "$REC_ICON_PATH"
 else
-        echo "recodring icon exists, skipping copying..."
+        echo "recording icon exists, skipping copying..."
 fi
 
 #Custom / Remove icons

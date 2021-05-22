@@ -124,7 +124,7 @@ if [ ! -z "$CHD_VER_LOCAL" ] && [ ! -z "$GOOGL_VER_LOCAL" ]; then
           chmod 0755 $CHDB
           rm -rf /tpm/chromedriver_linux64.zip
           if [ "$($CHDB -v | awk '{print $2}'|cut -d "." -f 1,2)" = "$GOOGL_VER_2D" ]; then
-              echo "Successfull update"
+              echo "Successful update"
               T3=1
           else
               echo "Something might gone wrong on the update process, please report."
@@ -195,7 +195,7 @@ T6=1
 elif [ ! -f $CONF_JSON ] && \
      [ -f $JIBRI_CONF ] && \
      [ -f ${JIBRI_CONF}-dpkg-file ]; then
-    echo -e "\n> This jibri seems to be running the lastest configuration already. \xE2\x9C\x94 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
+    echo -e "\n> This jibri seems to be running the latest configuration already. \xE2\x9C\x94 \n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 T6=1
 elif [ -f ${CONF_JSON} ] && \
