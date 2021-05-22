@@ -52,7 +52,7 @@ echo -e '
 
 SYNC_USER="$(ls /home|awk '/jbsync/{print}')"
 
-echo "We are about to remove and clean all the jitsi-meet plaform bits and pieces...
+echo "We are about to remove and clean all the jitsi-meet platform bits and pieces...
 Please make sure you have backed up anything you don't want to loose."
 
 echo "

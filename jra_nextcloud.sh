@@ -64,7 +64,7 @@ PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 
 while [[ "$ANS_NCD" != "yes" ]]
 do
-  read -p "> Please set your domain (or subdmain) here for Nextcloud: (e.g.: cloud.domain.com)"$'\n' -r NC_DOMAIN
+  read -p "> Please set your domain (or subdomain) here for Nextcloud: (e.g.: cloud.domain.com)"$'\n' -r NC_DOMAIN
   if [ -z "$NC_DOMAIN" ];then
     echo "-- This field is mandatory."
   elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
@@ -105,7 +105,7 @@ while [ -z "$NC_PASS" ]  || [ ${#NC_PASS} -lt 6 ]
 do
     read -p "Nextcloud user password: " -r NC_PASS
     if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt 6 ]; then
-        echo -e "-- This field is mandatory. \nPlease make sure it's at least 6 caracters.\n"
+        echo -e "-- This field is mandatory. \nPlease make sure it's at least 6 characters.\n"
     fi
 done
 #Enable HSTS

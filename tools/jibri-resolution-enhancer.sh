@@ -107,7 +107,7 @@ else
       cp /tmp/jibri/opt/jitsi/jibri/jibri.jar $JIBRI_OPT/jibri.jar
       CLEAN="true"
     else
-      echo "Wow, someone took the time to avoid restauration, please manually review your changes."
+      echo "Wow, someone took the time to avoid restoration, please manually review your changes."
       echo "Exiting..."
       exit
     fi

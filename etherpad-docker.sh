@@ -9,7 +9,7 @@ do
     case "${option}"
     in
         m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./etherpad.sh [-m debug]" && exit;;
+        \?) echo "Usage: sudo ./etherpad-docker.sh [-m debug]" && exit;;
     esac
 done
 

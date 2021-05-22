@@ -206,7 +206,7 @@ if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     "
 else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
-    echo "Even when you can use the videconference sessions, we advice to increase the resources in order to user Jibri."
+    echo "Even when you can use the videoconferencing sessions, we advice to increase the resources in order to user Jibri."
     while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
     do
     read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
@@ -250,7 +250,7 @@ So you can add a Jibri server on a instance with enough resources.\n"
 fi
 
 #Check system oriented porpuse
-echo "Cheking system oriented purpose...."
+echo "Checking system oriented purpose...."
 apt-get -yq2 update
 SYSTEM_DE="$(apt-cache search "ubuntu-(desktop|mate-desktop)"|awk '{print$1}'|xargs|sed 's|$| trisquel triskel trisquel-mini|')"
 SYSTEM_DE_ARRAY=( $SYSTEM_DE )
@@ -283,7 +283,7 @@ while [[ "$LE_SSL" != "yes" && "$LE_SSL" != "no" ]]
 do
 read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)"$'\n' -r LE_SSL
 if [ $LE_SSL = yes ]; then
-  echo "We'll defaul to Let's Encrypt SSL certs."
+  echo "We'll default to Let's Encrypt SSL certs."
 else
   echo "We'll let you choose later on for it.
   Please be aware that a valid SSL cert is required for some features to work properly."
@@ -293,7 +293,7 @@ done
 if [ "$LE_SSL" = "yes" ]; then
   while [[ "$ANS_JD" != "yes" ]]
   do
-    read -p "> Please set your domain (or subdmain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
+    read -p "> Please set your domain (or subdomain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
     read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
     if [ "$ANS_JD" = "yes" ]; then
       echo "Alright, let's use $JITSI_DOMAIN."
@@ -529,7 +529,7 @@ done
 #if [ $ENABLE_DB = no ]; then
 #    echo "Dropbox won't be enable"
 #elif [ $ENABLE_DB = yes ]; then
-#    read -p "Please set your Drobbox App key: "$'\n' -r DB_CID
+#    read -p "Please set your Dropbox App key: "$'\n' -r DB_CID
 #fi
 #done
 #Brandless  Mode
@@ -559,7 +559,7 @@ do
     if [ "$ENABLE_CLOCP" = "yes" ]; then
         echo "Close page will be enabled."
     elif [ "$ENABLE_CLOCP" = "no" ]; then
-        echo "Close page will be keept disabled."
+        echo "Close page will be kept disabled."
     fi
 done
 #Enable static avatar
@@ -687,7 +687,7 @@ if [ "$LE_SSL" = "yes" ]; then
 
     echo "#Set and upgrade certbot PPA if posssible..."
     if [ "$CERTBOT_REPO" = "certbot" ]; then
-        echo -e "\nCerbot repository already on the system!\nChecking for updates...\n"
+        echo -e "\nCertbot repository already on the system!\nChecking for updates...\n"
         apt-get -q2 update
         apt-get -yq2 dist-upgrade
     elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then

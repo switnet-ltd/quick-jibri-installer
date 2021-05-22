@@ -539,7 +539,7 @@ systemctl daemon-reload
 systemctl enable remote_jnsync.service
 systemctl start remote_jnsync.service
 
-echo "Writting last node number..."
+echo "Writing last node number..."
 sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
 echo "Last file edition at: $(awk -F 'LETS:' '/LETS/{print$2}' add-jibri-node.sh|head -n1)"
