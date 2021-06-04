@@ -15,6 +15,8 @@ git clone https://github.com/switnet-ltd/quick-jibri-installer
 cd quick-jibri-installer
 bash quick-jibri-installer.sh
 ```
+![QJI - Setup](https://raw.githubusercontent.com/wiki/switnet-ltd/quick-jibri-installer/images/qji-diagram-setup.png)
+
 If your server meet the necessary resources, then at the end on the installer you should have a working Jitsi Meet Server along with a Jibri server ready to record.
 
 Additional jibris need to be set on separate servers, only necesary on simultaneous recordings for that please use add-jibri-node.sh.
