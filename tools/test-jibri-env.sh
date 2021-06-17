@@ -219,7 +219,7 @@ T6_1=0
 fi
 
 #T7
-echo -e "\n#5 -- Check for open communication port among Jibri and JMS --\n"
+echo -e "\n#7 -- Check for open communication port among Jibri and JMS --\n"
 nc -z -v -w5 $JMS_DOMAIN 5222
 if [ "$?" -ne 0 ]; then
   echo -e "Connection failed! \xE2\x9C\x96\n > You might want to check both Jibri & JMS firewall rules (TCP 5222)."
