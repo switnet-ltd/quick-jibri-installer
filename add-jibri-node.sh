@@ -62,6 +62,7 @@ NJN_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 GITHUB_RAW="https://raw.githubusercontent.com"
 GIT_REPO="switnet-ltd/quick-jibri-installer"
 TEST_JIBRI_ENV="$GITHUB_RAW/$GIT_REPO/unstable/tools/test-jibri-env.sh"
+SHORT_ID="$(awk '{print substr($0,0,7)}' /etc/machine-id)"
 ### 1_VAR_DEF
 
 # sed limiters for add-jibri-node.sh variables
@@ -78,14 +79,9 @@ check_var() {
     fi
 }
 
-if [ -z "$LAST" ]; then
-    echo "There is an error on the LAST definition, please report."
-    exit
-elif [ "$LAST" = "TBD" ]; then
-    ADDUP=$((START + 1))
-else
-    ADDUP=$((LAST + 1))
-fi
+#Change in favor of machine-id identifier
+crontab -l | { cat; echo "@reboot sed -i \"/[[:space:]]control-muc/,/[[:space:]]control-login/{s|nickname = .*|nickname = \\\"$(cat /etc/machine-id)\\\"|}\" /etc/jitsi/jibri/jibri.conf"; } | crontab -
+crontab -l
 
 echo "
 #-----------------------------------------------------------------------
@@ -183,8 +179,8 @@ else
 fi
 
 # Rename hostname for each jibri node
-hostnamectl set-hostname "jbnode${ADDUP}.${MAIN_SRV_DOMAIN}"
-sed -i "1i 127.0.0.1 jbnode${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
+hostnamectl set-hostname "jbnode_${SHORT_ID}.${MAIN_SRV_DOMAIN}"
+sed -i "1i 127.0.0.1 jbnode_${SHORT_ID}.${MAIN_SRV_DOMAIN}" /etc/hosts
 
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
@@ -413,7 +409,7 @@ jibri {
                 control-muc {
                     domain = "internal.auth.$MAIN_SRV_DOMAIN"
                     room-name = "$JibriBrewery"
-                    nickname = "Live-$ADDUP"
+                    nickname = "machine-id"
                 }
 
                 // The login information for the control MUC
@@ -539,11 +535,6 @@ systemctl daemon-reload
 systemctl enable remote_jnsync.service
 systemctl start remote_jnsync.service
 
-echo "Writing last node number..."
-sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jibri-node.sh
-sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
-echo "Last file edition at: $(awk -F 'LETS:' '/LETS/{print$2}' add-jibri-node.sh|head -n1)"
-
 #Enable jibri services
 systemctl enable jibri
 systemctl enable jibri-xorg
@@ -551,24 +542,14 @@ systemctl enable jibri-icewm
 
 check_snd_driver
 
-echo -e "\nSending updated add-jibri-node.sh file to main server sync user...\n"
-cp $PWD/add-jibri-node.sh /tmp
-sudo -u $NJN_USER scp /tmp/add-jibri-node.sh $MJS_USER@$MAIN_SRV_DOMAIN:/home/$MJS_USER/
-rm $PWD/add-jibri-node.sh /tmp/add-jibri-node.sh
-
 echo "
 ########################################################################
                         Node addition complete!!
 
-                               IMPORTANT:
-   The updated version of this file has been sent to the main server
-    at the sync user home directory, please use that one in order to
-  install new nodes. For security reason this version has been deleted
-                          from this very node.
-
                For customized support: http://switnet.net
 ########################################################################
 "
+
 
 echo "Rebooting in..."
 secs=$((15))
