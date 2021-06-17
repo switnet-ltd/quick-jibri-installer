@@ -63,10 +63,8 @@ JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR=
 JVB2_CONF="/etc/jitsi/videobridge/config"
 JVB2_NCONF="/etc/jitsi/videobridge/jvb.conf"
 JVB2_SIP="/etc/jitsi/videobridge/sip-communicator.properties"
+SHORT_ID="$(awk '{print substr($0,0,7)}' /etc/machine-id)"
 #PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
-NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
-NJN_USER="jvbnode${ADDUP}_${NJN_RAND_TAIL}"
-NJN_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 #GITHUB_RAW="https://raw.githubusercontent.com"
 #GIT_REPO="switnet-ltd/quick-jibri-installer"
 ### 1_VAR_DEF
@@ -85,15 +83,6 @@ check_var() {
     fi
 }
 
-if [ -z "$LAST" ]; then
-    echo "There is an error on the LAST definition, please report."
-    exit
-elif [ "$LAST" = "TBD" ]; then
-    ADDUP=$((START + 1))
-else
-    ADDUP=$((LAST + 1))
-fi
-
 #Check server and node OS
 if [ ! "$THIS_SRV_DIST" = "$MAIN_SRV_DIST" ]; then
     echo "Please use the same OS for the JVB2 setup on both servers."
@@ -107,7 +96,7 @@ echo "Verifying System Resources:"
 if [ "$(nproc --all)" -lt 4 ];then
   echo "
 Warning!: The system do not meet the CPU recomendations for a JVB node for heavy loads.
->> We recommend 4 cores/threads for JVB2!
+>> We recommend 4 cores/threads or above for JVB2!
 "
   CPU_MIN="N"
 else
@@ -119,7 +108,7 @@ mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
 if [ ${mem_available} -lt 7700000 ]; then
   echo "
 Warning!: The system do not meet the CPU recomendations for a JVB node for heavy loads.
->> We recommend 8GB RAM for JVB2!
+>> We recommend 8GB RAM or above for JVB2!
 "
   MEM_MIN="N"
 else
@@ -171,8 +160,8 @@ check_var MUC_JID "$MUC_JID"
 check_var MAIN_SRV_DOMAIN "$MAIN_SRV_DOMAIN"
 
 # Rename hostname for each jvb2 node
-hostnamectl set-hostname "jvb${ADDUP}.${MAIN_SRV_DOMAIN}"
-sed -i "1i 127.0.0.1 jvb${ADDUP}.${MAIN_SRV_DOMAIN}" /etc/hosts
+hostnamectl set-hostname "jvb_${SHORT_ID}.${MAIN_SRV_DOMAIN}"
+sed -i "1i 127.0.0.1 jvb_${SHORT_ID}.${MAIN_SRV_DOMAIN}" /etc/hosts
 
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
@@ -297,41 +286,13 @@ cat << JVB2 >> $JVB2_NCONF
 }
 JVB2
 
-echo -e "\n---- Create random nodesync user ----"
-useradd -m -g jitsi $NJN_USER
-echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
-
-echo -e "\n---- We'll connect to main server ----"
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
-sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
-echo "Remote pass: $MJS_USER_PASS"
-ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts
-ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
-sudo su $NJN_USER -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
-
-echo "Writing last node number..."
-sed -i "$(var_dlim 0_VAR),$(var_dlim 1_VAR){s|LAST=.*|LAST=$ADDUP|}" add-jvb2-node.sh
-sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jvb2-node.sh
-echo "Last file edition at: $(grep "LETS:" add-jvb2-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
-
 #Enable jvb2 services
 systemctl enable jitsi-videobridge2.service
 systemctl restart jitsi-videobridge2.service
 
-echo -e "\nSending updated add-jvb2-node.sh file to main server sync user...\n"
-cp $PWD/add-jvb2-node.sh /tmp
-sudo -u $NJN_USER scp /tmp/add-jvb2-node.sh $MJS_USER@$MAIN_SRV_DOMAIN:/home/$MJS_USER/
-rm $PWD/add-jvb2-node.sh /tmp/add-jvb2-node.sh
-
 echo "
 ########################################################################
                         Node addition complete!!
-
-                               IMPORTANT:
-   The updated version of this file has been sent to the main server
-    at the sync user home directory, please use that one in order to
-  install new nodes. For security reason this version has been deleted
-                          from this very node.
 
                For customized support: http://switnet.net
 ########################################################################

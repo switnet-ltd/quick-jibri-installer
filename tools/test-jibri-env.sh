@@ -51,6 +51,7 @@ SND_AL_MODULE=$(lsmod | awk '{print$1}'| grep snd_aloop)
 HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
 CONF_JSON="/etc/jitsi/jibri/config.json"
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
+JMS_DOMAIN="$(awk -F '"' '/xmpp-domain/{print$2}' $JIBRI_CONF)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
 CHD_VER_LOCAL="$($CHDB --version 2>/dev/null| awk '{print$1,$2}')"
 GOOGL_VER_LOCAL="$(/usr/bin/google-chrome --version 2>/dev/null)"
@@ -163,7 +164,7 @@ please try rebooting.\nFor now wait 'til the end of the recommended kernel insta
   fi
   T4=0
 else
-    echo -e "Great!\nModule snd-aloop found!"
+    echo -e "Great!, module snd-aloop found. \xE2\x9C\x94"
     T4=1
 fi
 
@@ -175,10 +176,10 @@ ASRC_MASTER_MD5SUM=$(curl -sL $ASRC_MASTER | md5sum | cut -d ' ' -f 1)
 ASRC_INSTALLED_MD5SUM=$(md5sum $ASRC_INSTALLED | cut -d ' ' -f 1)
 
 if [ "$ASRC_MASTER_MD5SUM" == "$ASRC_INSTALLED_MD5SUM" ]; then
-    echo "Seems to be using the latest asoundrc file available!"
+    echo -e "Seems to be using the latest asoundrc file available. \xE2\x9C\x94"
     T5=1
 else
-    echo "asoundrc files differ, if you have errors, you might wanna check this file!"
+    echo -e "asoundrc files differ, if you have errors, you might wanna check this file \xE2\x9C\x96"
     T5=0
 fi
 
@@ -217,11 +218,22 @@ https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 T6_1=0
 fi
 
-TEST_TOTAL=$(awk "BEGIN{ print $T1 + $T2 + $T3 + $T4 + $T5 + $T6 + $T6_1 }")
+#T7
+echo -e "\n#7 -- Check for open communication port among Jibri and JMS --\n"
+nc -z -v -w5 $JMS_DOMAIN 5222
+if [ "$?" -ne 0 ]; then
+  echo -e "Connection failed! \xE2\x9C\x96\n > You might want to check both Jibri & JMS firewall rules (TCP 5222)."
+  T7=0
+else
+  echo -e "Connection succeeded! \xE2\x9C\x94\n"
+  T7=1
+fi
+
+TEST_TOTAL=$(awk "BEGIN{ print $T1 + $T2 + $T3 + $T4 + $T5 + $T6 + $T6_1 + $T7 }")
 echo "
 ##############################
      \
-Score: $TEST_TOTAL out of 6.1
+Score: $TEST_TOTAL out of 7.1
 ##############################
 "
 echo -e "\nJibri Test complete, thanks for testing.\n"
