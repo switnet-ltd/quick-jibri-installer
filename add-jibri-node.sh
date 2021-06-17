@@ -550,8 +550,8 @@ echo "
 ########################################################################
 "
 
-
-echo "Rebooting in..."
+echo "Make sure to reboot, it's necessary before *any* usage.
+Rebooting in..."
 secs=$((15))
 while [ $secs -gt 0 ]; do
    echo -ne "$secs\033[0K\r"
