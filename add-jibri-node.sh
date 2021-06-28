@@ -63,6 +63,7 @@ GITHUB_RAW="https://raw.githubusercontent.com"
 GIT_REPO="switnet-ltd/quick-jibri-installer"
 TEST_JIBRI_ENV="$GITHUB_RAW/$GIT_REPO/unstable/tools/test-jibri-env.sh"
 SHORT_ID="$(awk '{print substr($0,0,7)}' /etc/machine-id)"
+JIBRI_XORG_CONF="/etc/jitsi/jibri/xorg-video-dummy.conf"
 ### 1_VAR_DEF
 
 # sed limiters for add-jibri-node.sh variables
@@ -358,7 +359,7 @@ jibri {
         ]
     }
     ffmpeg {
-        resolution = $JIBRI_RES_CONF
+        resolution = "$JIBRI_RES_CONF"
     }
     chrome {
         // The flags which will be passed to chromium when launching
