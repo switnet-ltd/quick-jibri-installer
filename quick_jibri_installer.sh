@@ -262,7 +262,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
         exit
     else
-        echo -e "\n > No standard desktop environment for user oriented porpuse detected, continuing..."
+        echo -e "\n > No standard desktop environment \'$de\' for user oriented porpuse detected, continuing..."
     fi
 done
 
@@ -624,12 +624,12 @@ do
     esac
 done
 
-if [ "$JIB_RES" = "720" ]; then
+if [ "$JIBRI_RES" = "720" ]; then
     JIBRI_RES_CONF="\"1280x720\""
     JIBRI_RES_XORG_CONF="1280 720"
 fi
 
-if [ "$JIB_RES" = "1080" ]; then
+if [ "$JIBRI_RES" = "1080" ]; then
     JIBRI_RES_CONF="\"1920x1080\""
     JIBRI_RES_XORG_CONF="1920 1080"
 fi
