@@ -250,7 +250,8 @@ So you can add a Jibri server on a instance with enough resources.\n"
 fi
 
 #Check system oriented porpuse
-echo "Checking system oriented purpose...."
+echo "Checking system oriented purpose....
+"
 apt-get -yq2 update
 SYSTEM_DE="$(apt-cache search "ubuntu-(desktop|mate-desktop)"|awk '{print$1}'|xargs|sed 's|$| trisquel triskel trisquel-mini|')"
 SYSTEM_DE_ARRAY=( $SYSTEM_DE )
@@ -262,7 +263,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
         exit
     else
-        echo -e "\n > No standard desktop environment '$de' for user oriented porpuse detected, continuing..."
+        echo -e " > No standard desktop environment '$de' for user oriented porpuse detected, continuing...\n"
     fi
 done
 
