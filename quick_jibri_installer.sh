@@ -984,7 +984,7 @@ jibri {
 NEW_CONF
 
 #Jibri xorg resolution
-sed "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" $JIBRI_XORG_CONF
+sed -i "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" $JIBRI_XORG_CONF
 
 #Create receiver user
 useradd -m -g jibri $MJS_USER
