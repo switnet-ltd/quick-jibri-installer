@@ -44,10 +44,10 @@ JB_AUTH_PASS=TBD
 JB_REC_PASS=TBD
 MJS_USER=TBD
 MJS_USER_PASS=TBD
-THIS_SRV_DIST=$(lsb_release -sc)
-JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR==1{print$1}')
 JIBRI_RES_CONF=TBD
 JIBRI_RES_XORG_CONF=TBD
+THIS_SRV_DIST=$(lsb_release -sc)
+JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR==1{print$1}')
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
 DIR_RECORD="/var/jbrecord"
 REC_DIR="/home/jibri/finalize_recording.sh"
@@ -96,7 +96,9 @@ JMS_DATA=($MAIN_SRV_DIST \
           $JB_AUTH_PASS \
           $JB_REC_PASS \
           $MJS_USER \
-          $MJS_USER_PASS)
+          $MJS_USER_PASS \
+          $JIBRI_RES_CONF \
+          $JIBRI_RES_XORG_CONF)
 
 JMS_EVAL=${JMS_DATA[0]}
 for i in "${JMS_DATA[@]}"; do
@@ -124,6 +126,8 @@ check_var JB_AUTH_PASS "$JB_AUTH_PASS"
 check_var JB_REC_PASS "$JB_REC_PASS"
 check_var MJS_USER "$MJS_USER"
 check_var MJS_USER_PASS "$MJS_USER_PASS"
+check_var JIBRI_RES_CONF "$JIBRI_RES_CONF"
+check_var JIBRI_RES_XORG_CONF "$JIBRI_RES_XORG_CONF"
 
 #Check server and node OS
 if [ ! "$THIS_SRV_DIST" = "$MAIN_SRV_DIST" ]; then
@@ -354,7 +358,7 @@ jibri {
         ]
     }
     ffmpeg {
-        resolution = "1920x1080"
+        resolution = $JIBRI_RES_CONF
     }
     chrome {
         // The flags which will be passed to chromium when launching
@@ -452,6 +456,9 @@ jibri {
     }
 }
 NEW_CONF
+
+#Jibri xorg resolution
+sed -i "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" $JIBRI_XORG_CONF
 
 echo -e "\n---- Create random nodesync user ----"
 useradd -m -g jibri $NJN_USER
