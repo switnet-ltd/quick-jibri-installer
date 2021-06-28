@@ -250,7 +250,8 @@ So you can add a Jibri server on a instance with enough resources.\n"
 fi
 
 #Check system oriented porpuse
-echo "Checking system oriented purpose...."
+echo "Checking system oriented purpose....
+"
 apt-get -yq2 update
 SYSTEM_DE="$(apt-cache search "ubuntu-(desktop|mate-desktop)"|awk '{print$1}'|xargs|sed 's|$| trisquel triskel trisquel-mini|')"
 SYSTEM_DE_ARRAY=( $SYSTEM_DE )
@@ -262,7 +263,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
         exit
     else
-        echo -e "\n > No standard desktop environment for user oriented porpuse detected, continuing..."
+        echo -e " > No standard desktop environment '$de' for user oriented porpuse detected, continuing...\n"
     fi
 done
 
@@ -471,6 +472,7 @@ MJS_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
 MJS_USER="jbsync_$MJS_RAND_TAIL"
 MJS_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 FQDN_HOST="fqdn"
+JIBRI_XORG_CONF="/etc/jitsi/jibri/xorg-video-dummy.conf"
 
 # Rename hostname for jitsi server
 while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && ! -z "$FQDN_HOST" ]]
@@ -573,6 +575,7 @@ do
     fi
 done
 
+# Set authentication method
 echo "
 > Jitsi Meet Auth Method selection.
 "
@@ -598,6 +601,39 @@ do
         *) echo "Invalid option $REPLY, choose 1, 2 or 3";;
     esac
 done
+
+# Set jibris default resolution
+echo "
+> What jibri resolution should be the default for this and all the following jibri nodes?
+"
+PS3='The more resolution the more resources jibri will require to record properly: '
+jib_res=("HD 720" "FHD 1080")
+select res in "${jib_res[@]}"
+do
+    case $res in
+        "HD 720")
+            echo -e "\n  > HD (1280x720) is good enough for most cases, and requires a moderate high hw requirements.\n"
+            JIBRI_RES="720"
+            break
+            ;;
+        "FHD 1080")
+            echo -e "\n  > Full HD (1920x1080) is the best resolution available, it also requires high hw requirements.\n"
+            JIBRI_RES="1080"
+            break
+            ;;
+        *) echo "Invalid option «$REPLY», choose 1 or 2";;
+    esac
+done
+
+if [ "$JIBRI_RES" = "720" ]; then
+    JIBRI_RES_CONF="\"1280x720\""
+    JIBRI_RES_XORG_CONF="1280 720"
+fi
+
+if [ "$JIBRI_RES" = "1080" ]; then
+    JIBRI_RES_CONF="\"1920x1080\""
+    JIBRI_RES_XORG_CONF="1920 1080"
+fi
 
 #Jibri Records Access (JRA) via Nextcloud
 while [[ "$ENABLE_NC_ACCESS" != "yes" && "$ENABLE_NC_ACCESS" != "no" ]]
@@ -848,7 +884,7 @@ jibri {
         ]
     }
     ffmpeg {
-        resolution = "1920x1080"
+        resolution = $JIBRI_RES_CONF
     }
     chrome {
         // The flags which will be passed to chromium when launching
@@ -946,6 +982,10 @@ jibri {
     }
 }
 NEW_CONF
+
+#Jibri xorg resolution
+sed -i "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" $JIBRI_XORG_CONF
+
 #Create receiver user
 useradd -m -g jibri $MJS_USER
 echo "$MJS_USER:$MJS_USER_PASS" | chpasswd
@@ -966,6 +1006,8 @@ sed -i "s|JB_AUTH_PASS=.*|JB_AUTH_PASS=\"$JB_AUTH_PASS\"|" add-jibri-node.sh
 sed -i "s|JB_REC_PASS=.*|JB_REC_PASS=\"$JB_REC_PASS\"|" add-jibri-node.sh
 sed -i "s|MJS_USER=.*|MJS_USER=\"$MJS_USER\"|" add-jibri-node.sh
 sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jibri-node.sh
+sed -i "s|JIBRI_RES_CONF=.*|JIBRI_RES_CONF=\"$JIBRI_RES_CONF\"|" add-jibri-node.sh
+sed -i "s|JIBRI_RES_XORG_CONF=.*|JIBRI_RES_XORG_CONF=\"$JIBRI_RES_XORG_CONF\"|" add-jibri-node.sh
 sed -i "$(var_dlim 0_LAST),$(var_dlim 1_LAST){s|LETS: .*|LETS: $(date -R)|}" add-jibri-node.sh
 echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LETS:' '{print$2}')"
 
