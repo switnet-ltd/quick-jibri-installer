@@ -46,8 +46,8 @@ MJS_USER=TBD
 MJS_USER_PASS=TBD
 THIS_SRV_DIST=$(lsb_release -sc)
 JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR==1{print$1}')
-START=0
-LAST=TBD
+JIBRI_RES_CONF=TBD
+JIBRI_RES_XORG_CONF=TBD
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
 DIR_RECORD="/var/jbrecord"
 REC_DIR="/home/jibri/finalize_recording.sh"
