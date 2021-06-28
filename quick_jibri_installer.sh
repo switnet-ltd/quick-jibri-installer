@@ -262,7 +262,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
         exit
     else
-        echo -e "\n > No standard desktop environment \'$de\' for user oriented porpuse detected, continuing..."
+        echo -e "\n > No standard desktop environment '$de' for user oriented porpuse detected, continuing..."
     fi
 done
 
