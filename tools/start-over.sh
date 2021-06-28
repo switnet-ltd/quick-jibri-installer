@@ -96,6 +96,10 @@ apt-get -y purge jibri \
                  jitsi-videobridge2 \
                  prosody
 
+#Chome related packages
+apt-get -y purge google-chrome-stable
+rm /usr/local/bin/chromedriver
+
 #Services stop
 remove_services jibri
 remove_services jibri-icewm
