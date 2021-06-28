@@ -51,6 +51,7 @@ echo -e '
 \n'
 
 SYNC_USER="$(ls /home|awk '/jbsync/{print}')"
+DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 
 echo "We are about to remove and clean all the jitsi-meet platform bits and pieces...
 Please make sure you have backed up anything you don't want to loose."
@@ -109,6 +110,9 @@ remove_residuals /etc/jitsi
 remove_residuals /opt/jitsi
 remove_residuals /usr/share/jicofo
 remove_residuals /usr/share/jitsi-*
+
+#Clean /etc/hosts
+sed -i "/$DOMAIN/d" /etc/hosts
 
 #Purging debconf db
 purge_debconf jicofo
