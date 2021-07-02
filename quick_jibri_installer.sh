@@ -1058,11 +1058,11 @@ sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jvb2-node.sh
 
 #Tune webserver for Jitsi App control
 if [ -f $WS_CONF ]; then
-    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ location = \/external_api.min.js {" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ alias \/usr\/share\/jitsi-meet\/libs\/external_api.min.js;" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
-    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \\\n" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ location = \/external_api.min.js {" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ alias \/usr\/share\/jitsi-meet\/libs\/external_api.min.js;" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \\\n" $WS_CONF
     systemctl reload nginx
 else
     echo "No app configuration done to server file, please report to:

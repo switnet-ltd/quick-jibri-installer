@@ -104,14 +104,14 @@ if [ $(grep -c "etherpad" $WS_CONF) != 0 ]; then
     echo "> Webserver seems configured, skipping..."
 elif [ -f $WS_CONF ]; then
     echo "> Setting up webserver configuration file..."
-    sed -i "/Anything that didn't match above/i \ \ \ \ #Etherpad block" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ location \^\~\ \/etherpad\/ {" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:9001\/;" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_set_header X-Forwarded-For \$remote_addr;" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_buffering off;" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_set_header       Host \$host;" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
-    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ #Etherpad block" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ location \^\~\ \/etherpad\/ {" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:9001\/;" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ proxy_set_header X-Forwarded-For \$remote_addr;" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ proxy_buffering off;" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ proxy_set_header       Host \$host;" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \\\n" $WS_CONF
 else
     echo "> No etherpad config done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
