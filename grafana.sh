@@ -163,10 +163,10 @@ while [ $secs -gt 0 ]; do
 done
 
 if [ -f $WS_CONF ]; then
-    sed -i "/Anything that didn't match above/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" $WS_CONF
-    sed -i "/Anything that didn't match above/i \ \ \ \ }" $WS_CONF
-    sed -i "/Anything that didn't match above/i \\\n" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" $WS_CONF
+    sed -i "/# ensure all static content can always be found first/i \\\n" $WS_CONF
     systemctl restart nginx
 else
     echo "No app configuration done to server file, please report to:
