@@ -127,12 +127,13 @@ purge_debconf jitsi-meet-turnserver
 purge_debconf jitsi-meet-web-config
 purge_debconf jitsi-videobridge2
 
-#Remove unused users
+#Remove unused users & groups
 if [ ! -z $SYNC_USER ]; then
   deluser --remove-home $SYNC_USER
 fi
 if [ -d /home/jibri ]; then
   deluser --remove-home  jibri
 fi
+groupdel  jibri
 
 echo "We are done..."
