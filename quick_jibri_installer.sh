@@ -706,7 +706,11 @@ if [ "$LE_SSL" = "yes" ]; then
   sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
   systemctl restart $1
   #Add cron
-  crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
+  if [ $(crontab -l|sed 's|#.*$||g'|grep -c 'weekly certbot renew') = 0 ];then
+    crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
+  else
+    echo "Crontab seems to be already in place, skipping."
+  fi
   crontab -l
 fi
 }

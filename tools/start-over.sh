@@ -133,7 +133,12 @@ if [ ! -z $SYNC_USER ]; then
 fi
 if [ -d /home/jibri ]; then
   deluser --remove-home  jibri
+  rm -r /home/jibri
 fi
 groupdel  jibri
+
+#Remove crontab
+crontab -l | grep -v '@weekly certbot renew --nginx' | crontab -
+crontab -l
 
 echo "We are done..."
