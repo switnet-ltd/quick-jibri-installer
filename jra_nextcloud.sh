@@ -61,6 +61,7 @@ if [ -f $JITSI_MEET_PROXY ];then
 PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+ISO3166_CODE=TBD
 
 while [[ "$ANS_NCD" != "yes" ]]
 do
@@ -119,6 +120,19 @@ do
     elif [ "$ENABLE_HSTS" = "yes" ]; then
         echo "-- HSTS will be enabled."
     fi
+done
+
+echo -e "#Default country phone code\n
+> Starting at Nextcloud 21.x it's required to set a default country phone ISO 3166-1 alpha-2 code.\n
+>>> https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements  <<<\n"
+while [ ${#ISO3166_CODE} -gt 2 ];
+do
+echo -e "Some examples might be: Germany > DE | Mexico > MX | Spain > ES | USA > US\n
+Do you want to set such code for your installation?" && \
+read -p "Leave empty if you don't want to set any: "$'\n' ISO3166_CODE
+  if [ ${#ISO3166_CODE} -gt 2 ]; then
+    echo -e "\n-- This code is only 2 characters long, please check your input.\n"
+  fi
 done
 
 echo -e "\n# Check for jitsi-meet/jibri\n"
@@ -270,54 +284,15 @@ server {
     ssl_certificate /etc/letsencrypt/live/$NC_DOMAIN/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$NC_DOMAIN/privkey.pem;
 
-    # Add headers to serve security related headers
-    # Before enabling Strict-Transport-Security headers please read into this
-    # topic first.
-    # add_header Strict-Transport-Security "max-age=15552000; includeSubDomains; preload;";
-    #
+    # HSTS settings
     # WARNING: Only add the preload option once you read about
     # the consequences in https://hstspreload.org/. This option
     # will add the domain to a hardcoded list that is shipped
     # in all major browsers and getting removed from this list
     # could take several months.
-    add_header Referrer-Policy "no-referrer" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-Download-Options "noopen" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Permitted-Cross-Domain-Policies "none" always;
-    add_header X-Robots-Tag "none" always;
-    add_header X-XSS-Protection "1; mode=block" always;
+    #add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload;" always;
 
-    # Path to the root of your installation
-    root $NC_PATH/;
-
-    location = /robots.txt {
-        allow all;
-        log_not_found off;
-        access_log off;
-    }
-
-    # The following 2 rules are only needed for the user_webfinger app.
-    # Uncomment it if you're planning to use this app.
-    #rewrite ^/.well-known/host-meta /public.php?service=host-meta last;
-    #rewrite ^/.well-known/host-meta.json /public.php?service=host-meta-json
-    # last;
-
-    location = /.well-known/carddav {
-      return 301 \$scheme://\$host/remote.php/dav;
-    }
-    location = /.well-known/caldav {
-      return 301 \$scheme://\$host/remote.php/dav;
-    }    
-    location ~ /.well-known/acme-challenge {
-      allow all;
-    }
-
-    # set max upload size
-    client_max_body_size 1024M;
-    fastcgi_buffers 64 4K;
-
-    # Enable gzip but do not remove ETag headers
+   # Enable gzip but do not remove ETag headers
     gzip on;
     gzip_vary on;
     gzip_comp_level 4;
@@ -325,72 +300,119 @@ server {
     gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
     gzip_types application/atom+xml application/javascript application/json application/ld+json application/manifest+json application/rss+xml application/vnd.geo+json application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/bmp image/svg+xml image/x-icon text/cache-manifest text/css text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
 
-    # Uncomment if your server is built with the ngx_pagespeed module
-    # This module is currently not supported.
+    # Pagespeed is not supported by Nextcloud, so if your server is built
+    # with the \`ngx_pagespeed\` module, uncomment this line to disable it.
     #pagespeed off;
 
-    location / {
-        rewrite ^ /index.php\$uri;
+    # HTTP response headers borrowed from Nextcloud \`.htaccess\`
+    add_header Referrer-Policy                      "no-referrer"   always;
+    add_header X-Content-Type-Options               "nosniff"       always;
+    add_header X-Download-Options                   "noopen"        always;
+    add_header X-Frame-Options                      "SAMEORIGIN"    always;
+    add_header X-Permitted-Cross-Domain-Policies    "none"          always;
+    add_header X-Robots-Tag                         "none"          always;
+    add_header X-XSS-Protection                     "1; mode=block" always;
+
+    # Remove X-Powered-By, which is an information leak
+    fastcgi_hide_header X-Powered-By;
+
+    # set max upload size
+    client_max_body_size 1024M;
+    fastcgi_buffers 64 4K;
+
+    # Path to the root of your installation
+    root $NC_PATH/;
+
+    # Specify how to handle directories -- specifying \`/index.php\$request_uri\`
+    # here as the fallback means that Nginx always exhibits the desired behaviour
+    # when a client requests a path that corresponds to a directory that exists
+    # on the server. In particular, if that directory contains an index.php file,
+    # that file is correctly served; if it doesn't, then the request is passed to
+    # the front-end controller. This consistent behaviour means that we don't need
+    # to specify custom rules for certain paths (e.g. images and other assets,
+    # \`/updater\`, \`/ocm-provider\`, \`/ocs-provider\`), and thus
+    # \`try_files \$uri \$uri/ /index.php\$request_uri\`
+    # always provides the desired behaviour.
+    index index.php index.html /index.php\$request_uri;
+
+    # Rule borrowed from \`.htaccess\` to handle Microsoft DAV clients
+    location = / {
+        if ( \$http_user_agent ~ ^DavClnt ) {
+            return 302 /remote.php/webdav/\$is_args\$args;
+        }
     }
 
-    location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)/ {
-        deny all;
-    }
-    location ~ ^/(?:\.|autotest|occ|issue|indie|db_|console) {
-        deny all;
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
     }
 
-    location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+)\.php(?:\$|/) {
-        fastcgi_split_path_info ^(.+\.php)(/.*)\$;
+    # Make a regex exception for \`/.well-known\` so that clients can still
+    # access it despite the existence of the regex rule
+    # \`location ~ /(\.|autotest|...)\` which would otherwise handle requests
+    # for \`/.well-known\`.
+    location ^~ /.well-known {
+        # The rules in this block are an adaptation of the rules
+        # in \`.htaccess\` that concern \`/.well-known\`.
+
+        location = /.well-known/carddav { return 301 /remote.php/dav/; }
+        location = /.well-known/caldav  { return 301 /remote.php/dav/; }
+
+        location /.well-known/acme-challenge    { try_files \$uri \$uri/ =404; }
+        location /.well-known/pki-validation    { try_files \$uri \$uri/ =404; }
+
+        # Let Nextcloud's API for \`/.well-known\` URIs handle all other
+        # requests by passing them to the front-end controller.
+        return 301 /index.php\$request_uri;
+    }
+
+    # Rules borrowed from \`.htaccess\` to hide certain paths from clients
+    location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)(?:\$|/)  { return 404; }
+    location ~ ^/(?:\.|autotest|occ|issue|indie|db_|console)                { return 404; }
+
+    # Ensure this block, which passes PHP files to the PHP process, is above the blocks
+    # which handle static assets (as seen below). If this block is not declared first,
+    # then Nginx will encounter an infinite rewriting loop when it prepends \`/index.php\`
+    # to the URI, resulting in a HTTP 500 error response.
+    location ~ \.php(?:\$|/) {
+        fastcgi_split_path_info ^(.+?\.php)(/.*)\$;
+        set \$path_info \$fastcgi_path_info;
+
+        try_files \$fastcgi_script_name =404;
+
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        fastcgi_param PATH_INFO \$fastcgi_path_info;
+        fastcgi_param PATH_INFO \$path_info;
         fastcgi_param HTTPS on;
-        #Avoid sending the security headers twice
-        fastcgi_param modHeadersAvailable true;
-        fastcgi_param front_controller_active true;
+
+        fastcgi_param modHeadersAvailable true;         # Avoid sending the security headers twice
+        fastcgi_param front_controller_active true;     # Enable pretty urls
         fastcgi_pass php-handler;
+
         fastcgi_intercept_errors on;
         fastcgi_request_buffering off;
-        fastcgi_read_timeout 300;
     }
 
-    location ~ ^/(?:updater|ocs-provider)(?:\$|/) {
-        try_files \$uri/ =404;
-        index index.php;
+    location ~ \.(?:css|js|svg|gif)\$ {
+        try_files \$uri /index.php\$request_uri;
+        expires 6M;         # Cache-Control policy borrowed from \`.htaccess\`
+        access_log off;     # Optional: Don't log access to assets
     }
 
-    # Adding the cache control header for js and css files
-    # Make sure it is BELOW the PHP block
-    location ~ \.(?:css|js|woff|svg|gif)\$ {
-        try_files \$uri /index.php\$uri\$is_args\$args;
-        add_header Cache-Control "public, max-age=15778463";
-        # Add headers to serve security related headers (It is intended to
-        # have those duplicated to the ones above)
-        # Before enabling Strict-Transport-Security headers please read into
-        # this topic first.
-        # add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload;";
-        #
-        # WARNING: Only add the preload option once you read about
-        # the consequences in https://hstspreload.org/. This option
-        # will add the domain to a hardcoded list that is shipped
-        # in all major browsers and getting removed from this list
-        # could take several months.
-        add_header Referrer-Policy "no-referrer" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header X-Download-Options "noopen" always;
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-Permitted-Cross-Domain-Policies "none" always;
-        add_header X-Robots-Tag "none" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        # Optional: Don't log access to assets
-        access_log off;
+    location ~ \.woff2?\$ {
+        try_files \$uri /index.php\$request_uri;
+        expires 7d;         # Cache-Control policy borrowed from \`.htaccess\`
+        access_log off;     # Optional: Don't log access to assets
     }
 
-    location ~ \.(?:png|html|ttf|ico|jpg|jpeg)\$ {
-        try_files \$uri /index.php\$uri\$is_args\$args;
-        # Optional: Don't log access to other assets
-        access_log off;
+    # Rule borrowed from \`.htaccess\`
+    location /remote {
+        return 301 /remote.php\$request_uri;
+    }
+
+    location / {
+        try_files \$uri \$uri/ /index.php\$request_uri;
     }
 }
 NC_NGINX
@@ -406,7 +428,7 @@ nginx -t
 systemctl restart nginx
 
 if [ "$ENABLE_HSTS" = "yes" ]; then
-    sed -i "s|# add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
+    sed -i "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" $NC_NGINX_CONF
 fi
 
 if [ ! -z "$PREAD_PROXY" ]; then
@@ -461,6 +483,9 @@ sed -i "s|port 6379|port 0|" $REDIS_CONF
 systemctl restart redis-server
 
 echo "--> Setting config.php..."
+if [ ! -z "$ISO3166_CODE" ]; then
+  sed -i "/);/i \ \ 'default_phone_region' => '$ISO3166_CODE'," $NC_CONFIG
+fi
 sed -i "/);/i \ \ 'filelocking.enabled' => 'true'," $NC_CONFIG
 sed -i "/);/i \ \ 'memcache.locking' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
 sed -i "/);/i \ \ 'memcache.local' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
