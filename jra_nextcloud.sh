@@ -61,6 +61,7 @@ if [ -f $JITSI_MEET_PROXY ];then
 PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+ISO3166_CODE=TBD
 
 while [[ "$ANS_NCD" != "yes" ]]
 do
@@ -119,6 +120,19 @@ do
     elif [ "$ENABLE_HSTS" = "yes" ]; then
         echo "-- HSTS will be enabled."
     fi
+done
+
+echo -e "#Default country phone code\n
+> Starting at Nextcloud 21.x it's required to set a default country phone ISO 3166-1 alpha-2 code.\n
+>>> https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements  <<<\n"
+while [ ${#ISO3166_CODE} -gt 2 ];
+do
+echo -e "Some examples might be: Germany > DE | Mexico > MX | Spain > ES | USA > US\n
+Do you want to set such code for your installation?" && \
+read -p "Leave empty if you don't want to set any: "$'\n' ISO3166_CODE
+  if [ ${#ISO3166_CODE} -gt 2 ]; then
+    echo -e "\n-- This code is only 2 characters long, please check your input.\n"
+  fi
 done
 
 echo -e "\n# Check for jitsi-meet/jibri\n"
@@ -469,6 +483,9 @@ sed -i "s|port 6379|port 0|" $REDIS_CONF
 systemctl restart redis-server
 
 echo "--> Setting config.php..."
+if [ ! -z "$ISO3166_CODE" ]; then
+  sed -i "/);/i \ \ 'default_phone_region' => '$ISO3166_CODE'," $NC_CONFIG
+fi
 sed -i "/);/i \ \ 'filelocking.enabled' => 'true'," $NC_CONFIG
 sed -i "/);/i \ \ 'memcache.locking' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
 sed -i "/);/i \ \ 'memcache.local' => '\\\OC\\\Memcache\\\Redis'," $NC_CONFIG
