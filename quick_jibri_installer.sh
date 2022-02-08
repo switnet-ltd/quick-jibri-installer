@@ -263,7 +263,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
         exit
     else
-        echo -e " > No standard desktop environment '$de' for user oriented porpuse detected, continuing...\n"
+        echo -e " > No standard desktop environment '$de' for user oriented porpuse detected, continuing..."
     fi
 done
 
@@ -1084,13 +1084,8 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ];then
-    echo -e "\nDropping TLSv1/1.1 in favor of v1.3\n"
-    sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" /etc/nginx/nginx.conf
-    #sed -i "s|TLSv1 TLSv1.1|TLSv1.3|" $WS_CONF
-elif [ "$DROP_TLS1" = "yes" ];then
-    echo -e "\nOnly dropping TLSv1/1.1\n"
+    echo -e "\nDropping TLSv1/1.1\n"
     sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
-    sed -i "s| TLSv1.3||" $WS_CONF
 elif [ "$DROP_TLS1" = "no" ];then
     echo -e "\nNo TLSv1/1.1 dropping was done.\n"
 else
