@@ -44,11 +44,11 @@ cd /opt
 git clone https://github.com/jitsi/jitsi-meet-torture
 cd jitsi-meet-torture/resources
 if [ -f FourPeople_1280x720_30.y4m ] ; then
-echo "FourPeople_1280x720_30.y4m exists"
+  echo "FourPeople_1280x720_30.y4m exists"
 else
-echo "FourPeople_1280x720_30.y4m doesn't exists, getting a copy..."
-wget -c https://media.xiph.org/video/derf/y4m/FourPeople_1280x720_60.y4m
-cp FourPeople_1280x720_60.y4m FourPeople_1280x720_30.y4m
+  echo "FourPeople_1280x720_30.y4m doesn't exists, getting a copy..."
+  wget -c https://media.xiph.org/video/derf/y4m/FourPeople_1280x720_60.y4m
+  cp FourPeople_1280x720_60.y4m FourPeople_1280x720_30.y4m
 fi
 cd ..
 
