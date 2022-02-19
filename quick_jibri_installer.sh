@@ -340,6 +340,10 @@ apt-get -y install \
 if [ "$LE_SSL" = "yes" ]; then
 apt-get -y install \
                 letsencrypt
+    if [ "$(dpkg-query -W -f='${Status}' ufw 2>/dev/null | grep -c "ok installed")" == "1"  ]; then
+        echo "# Disable pre-installed ufw to allow ssl challenges validation."
+        ufw disable
+    fi
 fi
 
 echo "# Check and Install HWE kernel if possible..."
