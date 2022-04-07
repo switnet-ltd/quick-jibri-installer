@@ -341,7 +341,8 @@ if [ "$LE_SSL" = "yes" ]; then
 apt-get -y install \
                 letsencrypt
     if [ "$(dpkg-query -W -f='${Status}' ufw 2>/dev/null | grep -c "ok installed")" == "1"  ]; then
-        echo "# Disable pre-installed ufw to allow ssl challenges validation."
+        echo "# Disable pre-installed ufw, more on firewall see:
+    > https://github.com/switnet-ltd/quick-jibri-installer/wiki/Firewall"
         ufw disable
     fi
 fi
@@ -451,8 +452,8 @@ echo '
 ########################################################################
 '
 # MEET / JIBRI SETUP
-DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
-WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
+DOMAIN="$(find /etc/prosody/conf.d/ -name *.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
+WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
 JB_AUTH_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 JB_REC_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 PROSODY_FILE="/etc/prosody/conf.d/$DOMAIN.cfg.lua"
