@@ -28,7 +28,7 @@ TMP_DIR="$(mktemp -d)"
 KERNEL_LOG="$TMP_DIR/kernel_log"
 GRUB_FILE="/etc/default/grub"
 
-echo "# Check and update HWE kernel if possible..."
+echo -e "# Check and update HWE kernel if possible...\n"
 apt-get -q2 update
 HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
 if [ "$HWE_VIR_MOD" = "1" ]; then
@@ -51,16 +51,17 @@ cat $KERNEL_LOG | awk -F'boot/' '{print$2}'|sed '/^[[:space:]]*$/d' | \
 tee ${KERNEL_LOG}.tmp
 mv ${KERNEL_LOG}.tmp $KERNEL_LOG
 
-echo "Check if AWS kernel is installed."
+echo -e "Check if AWS kernel is installed.\n"
 [ $(grep -wc aws $KERNEL_LOG) = 0 ] && echo "No AWS kernel found, exiting..." && exit
 
 #Get kernel number
 RAW_KERNEL_NUM="$(grep -Fn generic $KERNEL_LOG|head -n1|cut -d ':' -f1)"
 FIXED_KERNEL_NUM="$(awk "BEGIN{ print $RAW_KERNEL_NUM - 1 }")"
 
-#Set up grub kernel number.
+echo -e "Set up GRUB for custom kernel.\n"
 sed -i "s|GRUB_DEFAULT=.*|GRUB_DEFAULT=\"1\>$FIXED_KERNEL_NUM\"|" $GRUB_FILE
 
+echo -e "Saving changes...\n"
 update-grub
 
 echo "Time to reboot..."
