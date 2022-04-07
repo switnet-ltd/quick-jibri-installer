@@ -79,8 +79,8 @@ if [ "$CONTINUE_PURGE2" = "no" ]; then
     echo "  Good, see you next time..."
     exit
 elif [ "$CONTINUE_PURGE2" = "yes" ]; then
-    echo "No going back, lets start..."
-    wait_seconds 5
+    echo "No going back, let's start..."
+    wait_seconds 10
 fi
 done
 
