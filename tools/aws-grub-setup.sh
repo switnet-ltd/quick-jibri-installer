@@ -18,6 +18,13 @@ while [ $secs -gt 0 ]; do
 done
 }
 
+# Check if user is root
+if [ $(id -u) = 0 ]; then
+   echo "Please don't run with root or sudo privileges!
+  > We'll request them when necessary."
+   exit 1
+fi
+
 TMP_DIR="$(mktemp -d)"
 KERNEL_LOG="$TMP_DIR/kernel_log"
 GRUB_FILE="/etc/default/grub"
