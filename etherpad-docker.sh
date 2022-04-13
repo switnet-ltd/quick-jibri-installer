@@ -44,7 +44,7 @@ fi
 }
 DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
 MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
-WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
+WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
 PSGVER="$(apt-cache madison postgresql|awk -F'[ +]' 'NR==1{print $3}')"
 ETHERPAD_DB_USER="dockerpad"
 ETHERPAD_DB_NAME="etherpad"

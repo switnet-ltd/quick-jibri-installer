@@ -53,7 +53,7 @@ MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
 MEET_CONF_HP="/etc/jitsi/meet/${DOMAIN}-chp-config.js"
 INT_CONF_JS="/etc/jitsi/meet/${DOMAIN}-interface_config.js"
 INT_CONF_JS_HP="/etc/jitsi/meet/${DOMAIN}-chp-interface_config.js"
-WS_CONF="/etc/nginx/sites-enabled/$DOMAIN.conf"
+WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
 FSTAB="/etc/fstab"
 CHAT_DISABLED="TBD"
 
