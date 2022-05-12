@@ -419,7 +419,7 @@ NC_NGINX
 systemctl stop nginx
 letsencrypt certonly --standalone --renew-by-default --agree-tos -d "$NC_DOMAIN"
 if [ -f /etc/letsencrypt/live/"$NC_DOMAIN"/fullchain.pem ];then
-    ln -s "$NC_NGINX_CONF" /etc/nginx/sites-available/
+    ln -s "$NC_NGINX_CONF" /etc/nginx/sites-enabled/
 else
     echo "There are issues on getting the SSL certs..."
     read -n 1 -s -r -p "Press any key to continue"

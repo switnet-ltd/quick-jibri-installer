@@ -54,7 +54,6 @@ MEET_CONF_HP="/etc/jitsi/meet/${DOMAIN}-chp-config.js"
 INT_CONF_JS="/etc/jitsi/meet/${DOMAIN}-interface_config.js"
 INT_CONF_JS_HP="/etc/jitsi/meet/${DOMAIN}-chp-interface_config.js"
 WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
-#FSTAB="/etc/fstab"
 CHAT_DISABLED="TBD"
 
 if [ -f "$MEET_CONF_HP" ] || [ -f "$INT_CONF_JS_HP" ]; then
