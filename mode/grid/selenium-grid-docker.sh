@@ -30,7 +30,7 @@ apt-get install -y \
                          wget \
                          unzip \
                          maven \
-                         openjdk-8-jdk
+                         openjdk-11-jdk
 # Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh

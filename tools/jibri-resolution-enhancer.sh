@@ -63,7 +63,7 @@ fi
 apt-get -y install devscripts \
                    git \
                    maven \
-                   openjdk-8-jdk
+                   openjdk-11-jdk
 
 #Build repository
 git clone https://github.com/jitsi/jibri "$JIBRI_ENH_PATH"
