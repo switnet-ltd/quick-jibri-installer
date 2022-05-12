@@ -18,7 +18,7 @@ if [ "$MODE" = "debug" ]; then
 fi
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -46,15 +46,15 @@ if [ -f "$JIBRI_OPT/jibri-res_enh.jar" ] && \
 fi
 
 mkdir /tmp/jibri
-cd /tmp/jibri
+cd /tmp/jibri || exit
 
 #Get md5sum for current jibri installed.
-apt-get download jibri=$INSTALLED_JIBRI_VERSION
+apt-get download jibri="$INSTALLED_JIBRI_VERSION"
 ar x jibri_*.deb
 tar xvf data.tar.xz
 UPSTREAM_DEB_JAR_SUM="$(md5sum 2>/dev/null /tmp/jibri/opt/jitsi/jibri/jibri.jar |awk '{print$1}')"
 
-if [ -z $UPSTREAM_DEB_JAR_SUM ]; then
+if [ -z "$UPSTREAM_DEB_JAR_SUM" ]; then
   echo "Not possible to continue, exiting..."
   exit
 fi
@@ -66,8 +66,8 @@ apt-get -y install devscripts \
                    openjdk-8-jdk
 
 #Build repository
-git clone https://github.com/jitsi/jibri $JIBRI_ENH_PATH
-cd $JIBRI_ENH_PATH
+git clone https://github.com/jitsi/jibri "$JIBRI_ENH_PATH"
+cd "$JIBRI_ENH_PATH" || exit
 
 # Default values
 ## videoEncodePreset - "veryfast" || h264ConstantRateFactor - 25
@@ -77,18 +77,18 @@ sed -i "/videoEncodePreset/s|String =.*|String = \"medium\",|"  src/main/kotlin/
 sed -i "/h264ConstantRateFactor/s|Int =.*|Int = 17,|"  src/main/kotlin/org/jitsi/jibri/capture/ffmpeg/FfmpegCapturer.kt
 mvn package
 
-JIBRI_JAR="$(ls -Sh $JIBRI_ENH_PATH/target|awk '/dependencies/&&/.jar/{print}'|awk 'NR==1{print}')"
-cp $JIBRI_ENH_PATH/target/$JIBRI_JAR $JIBRI_ENH_PATH/target/jibri.jar
+JIBRI_JAR="$(find "$JIBRI_ENH_PATH" -name \*.jar|awk '/dependencies/{print}'|awk 'NR==1{print}')"
+cp "$JIBRI_ENH_PATH"/target/"$JIBRI_JAR" "$JIBRI_ENH_PATH"/target/jibri.jar
 
 # Backing up default binaries
 if [ "$UPSTREAM_DEB_JAR_SUM" = "$(md5sum 2>/dev/null $JIBRI_OPT/jibri.jar|awk '{print$1}')" ]; then
-  cp $JIBRI_OPT/jibri.jar $JIBRI_OPT/jibri-dpkg-package.jar
+  cp "$JIBRI_OPT"/jibri.jar "$JIBRI_OPT"/jibri-dpkg-package.jar
 fi
 
 # Migrate original to enhanced jibri
-cp $JIBRI_ENH_PATH/target/jibri.jar $JIBRI_OPT/jibri-res_enh.jar
-if [ -f $JIBRI_OPT/jibri-dpkg-package.jar ];then
- cp $JIBRI_OPT/jibri-res_enh.jar $JIBRI_OPT/jibri.jar
+cp "$JIBRI_ENH_PATH"/target/jibri.jar "$JIBRI_OPT"/jibri-res_enh.jar
+if [ -f "$JIBRI_OPT"/jibri-dpkg-package.jar ];then
+ cp "$JIBRI_OPT"/jibri-res_enh.jar "$JIBRI_OPT"/jibri.jar
 fi
 
 JIBRI_RES_ENH_HASH="$(md5sum 2>/dev/null $JIBRI_OPT/jibri-res_enh.jar|awk '{print$1}')"
@@ -99,12 +99,12 @@ if [ "$JIBRI_RES_ENH_HASH" = "$USED_JIBRI_HASH" ]; then
 else 
   echo "Something went wrong, restoring default package..."
   if [ "$(md5sum 2>/dev/null $JIBRI_OPT/jibri-dpkg-package.jar|awk '{print$1}')" = "$UPSTREAM_DEB_JAR_SUM" ]; then
-    cp $JIBRI_OPT/jibri-dpkg-package.jar $JIBRI_OPT/jibri.jar
+    cp "$JIBRI_OPT"/jibri-dpkg-package.jar "$JIBRI_OPT"/jibri.jar
     CLEAN="true"
   else
     if [ -f /tmp/jibri/opt/jitsi/jibri/jibri.jar ]; then
       echo "Restoring from upstream package..."
-      cp /tmp/jibri/opt/jitsi/jibri/jibri.jar $JIBRI_OPT/jibri.jar
+      cp /tmp/jibri/opt/jitsi/jibri/jibri.jar "$JIBRI_OPT"/jibri.jar
       CLEAN="true"
     else
       echo "Wow, someone took the time to avoid restoration, please manually review your changes."
@@ -115,7 +115,7 @@ else
 fi
 if [ "$CLEAN" = "true" ]; then
   rm -r /tmp/jibri
-  rm -r $JIBRI_ENH_PATH
+  rm -r "$JIBRI_ENH_PATH"
   rm /opt/jitsi/jibri/jibri-res_enh.jar
 fi
 

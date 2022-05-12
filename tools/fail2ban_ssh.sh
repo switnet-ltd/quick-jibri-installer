@@ -18,7 +18,7 @@ set -x
 fi
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -27,8 +27,8 @@ apt-get -y install fail2ban
 
 if \
 [ -f /var/log/ssh_f2b.log ] && \
-[ $(grep -c 604800 /etc/fail2ban/jail.local) = "1" ] && \
-[ $(grep -c ssh_f2b.log /etc/fail2ban/jail.local) = "1"]; then
+[ "$(grep -c 604800 /etc/fail2ban/jail.local)" = "1" ] && \
+[ "$(grep -c ssh_f2b.log /etc/fail2ban/jail.local)" = "1" ]; then
     echo -e "\nFail2ban seems to be already configured.\n"
 else
     echo -e "\nConfiguring Fail2ban...\n"

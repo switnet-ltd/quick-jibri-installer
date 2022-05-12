@@ -25,7 +25,7 @@ echo -e '
 \n'
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -46,19 +46,19 @@ else
 fi
 
 if [ -d /etc/prosody/ ];then
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 fi
 CONF_JSON="/etc/jitsi/jibri/config.json"
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
-DIR_RECORD=/var/jbrecord
-REC_DIR=/home/jibri/finalize_recording.sh
-JibriBrewery=JibriBrewery
+DIR_RECORD="/var/jbrecord"
+REC_DIR="/home/jibri/finalize_recording.sh"
+JibriBrewery="JibriBrewery"
 
 check_read_vars() {
     echo "Checking $1"
     if [ -z "$2" ];then
-    echo "This variable seems wrong, please check before continue"
-    exit 1
+        echo "This variable seems wrong, please check before continue"
+        exit 1
     fi
 }
 restart_services_jibri() {
@@ -73,44 +73,44 @@ fi
 }
 
 #Prevent re-run on completed jibri upgraded instance
-if [ -f $CONF_JSON_disabled ] && \
-   [ -f $JIBRI_CONF ] && \
-   [ -f $JIBRI_CONF-dpkg-file ]; then
+if [ -f "$CONF_JSON"_disabled ] && \
+   [ -f "$JIBRI_CONF" ] && \
+   [ -f "$JIBRI_CONF"-dpkg-file ]; then
     echo -e "\n> This jibri config has been upgraded already, we'll exit...\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
     exit
-elif [ ! -f $CONF_JSON ] && \
-   [ -f $JIBRI_CONF ] && \
-   [ -f $JIBRI_CONF-dpkg-file ]; then
+elif [ ! -f "$CONF_JSON" ] && \
+   [ -f "$JIBRI_CONF" ] && \
+   [ -f "$JIBRI_CONF"-dpkg-file ]; then
     echo -e "\n> This jibri seems to be running the latest configuration already, we'll exit...\n\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
     exit
-elif [ -f $CONF_JSON ] && \
-   [ -f $JIBRI_CONF ]; then
+elif [ -f "$CONF_JSON" ] && \
+   [ -f "$JIBRI_CONF" ]; then
     echo -e "\n> This jibri config seems to be candidate for upgrading, we'll continue...\nIf you think there maybe an error on checking you current jibri configuration.\nPlease report this to \
 https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 fi
 
 #Read missing variables
-if [ -f $CONF_JSON ]; then
+if [ -f "$CONF_JSON" ]; then
     echo "Reading current config.json file..."
-    if [ -z $DOMAIN ]; then
-        DOMAIN=$(jq .xmpp_environments[0].xmpp_domain $CONF_JSON|cut -d '"' -f2)
+    if [ -z "$DOMAIN" ]; then
+        DOMAIN="$(jq .xmpp_environments[0].xmpp_domain $CONF_JSON|cut -d '"' -f2)"
     fi
-    JB_NAME=$(jq .xmpp_environments[0].name $CONF_JSON|cut -d '"' -f2)
-    JB_AUTH_PASS=$(jq .xmpp_environments[0].control_login.password $CONF_JSON|cut -d '"' -f2)
-    JB_REC_PASS=$(jq .xmpp_environments[0].call_login.password $CONF_JSON|cut -d '"' -f2)
-    JB_NICKN=$(jq .xmpp_environments[0].control_muc.nickname $CONF_JSON|cut -d '"' -f2)
+    JB_NAME="$(jq .xmpp_environments[0].name $CONF_JSON|cut -d '"' -f2)"
+    JB_AUTH_PASS="$(jq .xmpp_environments[0].control_login.password $CONF_JSON|cut -d '"' -f2)"
+    JB_REC_PASS="$(jq .xmpp_environments[0].call_login.password $CONF_JSON|cut -d '"' -f2)"
+    JB_NICKN="$(jq .xmpp_environments[0].control_muc.nickname $CONF_JSON|cut -d '"' -f2)"
 else
     echo "Can't find the instance config.json file, exiting..."
     exit
 fi
 
-check_read_vars "Jibri Name" $JB_NAME
-check_read_vars "(Main server) Domain" $DOMAIN
-check_read_vars "Control login passwd" $JB_AUTH_PASS
-check_read_vars "Call login passwd" $JB_REC_PASS
-check_read_vars "Jibri Node nickname" $JB_NICKN
+check_read_vars "Jibri Name" "$JB_NAME"
+check_read_vars "(Main server) Domain" "$DOMAIN"
+check_read_vars "Control login passwd" "$JB_AUTH_PASS"
+check_read_vars "Call login passwd" "$JB_REC_PASS"
+check_read_vars "Jibri Node nickname" "$JB_NICKN"
 
 if [ "$MODE" = "debug" ]; then
 echo "$JB_NAME"
@@ -122,10 +122,10 @@ fi
 
 #Backup and setup new conf file
 echo -e "Backing up config.json for historical purposes at:\n ${CONF_JSON}_disabled"
-mv $CONF_JSON ${CONF_JSON}_disabled
+mv "$CONF_JSON" "${CONF_JSON}"_disabled
 
-mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
-cat << NEW_CONF > $JIBRI_CONF
+mv "$JIBRI_CONF" "${JIBRI_CONF}"-dpkg-file
+cat << NEW_CONF > "$JIBRI_CONF"
 // New XMPP environment config.
 jibri {
     recording {
@@ -195,13 +195,13 @@ jibri {
 NEW_CONF
 
 echo "Check final jibri.conf file:"
-cat $JIBRI_CONF
-read -n 1 -s -r -p "Press any key to continue..."$'\n'
+cat "$JIBRI_CONF"
+read -n 1 -s -r -p "Press any key to continue..."
 
 restart_services_jibri
 systemctl status jibri
 
 if [ -f /var/log/jitsi/jicofo.log ]; then
-echo -e "Checking for jicofo recognizing \"Live\" jibri node..."
-tail -n 10 | grep Live
+    echo -e "Checking for jicofo recognizing \"Live\" jibri node..."
+    tail -n 10 | grep Live
 fi
