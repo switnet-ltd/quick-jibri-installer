@@ -4,7 +4,7 @@
 # SwITNet Ltd © - 2021, https://switnet.net/
 # GNU GPLv3 or later.
 
-DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 CSS_FILE="/usr/share/jitsi-meet/css/all.css"
 TITLE_FILE="/usr/share/jitsi-meet/title.html"
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
@@ -21,7 +21,7 @@ MOVILE_APP_NAME="Jitsi Meet"
 PART_USER="Participant"
 LOCAL_USER="me"
 #
-SEC_ROOM="TBD"
+#SEC_ROOM="TBD"
 echo '
 #--------------------------------------------------
 # Applying Brandless mode
@@ -43,7 +43,7 @@ fi
 if [ ! -f "$REC_ICON_PATH" ];then
     cp images/gnome_record.png "$REC_ICON_PATH"
 else
-        echo "recording icon exists, skipping copying..."
+    echo "recording icon exists, skipping copying..."
 fi
 
 #Custom / Remove icons
@@ -53,8 +53,8 @@ sed -i "s|jitsilogo.png|watermark2.png|g" "$TITLE_FILE"
 sed -i "s|logo-deep-linking.png|watermark2.png|g" "$BUNDLE_JS"
 sed -i "s|jitsiLogo_square.png|gnome_record.png|g" "$BUNDLE_JS"
 #Disable logo and url
-if [ -z "$(grep -nr ".leftwatermark{display:none" "$CSS_FILE")" ]; then
-sed -i "s|.leftwatermark{|.leftwatermark{display:none;|" "$CSS_FILE"
+if ! grep -nr ".leftwatermark{display:none" "$CSS_FILE" ; then
+    sed -i "s|.leftwatermark{|.leftwatermark{display:none;|" "$CSS_FILE"
 fi
 
 #Customize room title

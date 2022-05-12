@@ -9,8 +9,11 @@ Purple='\e[0;35m'
 Green='\e[0;32m'
 Yellow='\e[0;33m'
 Color_Off='\e[0m'
+printwc() {
+    printf "%b$2%b" "$1" "${Color_Off}"
+}
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -23,28 +26,28 @@ support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 ENABLE_BLESSM="TBD"
 CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
-CHD_LTST_2D="$(echo $CHD_LTST|cut -d "." -f 1,2)"
+CHD_LTST_2D="$(echo "$CHD_LTST"|cut -d "." -f 1,2)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
-DOMAIN="$(ls /etc/prosody/conf.d|awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 NC_DOMAIN="TBD"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
-if [ -f $JITSI_MEET_PROXY ];then
-PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
+if [ -f "$JITSI_MEET_PROXY" ];then
+PREAD_PROXY=$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -f1)
 fi
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
 jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages |sort -u|awk '{print $2}'|sed 's|jigasi||')"
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
-if [ -f $apt_repo/google-chrome.list ]; then
+if [ -f "$apt_repo"/google-chrome.list ]; then
     google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2)
 else
     echo "Seems no Google repo installed"
 fi
-if [ -z $CHDB ]; then
+if [ -z "$CHDB" ]; then
     echo "Seems no chromedriver installed"
 else
     CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
-    CHD_VER_2D="$(echo $CHD_VER_LOCAL|awk '{printf "%.1f\n", $NF}')"
+    CHD_VER_2D="$(echo "$CHD_VER_LOCAL"|awk '{printf "%.1f\n", $NF}')"
 fi
 
 # True if $1 is greater than $2
@@ -72,21 +75,21 @@ restart_services() {
 update_jitsi_repo() {
     apt-get update -o Dir::Etc::sourcelist="sources.list.d/jitsi-$1.list" \
         -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-    apt-get install -qq --only-upgrade $jibri_packages
+    apt-get install -qq --only-upgrade "$jibri_packages"
 }
 
 update_google_repo() {
-    if [ -f $apt_repo/google-chrome.list ]; then
+    if [ -f "$apt_repo"/google-chrome.list ]; then
     apt-get update -o Dir::Etc::sourcelist="sources.list.d/google-chrome.list" \
         -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-    apt-get install -qq --only-upgrade $google_package
+    apt-get install -qq --only-upgrade "$google_package"
     else
         echo "No Google repository found"
     fi
 }
 GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{printf "%.1f\n", $NF}')"
 upgrade_cd() {
-if [ ! -z "$GOOGL_VER_2D" ]; then
+if [ -n "$GOOGL_VER_2D" ]; then
     if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" ; then
         echo "Upgrading Chromedriver to Google Chromes version"
         wget -q https://chromedriver.storage.googleapis.com/"$CHD_LTST"/chromedriver_linux64.zip \
@@ -95,33 +98,38 @@ if [ ! -z "$GOOGL_VER_2D" ]; then
         chown root:root "$CHDB"
         chmod 0755 "$CHDB"
         rm -rf /tpm/chromedriver_linux64.zip
-        printf "Current version: ${Green} "$($CHDB -v |awk '{print $2}'|awk '{printf "%.1f\n", $NF}')" ${Color_Off} (latest available)\n"
+        printf "Current version: "
+        printwc "$Green" "$($CHDB -v |awk '{print $2}'|awk '{printf "%.1f\n", $NF}')"
+        echo -e " (latest available)\n"
     elif [ "$GOOGL_VER_2D" = "$CHD_LTST_2D" ]; then
         echo "No need to upgrade Chromedriver"
-        printf "Current version: ${Green} $CHD_VER_2D ${Color_Off}\n"
+        printf "Current version: "
+        printwc "$Green" "$CHD_VER_2D\n"
     fi
 else
-  printf "${Yellow} -> No Google Chrome versión to match, leaving untouched.${Color_Off}\n"
+  printwc "${Yellow}" " -> No Google Chrome versión to match, leaving untouched.\n"
 fi
 }
 
 check_lst_cd() {
-printf "${Purple}Checking for the latest Chromedriver${Color_Off}\n"
-if [ -f $CHDB ]; then
-    printf "Current installed Chromedriver: ${Yellow} $CHD_VER_2D ${Color_Off}\n"
-    printf "Current installed Google Chrome: ${Green} $GOOGL_VER_2D ${Color_Off}\n"
+printwc "${Purple}" "Checking for the latest Chromedriver\n"
+if [ -f "$CHDB" ]; then
+    printf "Current installed Chromedriver: "
+    printwc "${Yellow}" "$CHD_VER_2D\n"
+    printf "Current installed Google Chrome: "
+    printwc "${Green}" "$GOOGL_VER_2D\n"
     upgrade_cd
 else
-    printf "${Yellow} -> Seems there is no Chromedriver installed${Color_Off}\n"
+    printwc "${Yellow}" " -> Seems there is no Chromedriver installed\n"
 fi
 }
 
-printf "${Blue}Update & upgrade Jitsi and components${Color_Off}\n"
-if [ -f $apt_repo/jitsi-unstable.list ]; then
+printwc "${Blue}" "Update & upgrade Jitsi and components\n"
+if [ -f "$apt_repo"/jitsi-unstable.list ]; then
     update_jitsi_repo unstable
     update_google_repo
     check_lst_cd
-elif [ -f $apt_repo/jitsi-stable.list ]; then
+elif [ -f "$apt_repo"/jitsi-stable.list ]; then
     update_jitsi_repo stable
     update_google_repo
     check_lst_cd
@@ -144,35 +152,33 @@ if [ -f "$INT_CONF_ETC" ]; then
     echo "Static interface_config.js exists, skipping modification..."
 else
     echo "This setup doesn't have a static interface_config.js, checking changes..."
-    printf "${Purple}========== Setting Static Avatar  ==========${Color_Off}\n"
+    printwc "${Purple}" "========== Setting Static Avatar  ==========\n"
     if [[ -z "$AVATAR" ]]; then
         echo "Moving on..."
     else
         echo "Setting Static Avatar"
-        sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" $INT_CONF
-        sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+        sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'http://$DOMAIN/avatar/\'|" "$INT_CONF"
+        sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" "$INT_CONF"
     fi
-    printf "${Purple}========== Setting Support Link  ==========${Color_Off}\n"
-    if [[ -z $support ]]; then
+    printwc "${Purple}" "========== Setting Support Link  ==========\n"
+    if [[ -z "$support" ]]; then
         echo "Moving on..."
     else
         echo "Setting Support custom link"
-        sed -i "s|https://jitsi.org/live|$support|g" $INT_CONF
+        sed -i "s|https://jitsi.org/live|$support|g" "$INT_CONF"
     fi
-    printf "${Purple}========== Disable Blur my background  ==========${Color_Off}\n"
-    sed -i "s|'videobackgroundblur', ||" $INT_CONF
+    printwc "${Purple}" "========== Disable Blur my background  ==========\n"
+    sed -i "s|'videobackgroundblur', ||" "$INT_CONF"
 fi
 
 if [  "$NC_DOMAIN" != "TBD" ]; then
-printf "${Purple}========== Enable $NC_DOMAIN for sync client ==========${Color_Off}\n"
+printwc "${Purple}" "========== Enable $NC_DOMAIN for sync client ==========\n"
     if [ -z "$PREAD_PROXY" ]; then
-        echo "
-  Setting up Nextcloud domain on Jitsi Meet turn proxy
-"
-        sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" $JITSI_MEET_PROXY
-        sed -i "/server {/i \ \ \ \ \ \ $DOMAIN    web;" $JITSI_MEET_PROXY
-        sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN    web;" $JITSI_MEET_PROXY
-        sed -i "/server {/i \ \ }" $JITSI_MEET_PROXY
+        printf "\n  Setting up Nextcloud domain on Jitsi Meet turn proxy\n\n"
+        sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" "$JITSI_MEET_PROXY"
+        sed -i "/server {/i \ \ \ \ \ \ $DOMAIN    web;" "$JITSI_MEET_PROXY"
+        sed -i "/server {/i \ \ \ \ \ \ $NC_DOMAIN    web;" "$JITSI_MEET_PROXY"
+        sed -i "/server {/i \ \ }" "$JITSI_MEET_PROXY"
       else
         echo "$NC_DOMAIN seems to be on place, skipping..."
     fi
@@ -183,6 +189,6 @@ restart_services
 #                         Brandless mode                               #
 ########################################################################
 if [ "$ENABLE_BLESSM" = "on" ]; then
-    bash $PWD/jm-bm.sh
+    bash "$PWD"/jm-bm.sh
 fi
-printf "${Blue}Script completed \o/! ${Color_Off}\n"
+printwc "${Blue}" "Script completed \o/!\n"

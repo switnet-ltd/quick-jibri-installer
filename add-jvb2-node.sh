@@ -8,7 +8,7 @@
 ### 1_LAST EDITION ###
 
 #Make sure the file name is the required one
-if [ ! "$(basename $0)" = "add-jvb2-node.sh" ]; then
+if [ ! "$(basename "$0")" = "add-jvb2-node.sh" ]; then
     echo "For most cases naming won't matter, for this one it does."
     echo "Please use the original name for this script: \`add-jvb2-node.sh', and run again."
     exit
@@ -53,10 +53,10 @@ SHARD_DOMAIN=TBD
 SHARD_PASS=TBD
 MUC_JID=TBD
 
-MJS_USER=TBD
-MJS_USER_PASS=TBD
-START=0
-LAST=TBD
+#MJS_USER=TBD
+#MJS_USER_PASS=TBD
+#START=0
+#LAST=TBD
 
 THIS_SRV_DIST=$(lsb_release -sc)
 JITSI_REPO=$(apt-cache policy | awk '/jitsi/&&/stable/{print$3}' | awk -F / 'NR==1{print$1}')
@@ -71,7 +71,7 @@ SHORT_ID="$(awk '{print substr($0,0,7)}' /etc/machine-id)"
 
 # sed limiters for add-jvb2-node.sh variables
 var_dlim() {
-    grep -n $1 add-jvb2-node.sh|head -n1|cut -d ":" -f1
+    grep -n "$1" add-jvb2-node.sh|head -n1|cut -d ":" -f1
 }
 
 check_var() {
@@ -105,7 +105,7 @@ else
 fi
 ### Test RAM size (8GB min) ###
 mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
-if [ ${mem_available} -lt 7700000 ]; then
+if [ "${mem_available}" -lt 7700000 ]; then
   echo "
 Warning!: The system do not meet the CPU recomendations for a JVB node for heavy loads.
 >> We recommend 8GB RAM or above for JVB2!
@@ -141,7 +141,7 @@ echo "
 #-----------------------------------------------------------------------"
 
 check_var JVB_HOSTNNAME "$JVB_HOSTNAME"
-if [ -z $JVB_HOST ]; then
+if [ -z "$JVB_HOST" ]; then
   echo "JVB_HOST is empty, but it may be ok for it to be empty, skipping empty test."
 else
   check_var JVB_HOST "$JVB_HOST"
@@ -166,7 +166,7 @@ sed -i "1i 127.0.0.1 jvb_${SHORT_ID}.${MAIN_SRV_DOMAIN}" /etc/hosts
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
 if [ -z "$JITSI_REPO" ]; then
-    echo "deb http://download.jitsi.org $MAIN_SRV_REPO/" > /etc/apt/sources.list.d/jitsi-$MAIN_SRV_REPO.list
+    echo "deb http://download.jitsi.org $MAIN_SRV_REPO/" > /etc/apt/sources.list.d/jitsi-"$MAIN_SRV_REPO".list
     wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 elif [ ! "$JITSI_REPO" = "$MAIN_SRV_REPO" ]; then
     echo "Main and node servers repository don't match, extiting.."
@@ -193,14 +193,14 @@ apt-get -y install \
                     wget
 
 echo "# Check and Install HWE kernel if possible..."
-HWE_VIR_MOD=$(apt-cache madison linux-modules-extra-virtual-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")
+HWE_VIR_MOD="$(apt-cache madison linux-modules-extra-virtual-hwe-"$(lsb_release -sr)" 2>/dev/null|head -n1|grep -c "extra-virtual-hwe")"
 if [ "$HWE_VIR_MOD" == "1" ]; then
     apt-get -y install \
-    linux-image-generic-hwe-$(lsb_release -sr) \
-    linux-modules-extra-virtual-hwe-$(lsb_release -sr)
+    linux-image-generic-hwe-"$(lsb_release -sr)" \
+    linux-modules-extra-virtual-hwe-"$(lsb_release -sr)"
     else
     apt-get -y install \
-    linux-modules-extra-$(uname -r)
+    linux-modules-extra-"$(uname -r)"
 fi
 
 echo "

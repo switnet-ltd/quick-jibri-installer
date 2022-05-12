@@ -26,12 +26,12 @@ NGINX=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 DIST=$(lsb_release -sc)
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 GOOGLE_ACTIVE_REPO=$(apt-cache policy | awk '/chrome/{print$3}' | awk -F "/" 'NR==1{print$2}')
-PROSODY_REPO=$(apt-cache policy | awk '/prosody/{print$3}' | awk -F "/" 'NR==1{print$2}')
+PROSODY_REPO="$(apt-cache policy | awk '/prosody/{print$3}' | awk -F "/" 'NR==1{print$2}')"
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
-CR=`echo $'\n> '`
+NL="$(echo -e '\n> ')"
 
 exit_ifinstalled() {
-if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
     echo "
 This instance already has $1 installed, exiting...
 Please try again on a clean system.
@@ -53,11 +53,11 @@ rename_distro etiona bionic
 rename_distro nabia  focal
 
 install_ifnot() {
-if [ "$(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
     echo " $1 is installed, skipping..."
     else
         echo -e "\n---- Installing $1 ----"
-        apt-get -yq2 install $1
+        apt-get -yq2 install "$1"
 fi
 }
 check_serv() {
@@ -96,16 +96,16 @@ else
 #-----------------------------------------------------------------------"
 #Test tool
   if [ "$MODE" = "debug" ]; then
-    bash $PWD/tools/test-jibri-env.sh -m debug
+    bash "$PWD"/tools/test-jibri-env.sh -m debug
   else
-    bash $PWD/tools/test-jibri-env.sh
+    bash "$PWD"/tools/test-jibri-env.sh
   fi
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 fi
 }
 # sed limiters for add-jibri-node.sh variables
 var_dlim() {
-    grep -n $1 add-jibri-node.sh|head -n1|cut -d ":" -f1
+    grep -n "$1" add-jibri-node.sh|head -n1|cut -d ":" -f1
 }
 add_prosody_repo() {
 echo "Add Prosody repo"
@@ -117,7 +117,7 @@ else
 fi
 }
 dpkg-compare() {
-dpkg --compare-versions $(dpkg-query -f='${Version}' --show $1) $2 $3
+dpkg --compare-versions "$(dpkg-query -f='${Version}' --show "$1")" "$2" "$3"
 }
 wait_seconds() {
 secs=$(($1))
@@ -148,7 +148,7 @@ Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wik
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -188,8 +188,8 @@ else
   CPU_MIN="Y"
 fi
 ### Test RAM size (8GB min) ###
-mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
-if [ ${mem_available} -lt 7700000 ]; then
+mem_available="$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')"
+if [ "$mem_available" -lt 7700000 ]; then
   echo "
 Warning!: The system do not meet the minimum RAM requirements for Jibri to run.
 >> We recommend 8GB RAM for Jibri!
@@ -209,7 +209,7 @@ else
     echo "Even when you can use the videoconferencing sessions, we advice to increase the resources in order to user Jibri."
     while [[ "$CONTINUE_LOW_RES" != "yes" && "$CONTINUE_LOW_RES" != "no" ]]
     do
-    read -p "> Do you want to continue?: (yes or no)"$'\n' -r CONTINUE_LOW_RES
+    read -p "> Do you want to continue?: (yes or no)$NL" -r CONTINUE_LOW_RES
     if [ "$CONTINUE_LOW_RES" = "no" ]; then
             echo "See you next time with more resources!..."
             exit
@@ -240,7 +240,7 @@ So you can add a Jibri server on a instance with enough resources.\n"
 
     while [[ "$DISABLE_LOCAL_JIBRI" != "yes" && "$DISABLE_LOCAL_JIBRI" != "no" ]]
     do
-    read -p "> Do you want to disable local jibri service?: (yes or no)"$'\n' -r DISABLE_LOCAL_JIBRI
+    read -p "> Do you want to disable local jibri service?: (yes or no)$NL" -r DISABLE_LOCAL_JIBRI
     if [ "$DISABLE_LOCAL_JIBRI" = "no" ]; then
             echo -e "Please keep in mind that we might not support underpowered servers.\n"
     elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
@@ -254,10 +254,10 @@ echo "Checking system oriented purpose....
 "
 apt-get -yq2 update
 SYSTEM_DE="$(apt-cache search "ubuntu-(desktop|mate-desktop)"|awk '{print$1}'|xargs|sed 's|$| trisquel triskel trisquel-mini|')"
-SYSTEM_DE_ARRAY=( $SYSTEM_DE )
+SYSTEM_DE_ARRAY=( "$SYSTEM_DE" )
 for de in "${SYSTEM_DE_ARRAY[@]}"
 do
-    if [ "$(dpkg-query -W -f='${Status}' $de 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+    if [ "$(dpkg-query -W -f='${Status}' "$de" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
         echo -e "\n > This instance has $de installed, exiting...
 \nPlease avoid using this installer on a desktop-user oriented GNU/Linux system.
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
@@ -282,8 +282,8 @@ fi
 #Default to LE SSL?
 while [[ "$LE_SSL" != "yes" && "$LE_SSL" != "no" ]]
 do
-read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)"$'\n' -r LE_SSL
-if [ $LE_SSL = yes ]; then
+read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)$NL" -r LE_SSL
+if [ "$LE_SSL" = yes ]; then
   echo "We'll default to Let's Encrypt SSL certs."
 else
   echo "We'll let you choose later on for it.
@@ -294,8 +294,8 @@ done
 if [ "$LE_SSL" = "yes" ]; then
   while [[ "$ANS_JD" != "yes" ]]
   do
-    read -p "> Please set your domain (or subdomain) here: (e.g.: jitsi.domain.com)"$'\n' -r JITSI_DOMAIN
-    read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)"$'\n' -r ANS_JD
+    read -p "> Please set your domain (or subdomain) here: (e.g.: jitsi.domain.com)$NL" -r JITSI_DOMAIN
+    read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)$NL" -r ANS_JD
     if [ "$ANS_JD" = "yes" ]; then
       echo "Alright, let's use $JITSI_DOMAIN."
     else
@@ -303,13 +303,13 @@ if [ "$LE_SSL" = "yes" ]; then
     fi
   done
   #Simple DNS test
-    if [ "$PUBLIC_IP" = "$(dig -4 +short $JITSI_DOMAIN||awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}')" ]; then
+    if [ "$PUBLIC_IP" = "$(dig -4 +short "$JITSI_DOMAIN"||awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}')" ]; then
         echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
 "
     else
        echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
     echo "  > Please check your dns records are applied and updated, otherwise components may fail."
-      read -p "  > Do you want to continue?: (yes or no)"$'\n' -r DNS_CONTINUE
+      read -p "  > Do you want to continue?: (yes or no)$NL" -r DNS_CONTINUE
         if [ "$DNS_CONTINUE" = "yes" ]; then
           echo "  - We'll continue anyway..."
         else
@@ -348,15 +348,15 @@ apt-get -y install \
 fi
 
 echo "# Check and Install HWE kernel if possible..."
-HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
+HWE_VIR_MOD="$(apt-cache madison linux-image-generic-hwe-"$(lsb_release -sr)" 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")"
 if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
-    linux-image-generic-hwe-$(lsb_release -sr) \
-    linux-tools-generic-hwe-$(lsb_release -sr)
+    linux-image-generic-hwe-"$(lsb_release -sr)" \
+    linux-tools-generic-hwe-"$(lsb_release -sr)"
 else
     apt-get -y install \
     linux-image-generic \
-    linux-modules-extra-$(uname -r)
+    linux-modules-extra-"$(uname -r)"
 fi
 
 check_serv
@@ -373,7 +373,7 @@ fi
 apt-get -y install \
                 jitsi-meet \
                 jibri \
-                openjdk-8-jre-headless
+                openjdk-11-jre-headless
 
 # Fix RAND_load_file error
 #https://github.com/openssl/openssl/issues/7754#issuecomment-444063355
@@ -409,7 +409,7 @@ if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
 else
     echo "Installing Google Chrome Stable"
     wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
-    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee $GOOGL_REPO
+    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee "$GOOGL_REPO"
 fi
 apt-get -q2 update
 apt-get install -yq2 google-chrome-stable
@@ -419,7 +419,7 @@ if [ -f /usr/local/bin/chromedriver ]; then
     echo "Chromedriver already installed."
 else
     echo "Installing Chromedriver"
-    wget -q https://chromedriver.storage.googleapis.com/$CHD_LTST/chromedriver_linux64.zip \
+    wget -q https://chromedriver.storage.googleapis.com/"$CHD_LTST"/chromedriver_linux64.zip \
          -O /tmp/chromedriver_linux64.zip
     unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
     chown root:root /usr/local/bin/chromedriver
@@ -437,13 +437,13 @@ echo "
 Remove Chrome warning...
 "
 mkdir -p /etc/opt/chrome/policies/managed
-echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
+echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > "$GCMP_JSON"
 
 ## JMS system tune up
 if [ "$MODE" = "debug" ]; then
-    bash $PWD/mode/jms-stu.sh -m debug
+    bash "$PWD"/mode/jms-stu.sh -m debug
 else
-    bash $PWD/mode/jms-stu.sh
+    bash "$PWD"/mode/jms-stu.sh
 fi
 
 echo '
@@ -452,7 +452,7 @@ echo '
 ########################################################################
 '
 # MEET / JIBRI SETUP
-DOMAIN="$(find /etc/prosody/conf.d/ -name *.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
 JB_AUTH_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
 JB_REC_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
@@ -463,7 +463,7 @@ MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
 JIBRI_CONF="/etc/jitsi/jibri/jibri.conf"
 JVB2_CONF="/etc/jitsi/videobridge/config"
 JVB2_SIP="/etc/jitsi/videobridge/sip-communicator.properties"
-DIR_RECORD=/var/jbrecord
+DIR_RECORD="/var/jbrecord"
 REC_DIR="/home/jibri/finalize_recording.sh"
 JB_NAME="Jibri Sessions"
 LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
@@ -480,10 +480,10 @@ FQDN_HOST="fqdn"
 JIBRI_XORG_CONF="/etc/jitsi/jibri/xorg-video-dummy.conf"
 
 # Rename hostname for jitsi server
-while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && ! -z "$FQDN_HOST" ]]
+while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && -n "$FQDN_HOST" ]]
 do
   echo -e "> Set $DOMAIN as a fqdn hostname?: (yes or no)\n" && \
-  read -p "Leave empty to default to your current one ($(hostname -f)): "$'\n' FQDN_HOST
+  read -p "Leave empty to default to your current one ($(hostname -f)):$NL" -r FQDN_HOST
   if [ "$FQDN_HOST" = "yes" ]; then
     echo "$DOMAIN will be used as fqdn hostname, changes will show on reboot."
     hostnamectl set-hostname "${DOMAIN}"
@@ -497,7 +497,7 @@ done
 if [ "$LE_SSL" = "yes" ]; then
   while [[ -z $SYSADMIN_EMAIL ]]
   do
-    read -p "Set sysadmin email (this is a mandatory field):"$'\n' -r SYSADMIN_EMAIL
+    read -p "Set sysadmin email (this is a mandatory field):$NL" -r SYSADMIN_EMAIL
   done
 fi
 #Language
@@ -508,21 +508,21 @@ See here:
 https://github.com/jitsi/jitsi-meet/blob/master/lang/languages.json
 
 Jitsi Meet web interface will be set to use such language."
-read -p "Please set your language (Press enter to default to 'en'):"$'\n' -r JB_LANG
+read -p "Please set your language (Press enter to default to 'en'):$NL" -r JB_LANG
 echo -e "\nWe'll take a minute to localize some UI excerpts if you need.\n"
 #Participant
 echo -e "> Do you want to translate 'Participant' to your own language?" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_PARTICIPANT
+read -p "Leave empty to use the default one (English):$NL" -r L10N_PARTICIPANT
 #Me
 echo -e "\n> Do you want to translate 'me' to your own language?
 This must be a really small word to present one self.
 Some suggestions might be: yo (Spanish) | je (French) | ich (German)\n" && \
-read -p "Leave empty to use the default one (English): "$'\n' L10N_ME
+read -p "Leave empty to use the default one (English):$NL" -r L10N_ME
 
 #Drop unsecure TLS
 while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
-    read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)"$'\n' -r DROP_TLS1
+    read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)$NL" -r DROP_TLS1
     if [ "$DROP_TLS1" = "no" ]; then
         echo "TLSv1.0/1.1 will remain."
     elif [ "$DROP_TLS1" = "yes" ]; then
@@ -542,7 +542,7 @@ done
 #Brandless  Mode
 while [[ "$ENABLE_BLESSM" != "yes" && "$ENABLE_BLESSM" != "no" ]]
 do
-    read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)"$'\n' -r ENABLE_BLESSM
+    read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)$NL" -r ENABLE_BLESSM
     if [ "$ENABLE_BLESSM" = "no" ]; then
         echo "Brandless mode won't be set."
     elif [ "$ENABLE_BLESSM" = "yes" ]; then
@@ -552,7 +552,7 @@ done
 #Welcome Page
 while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
-    read -p "> Do you want to disable the Welcome page: (yes or no)"$'\n' -r ENABLE_WELCP
+    read -p "> Do you want to disable the Welcome page: (yes or no)$NL" -r ENABLE_WELCP
     if [ "$ENABLE_WELCP" = "yes" ]; then
         echo "Welcome page will be disabled."
     elif [ "$ENABLE_WELCP" = "no" ]; then
@@ -562,7 +562,7 @@ done
 #Close page
 while [[ "$ENABLE_CLOCP" != "yes" && "$ENABLE_CLOCP" != "no" ]]
 do
-    read -p "> Do you want to enable the close page on room exit: (yes or no)"$'\n' -r ENABLE_CLOCP
+    read -p "> Do you want to enable the close page on room exit: (yes or no)$NL" -r ENABLE_CLOCP
     if [ "$ENABLE_CLOCP" = "yes" ]; then
         echo "Close page will be enabled."
     elif [ "$ENABLE_CLOCP" = "no" ]; then
@@ -572,7 +572,7 @@ done
 #Enable static avatar
 while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
-    read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)"$'\n' -r ENABLE_SA
+    read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)$NL" -r ENABLE_SA
     if [ "$ENABLE_SA" = "no" ]; then
         echo "Static avatar won't be enabled"
     elif [ "$ENABLE_SA" = "yes" ]; then
@@ -644,7 +644,7 @@ fi
 while [[ "$ENABLE_NC_ACCESS" != "yes" && "$ENABLE_NC_ACCESS" != "no" ]]
 do
     read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_NC_ACCESS
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_NC_ACCESS
     if [ "$ENABLE_NC_ACCESS" = "no" ]; then
     	echo -e "-- JRA via Nextcloud won't be enabled.\n"
     elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
@@ -652,15 +652,15 @@ do
     fi
 done
 #Jigasi
-if [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "404" ]; then
+if [ "$(curl -s -o /dev/null -w "%{http_code}" "$GC_SDK_REL_FILE" )" == "404" ]; then
     echo "> Sorry Google SDK doesn't have support yet for $(lsb_release -sd),
     thus, Jigasi Transcript can't be enable.
 "
-elif [ "$(curl -s -o /dev/null -w "%{http_code}" $GC_SDK_REL_FILE )" == "200" ]; then
+elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$GC_SDK_REL_FILE" )" == "200" ]; then
     while [[ "$ENABLE_TRANSCRIPT" != "yes" && "$ENABLE_TRANSCRIPT" != "no" ]]
     do
         read -p "> Do you want to setup Jigasi Transcription: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_TRANSCRIPT
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_TRANSCRIPT
         if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
             echo -e "-- Jigasi Transcription won't be enabled.\n"
         elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
@@ -675,7 +675,7 @@ fi
 while [[ "$ENABLE_GRAFANA_DSH" != "yes" && "$ENABLE_GRAFANA_DSH" != "no" ]]
 do
 read -p "> Do you want to setup Grafana Dashboard: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )"$'\n' -r ENABLE_GRAFANA_DSH
+( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_GRAFANA_DSH
 if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
     echo -e "-- Grafana Dashboard won't be enabled.\n"
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
@@ -685,7 +685,7 @@ done
 #Docker Etherpad
 while [[ "$ENABLE_DOCKERPAD" != "yes" && "$ENABLE_DOCKERPAD" != "no" ]]
 do
-read -p "> Do you want to setup Docker Etherpad: (yes or no)"$'\n' -r ENABLE_DOCKERPAD
+read -p "> Do you want to setup Docker Etherpad: (yes or no)$NL" -r ENABLE_DOCKERPAD
 if [ "$ENABLE_DOCKERPAD" = "no" ]; then
     echo -e "-- Docker Etherpad won't be enabled.\n"
 elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
@@ -701,17 +701,16 @@ echo '
 JibriBrewery=JibriBrewery
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
-WAN_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 ssl_wa() {
 if [ "$LE_SSL" = "yes" ]; then
-  systemctl stop $1
-  letsencrypt certonly --standalone --renew-by-default --agree-tos --email $5 -d $6
-  sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" $4
-  sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" $4
-  systemctl restart $1
+  systemctl stop "$1"
+  letsencrypt certonly --standalone --renew-by-default --agree-tos --email "$5" -d "$6"
+  sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" "$4"
+  sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" "$4"
+  systemctl restart "$1"
   #Add cron
-  if [ $(crontab -l|sed 's|#.*$||g'|grep -c 'weekly certbot renew') = 0 ];then
+  if [ "$(crontab -l|sed 's|#.*$||g'|grep -c 'weekly certbot renew')" = 0 ];then
     crontab -l | { cat; echo "@weekly certbot renew --${2} > $LE_RENEW_LOG 2>&1"; } | crontab -
   else
     echo "Crontab seems to be already in place, skipping."
@@ -735,13 +734,13 @@ if [ "$LE_SSL" = "yes" ]; then
         echo -e "\nCertbot repository already on the system!\nChecking for updates...\n"
         apt-get -q2 update
         apt-get -yq2 dist-upgrade
-    elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "200" ]; then
+    elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$CERTBOT_REL_FILE" )" == "200" ]; then
         echo -e "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
         echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
         apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
         apt-get -q2 update
         apt-get -yq2 dist-upgrade
-    elif [ "$(curl -s -o /dev/null -w "%{http_code}" $CERTBOT_REL_FILE )" == "404" ]; then
+    elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$CERTBOT_REL_FILE" )" == "404" ]; then
         echo -e "\nCertbot PPA is not available for $(lsb_release -sc) just yet, it won't be installed...\n"
     fi
 else
@@ -773,9 +772,9 @@ sed -i "/shard.HOSTNAME/s|localhost|$DOMAIN|" /etc/jitsi/videobridge/sip-communi
 
 # Configure Jibri
 if [ "$ENABLE_SC" = "yes" ]; then
-  if [ ! -f $MOD_LIST_FILE ]; then
+  if [ ! -f "$MOD_LIST_FILE" ]; then
   echo -e "\n-> Adding external module to list prosody users...\n"
-  curl -s $MOD_LISTU > $MOD_LIST_FILE
+  curl -s "$MOD_LISTU" > "$MOD_LIST_FILE"
 
   echo -e "Now you can check registered users with:\nprosodyctl mod_listusers\n"
     else
@@ -784,7 +783,7 @@ if [ "$ENABLE_SC" = "yes" ]; then
 
 fi
 #Enable jibri recording
-cat  << REC-JIBRI >> $PROSODY_FILE
+cat  << REC-JIBRI >> "$PROSODY_FILE"
 
 VirtualHost "recorder.$DOMAIN"
   modules_enabled = {
@@ -795,71 +794,71 @@ VirtualHost "recorder.$DOMAIN"
 REC-JIBRI
 
 #Enable Jibri withelist
-sed -i "s|-- muc_lobby_whitelist|muc_lobby_whitelist|" $PROSODY_FILE
+sed -i "s|-- muc_lobby_whitelist|muc_lobby_whitelist|" "$PROSODY_FILE"
 
 #Fix Jibri conectivity issues
-sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" $PROSODY_SYS
+sed -i "s|c2s_require_encryption = .*|c2s_require_encryption = false|" "$PROSODY_SYS"
 sed -i "/c2s_require_encryption = false/a \\
 \\
-consider_bosh_secure = true" $PROSODY_SYS
+consider_bosh_secure = true" "$PROSODY_SYS"
 
-if [ ! -z $L10N_PARTICIPANT ]; then
+if [ -n "$L10N_PARTICIPANT" ]; then
     sed -i "s|PART_USER=.*|PART_USER=\"$L10N_PARTICIPANT\"|" jm-bm.sh
 fi
-if [ ! -z $L10N_ME ]; then
+if [ -n "$L10N_ME" ]; then
     sed -i "s|LOCAL_USER=.*|LOCAL_USER=\"$L10N_ME\"|" jm-bm.sh
 fi
 
 
 ### Prosody users
-prosodyctl register jibri auth.$DOMAIN $JB_AUTH_PASS
-prosodyctl register recorder recorder.$DOMAIN $JB_REC_PASS
+prosodyctl register jibri auth."$DOMAIN" "$JB_AUTH_PASS"
+prosodyctl register recorder recorder."$DOMAIN" "$JB_REC_PASS"
 
 ## JICOFO
 # /etc/jitsi/jicofo/sip-communicator.properties
-cat  << BREWERY >> $JICOFO_SIP
+cat  << BREWERY >> "$JICOFO_SIP"
 #org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
 #org.jitsi.jicofo.auth.URL=EXT_JWT:$DOMAIN
-org.jitsi.jicofo.jibri.BREWERY=$JibriBrewery@internal.auth.$DOMAIN
+org.jitsi.jicofo.jibri.BREWERY="$JibriBrewery"@internal.auth."$DOMAIN"
 org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 #org.jitsi.jicofo.auth.DISABLE_AUTOLOGIN=true
 BREWERY
 
 # Jibri tweaks for /etc/jitsi/meet/$DOMAIN-config.js
-sed -i "s|conference.$DOMAIN|internal.auth.$DOMAIN|" $MEET_CONF
-sed -i "s|// fileRecordingsEnabled: false,|fileRecordingsEnabled: true,| " $MEET_CONF
+sed -i "s|conference.$DOMAIN|internal.auth.$DOMAIN|" "$MEET_CONF"
+sed -i "s|// fileRecordingsEnabled: false,|fileRecordingsEnabled: true,| " "$MEET_CONF"
 sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 \\
-    hiddenDomain: \'recorder.$DOMAIN\',|" $MEET_CONF
+    hiddenDomain: \'recorder.$DOMAIN\',|" "$MEET_CONF"
 
 #Dropbox feature
 #if [ "$ENABLE_DB" = "yes" ]; then
-#DB_STR=$(grep -n "dropbox:" $MEET_CONF | cut -d ":" -f1)
+#DB_STR=$(grep -n "dropbox:" "$MEET_CONF" | cut -d ":" -f1)
 #DB_END=$((DB_STR + 10))
-#sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" $MEET_CONF
-#sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" $MEET_CONF
-#sed -i "$DB_STR,$DB_END{s|// },|},|}" $MEET_CONF
+#sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" "$MEET_CONF"
+#sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" "$MEET_CONF"
+#sed -i "$DB_STR,$DB_END{s|// },|},|}" "$MEET_CONF"
 #fi
 
 #Setup main language
-if [ -z $JB_LANG ] || [ "$JB_LANG" = "en" ]; then
+if [ -z "$JB_LANG" ] || [ "$JB_LANG" = "en" ]; then
     echo "Leaving English (en) as default language..."
-    sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" $MEET_CONF
+    sed -i "s|// defaultLanguage: 'en',|defaultLanguage: 'en',|" "$MEET_CONF"
 else
     echo "Changing default language to: $JB_LANG"
-    sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$JB_LANG\',|" $MEET_CONF
+    sed -i "s|// defaultLanguage: 'en',|defaultLanguage: \'$JB_LANG\',|" "$MEET_CONF"
 fi
 
 # Recording directory
-if [ ! -d $DIR_RECORD ]; then
-    mkdir $DIR_RECORD
+if [ ! -d "$DIR_RECORD" ]; then
+    mkdir "$DIR_RECORD"
 fi
-chown -R jibri:jibri $DIR_RECORD
+chown -R jibri:jibri "$DIR_RECORD"
 
-cat << REC_DIR > $REC_DIR
+cat << REC_DIR > "$REC_DIR"
 #!/bin/bash
 
-RECORDINGS_DIR=$DIR_RECORD
+RECORDINGS_DIR="$DIR_RECORD"
 
 echo "This is a dummy finalize script" > /tmp/finalize.out
 echo "The script was invoked with recordings directory $RECORDINGS_DIR." >> /tmp/finalize.out
@@ -875,12 +874,12 @@ mv \$LJF_PATH \$NJF_PATH
 
 exit 0
 REC_DIR
-chown jibri:jibri $REC_DIR
-chmod +x $REC_DIR
+chown jibri:jibri "$REC_DIR"
+chmod +x "$REC_DIR"
 
 ## New Jibri Config (2020)
-mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
-cat << NEW_CONF > $JIBRI_CONF
+mv "$JIBRI_CONF" ${JIBRI_CONF}-dpkg-file
+cat << NEW_CONF > "$JIBRI_CONF"
 // New XMPP environment config.
 jibri {
     streaming {
@@ -927,8 +926,8 @@ jibri {
         default-call-empty-timeout = 30 seconds
     }
     recording {
-         recordings-directory = $DIR_RECORD
-         finalize-script = $REC_DIR
+         recordings-directory = "$DIR_RECORD"
+         finalize-script = "$REC_DIR"
     }
     api {
         xmpp {
@@ -993,14 +992,14 @@ jibri {
 NEW_CONF
 
 #Jibri xorg resolution
-sed -i "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" $JIBRI_XORG_CONF
+sed -i "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" "$JIBRI_XORG_CONF"
 
 #Create receiver user
-useradd -m -g jibri $MJS_USER
+useradd -m -g jibri "$MJS_USER"
 echo "$MJS_USER:$MJS_USER_PASS" | chpasswd
 
 #Create ssh key and restrict connections
-sudo su $MJS_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+sudo su "$MJS_USER" -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
 #Allow password authentication
 sed -i "s|PasswordAuthentication .*|PasswordAuthentication yes|" /etc/ssh/sshd_config
 systemctl restart sshd
@@ -1022,7 +1021,7 @@ echo "Last file edition at: $(grep "LETS:" add-jibri-node.sh|head -n1|awk -F'LET
 
 #-- Setting variables for add-jvb2-node.sh
 g_conf_value() {
-  grep "$1" $JVB2_CONF|sed "s|$1||"
+  grep "$1" "$JVB2_CONF"|sed "s|$1||"
 }
 JVB_HOSTNAME=$(g_conf_value JVB_HOSTNAME=)
 JVB_HOST=$(g_conf_value JVB_HOST=)
@@ -1032,7 +1031,7 @@ JVB_OPTS=$(g_conf_value JVB_OPTS=)
 JAVA_SYS_PROPS=$(g_conf_value JAVA_SYS_PROPS=)
 
 g_sip_value() {
-  grep "$1" $JVB2_SIP |cut -d "=" -f2 
+  grep "$1" "$JVB2_SIP" |cut -d "=" -f2
 }
 DISABLE_AWS_HARVESTER=$(g_sip_value DISABLE_AWS_HARVESTER=)
 STUN_MAPPING_HARVESTER_ADDRESSES=$(g_sip_value STUN_MAPPING_HARVESTER_ADDRESSES=)
@@ -1066,26 +1065,26 @@ sed -i "s|MJS_USER_PASS=.*|MJS_USER_PASS=\"$MJS_USER_PASS\"|" add-jvb2-node.sh
 ##--
 
 #Tune webserver for Jitsi App control
-if [ -f $WS_CONF ]; then
-    sed -i "/# ensure all static content can always be found first/i \\\n" $WS_CONF
-    sed -i "/# ensure all static content can always be found first/i \ \ \ \ location = \/external_api.min.js {" $WS_CONF
-    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ alias \/usr\/share\/jitsi-meet\/libs\/external_api.min.js;" $WS_CONF
-    sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" $WS_CONF
-    sed -i "/# ensure all static content can always be found first/i \\\n" $WS_CONF
+if [ -f "$WS_CONF" ]; then
+    sed -i "/# ensure all static content can always be found first/i \\\n" "$WS_CONF"
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ location = \/external_api.min.js {" "$WS_CONF"
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ alias \/usr\/share\/jitsi-meet\/libs\/external_api.min.js;" "$WS_CONF"
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" "$WS_CONF"
+    sed -i "/# ensure all static content can always be found first/i \\\n" "$WS_CONF"
     systemctl reload nginx
 else
     echo "No app configuration done to server file, please report to:
     -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
 fi
 #Static avatar
-if [ "$ENABLE_SA" = "yes" ] && [ -f $WS_CONF ]; then
+if [ "$ENABLE_SA" = "yes" ] && [ -f "$WS_CONF" ]; then
     cp images/avatar2.png /usr/share/jitsi-meet/images/
-    sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {" $WS_CONF
-    sed -i "/location \/external_api.min.js/i \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;" $WS_CONF
+    sed -i "/location \/external_api.min.js/i \ \ \ \ location \~ \^\/avatar\/\(.\*\)\\\.png {" "$WS_CONF"
+    sed -i "/location \/external_api.min.js/i \ \ \ \ \ \ \ \ alias /usr/share/jitsi-meet/images/avatar2.png;" "$WS_CONF"
     sed -i "/location \/external_api.min.js/i \ \ \ \ }\\
-\ " $WS_CONF
-    sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" $INT_CONF
-    sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" $INT_CONF
+\ " "$WS_CONF"
+    sed -i "/RANDOM_AVATAR_URL_PREFIX/ s|false|\'https://$DOMAIN/avatar/\'|" "$INT_CONF"
+    sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" "$INT_CONF"
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ];then
@@ -1102,34 +1101,34 @@ fi
 
 ###Setup secure rooms
 if [ "$ENABLE_SC" = "yes" ]; then
-    SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | awk -F ':' 'NR==1{print$1}')
+    SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" "$PROSODY_FILE" | awk -F ':' 'NR==1{print$1}')
     SRP_END=$((SRP_STR + 10))
-    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_hashed\"|}" $PROSODY_FILE
-    sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_hashed\"|}" "$PROSODY_FILE"
+    sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" "$MEET_CONF"
 
     #Secure room initial user
-    read -p "Set username for secure room moderator: "$'\n' -r SEC_ROOM_USER
-    read -p "Secure room moderator password: "$'\n' -r SEC_ROOM_PASS
-    prosodyctl register $SEC_ROOM_USER $DOMAIN $SEC_ROOM_PASS
+    read -p "Set username for secure room moderator:$NL" -r SEC_ROOM_USER
+    read -p "Secure room moderator password:$NL" -r SEC_ROOM_PASS
+    prosodyctl register "$SEC_ROOM_USER" "$DOMAIN" "$SEC_ROOM_PASS"
 
     echo -e "\nSecure rooms are being enabled..."
     echo "You'll be able to login Secure Room chat with '${SEC_ROOM_USER}' \
 or '${SEC_ROOM_USER}@${DOMAIN}' using the password you just entered.
 If you have issues with the password refer to your sysadmin."
-    sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" $JICOFO_SIP
+    sed -i "s|#org.jitsi.jicofo.auth.URL=XMPP:|org.jitsi.jicofo.auth.URL=XMPP:|" "$JICOFO_SIP"
     sed -i "s|SEC_ROOM=.*|SEC_ROOM=\"on\"|" jm-bm.sh
 fi
 
 ###JWT
 if [ "$ENABLE_JWT" = "yes" ]; then
     echo -e "\nJWT auth is being setup..."
-    bash $PWD/mode/jwt.sh
+    bash "$PWD"/mode/jwt.sh
 fi
 
 #Guest allow
 #Change back lobby - https://community.jitsi.org/t/64769/136
 if [ "$ENABLE_SC" = "yes" ];then
-    cat << P_SR >> $PROSODY_FILE
+    cat << P_SR >> "$PROSODY_FILE"
 -- #Change back lobby - https://community.jitsi.org/t/64769/136
 VirtualHost "guest.$DOMAIN"
     authentication = "anonymous"
@@ -1147,51 +1146,51 @@ fi
 #======================
 # Custom settings
 #Start with video muted by default
-sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" $MEET_CONF
+sed -i "s|// startWithVideoMuted: false,|startWithVideoMuted: true,|" "$MEET_CONF"
 
 #Start with audio muted but admin
-sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" $MEET_CONF
+sed -i "s|// startAudioMuted: 10,|startAudioMuted: 1,|" "$MEET_CONF"
 
 #Disable/enable welcome page
 if [ "$ENABLE_WELCP" = "yes" ]; then
-    sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" $MEET_CONF
+    sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: false,|" "$MEET_CONF"
 elif [ "$ENABLE_WELCP" = "no" ]; then
-    sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" $MEET_CONF
+    sed -i "s|.*enableWelcomePage:.*|    enableWelcomePage: true,|" "$MEET_CONF"
 fi
 #Enable close page
 if [ "$ENABLE_CLOCP" = "yes" ]; then
-    sed -i "s|.*enableClosePage:.*|    enableClosePage: true,|" $MEET_CONF
+    sed -i "s|.*enableClosePage:.*|    enableClosePage: true,|" "$MEET_CONF"
 elif [ "$ENABLE_CLOCP" = "no" ]; then
-    sed -i "s|.*enableClosePage:.*|    enableClosePage: false,|" $MEET_CONF
+    sed -i "s|.*enableClosePage:.*|    enableClosePage: false,|" "$MEET_CONF"
 fi
 
 #Add pre-join screen by default, since it improves YouTube autoplay capabilities
 #pre-join screen by itself don't require autorization by moderator, don't confuse with lobby which does.
-sed -i "s|// prejoinPageEnabled:.*|prejoinPageEnabled: true,|" $MEET_CONF
+sed -i "s|// prejoinPageEnabled:.*|prejoinPageEnabled: true,|" "$MEET_CONF"
 
 #Set HD resolution and widescreen format
-sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 720," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 720," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 720," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 1280," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 1280," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," $MEET_CONF
-sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" $MEET_CONF
+sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 720," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 720," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 720," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 1280," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 1280," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," "$MEET_CONF"
+sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" "$MEET_CONF"
 
 #Check config file
 echo -e "\n# Checking $MEET_CONF file for errors\n"
-CHECKJS=$(esvalidate $MEET_CONF| cut -d ":" -f2)
+CHECKJS=$(esvalidate "$MEET_CONF"| cut -d ":" -f2)
 if [[ -z "$CHECKJS" ]]; then
     echo -e "\n# The $MEET_CONF configuration seems correct. =)\n"
 else
@@ -1214,7 +1213,7 @@ if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
     systemctl disable jibri-xorg
     systemctl disable jibri-icewm
 # Manually apply permissions since finalize_recording.sh won't be triggered under this server options.
-    chmod -R 770 $DIR_RECORD
+    chmod -R 770 "$DIR_RECORD"
 fi
 
 enable_letsencrypt
@@ -1225,7 +1224,7 @@ chmod -R 650 /etc/prosody/certs/
 
 #SSL workaround
 if [ "$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
-    ssl_wa nginx nginx $DOMAIN $WS_CONF $SYSADMIN_EMAIL $DOMAIN
+    ssl_wa nginx nginx "$DOMAIN" "$WS_CONF" "$SYSADMIN_EMAIL" "$DOMAIN"
     install_ifnot python3-certbot-nginx
 else
     echo "No webserver found please report."
@@ -1234,19 +1233,19 @@ fi
 if [ "$ENABLE_BLESSM" = "yes" ]; then
     echo "Custom brandless mode will be enabled."
     sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
-    bash $PWD/jm-bm.sh
+    bash "$PWD"/jm-bm.sh
 fi
 # Applying best practives for interface config.js
 echo -e "\n> Setting up custom interface_config.js according to best practices."
 cp "$INT_CONF" "$INT_CONF_ETC"
 
 #Tune webserver for interface_config.js
-if [ -f $WS_CONF ]; then
-    sed -i "/external_api.js/i \\\n" $WS_CONF
-    sed -i "/external_api.js/i \ \ \ \ location = \/interface_config.js {" $WS_CONF
-    sed -i "/external_api.js/i \ \ \ \ \ \ \ \ alias \/etc\/jitsi\/meet\/$DOMAIN-interface_config.js;" $WS_CONF
-    sed -i "/external_api.js/i \ \ \ \ }" $WS_CONF
-    sed -i "/external_api.js/i \\\n" $WS_CONF
+if [ -f "$WS_CONF" ]; then
+    sed -i "/external_api.js/i \\\n" "$WS_CONF"
+    sed -i "/external_api.js/i \ \ \ \ location = \/interface_config.js {" "$WS_CONF"
+    sed -i "/external_api.js/i \ \ \ \ \ \ \ \ alias \/etc\/jitsi\/meet\/$DOMAIN-interface_config.js;" "$WS_CONF"
+    sed -i "/external_api.js/i \ \ \ \ }" "$WS_CONF"
+    sed -i "/external_api.js/i \\\n" "$WS_CONF"
     systemctl reload nginx
 else
     echo "No interface_config.js configuration done to server file, please report to:
@@ -1254,11 +1253,11 @@ else
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-    echo -n "\nJRA via Nextcloud will be enabled."
+    echo -e "\nJRA via Nextcloud will be enabled."
     if [ "$MODE" = "debug" ]; then
-        bash $PWD/jra_nextcloud.sh -m debug
+        bash "$PWD"/jra_nextcloud.sh -m debug
     else
-        bash $PWD/jra_nextcloud.sh
+        bash "$PWD"/jra_nextcloud.sh
     fi
 fi
 }  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
@@ -1267,9 +1266,9 @@ if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
     echo -e "\nJigasi Transcription will be enabled."
     # ToDo: Analyze behavior on debug
     #if [ "$MODE" = "debug" ]; then
-    #    bash $PWD/jigasi.sh -m debug
+    #    bash "$PWD"/jigasi.sh -m debug
     #else
-    bash $PWD/jigasi.sh
+    bash "$PWD"/jigasi.sh
     #fi
 fi
 {
@@ -1277,18 +1276,18 @@ fi
 if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
     echo -e "\nGrafana Dashboard will be enabled."
     if [ "$MODE" = "debug" ]; then
-        bash $PWD/grafana.sh -m debug
+        bash "$PWD"/grafana.sh -m debug
     else
-        bash $PWD/grafana.sh
+        bash "$PWD"/grafana.sh
     fi
 fi
 #Docker Etherpad
 if [ "$ENABLE_DOCKERPAD" = "yes" ]; then
     echo -e "\nDocker Etherpad will be enabled."
     if [ "$MODE" = "debug" ]; then
-        bash $PWD/etherpad-docker.sh -m debug
+        bash "$PWD"/etherpad-docker.sh -m debug
     else
-        bash $PWD/etherpad-docker.sh
+        bash "$PWD"/etherpad-docker.sh
     fi
 fi
 #Prevent JMS conecction issue

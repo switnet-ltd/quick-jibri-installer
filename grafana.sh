@@ -26,7 +26,7 @@ if [ "$MODE" = "debug" ]; then
 set -x
 fi
 
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -39,14 +39,14 @@ echo '
                     by Software, IT & Networks Ltd
 '
 run_service() {
-systemctl enable $1
-systemctl restart $1
-systemctl status $1
+systemctl enable "$1"
+systemctl restart "$1"
+systemctl status "$1"
 }
 MAIN_TEL="/etc/telegraf/telegraf.conf"
 TEL_JIT="/etc/telegraf/telegraf.d/jitsi.conf"
 GRAFANA_INI="/etc/grafana/grafana.ini"
-DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
 GRAFANA_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 
@@ -162,11 +162,11 @@ while [ $secs -gt 0 ]; do
    : $((secs--))
 done
 
-if [ -f $WS_CONF ]; then
-    sed -i "/# ensure all static content can always be found first/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" $WS_CONF
-    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" $WS_CONF
-    sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" $WS_CONF
-    sed -i "/# ensure all static content can always be found first/i \\\n" $WS_CONF
+if [ -f "$WS_CONF" ]; then
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ location \~ \^\/(grafana\/|grafana\/login) {" "$WS_CONF"
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ \ \ \ \ proxy_pass http:\/\/localhost:3000;" "$WS_CONF"
+    sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" "$WS_CONF"
+    sed -i "/# ensure all static content can always be found first/i \\\n" "$WS_CONF"
     systemctl restart nginx
 else
     echo "No app configuration done to server file, please report to:
@@ -206,8 +206,8 @@ grafana_cred="admin:$GRAFANA_PASS"
 grafana_datasource="InfluxDB"
 ds=(11969);
 for d in "${ds[@]}"; do
-  echo -n "Processing $d: "
-  j=$(curl -s -k -u "$grafana_cred" $grafana_host/api/gnet/dashboards/$d | jq .json)
+  echo "Processing $d: "
+  j="$(curl -s -k -u "$grafana_cred" "$grafana_host"/api/gnet/dashboards/"$d" | jq .json)"
   curl -s -k -u "$grafana_cred" -XPOST -H "Accept: application/json" \
     -H "Content-Type: application/json" \
     -d "{
