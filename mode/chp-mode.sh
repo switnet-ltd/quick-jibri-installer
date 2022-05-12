@@ -4,7 +4,7 @@
 # GPLv3 or later.
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have privileges!"
    exit 0
 fi
@@ -32,11 +32,11 @@ while [ $secs -gt 0 ]; do
 done
 }
 set_once() {
-if [ -z "$(awk '!/^ *#/ && NF {print}' "$2"|grep $(echo $1|awk -F '=' '{print$1}'))" ]; then
-  echo "Setting "$1" on "$2"..."
+if ! grep -q "$(awk '!/^ *#/ && NF {print}' "$2"|grep "$(awk -F '=' '{print$1}' <<< "$1")")" ; then
+  echo "Setting $1 on $2..."
   echo "$1" | tee -a "$2"
 else
-  echo " \"$(echo $1|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
+  echo " \"$(echo "$1"|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
 fi
 }
 # True if $1 is greater than $2
@@ -44,7 +44,7 @@ version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
 
 LTS_REL="$(lsb_release -d | awk '{print$4}')"
-DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 JVB_LOG_POP="/etc/jitsi/videobridge/logging.properties"
 JVB_RC="/usr/share/jitsi-videobridge/lib/videobridge.rc"
 JICOFO_LOG_POP="/etc/jitsi/videobridge/logging.properties"
@@ -54,17 +54,17 @@ MEET_CONF_HP="/etc/jitsi/meet/${DOMAIN}-chp-config.js"
 INT_CONF_JS="/etc/jitsi/meet/${DOMAIN}-interface_config.js"
 INT_CONF_JS_HP="/etc/jitsi/meet/${DOMAIN}-chp-interface_config.js"
 WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
-FSTAB="/etc/fstab"
+#FSTAB="/etc/fstab"
 CHAT_DISABLED="TBD"
 
-if [ -f $MEET_CONF_HP ] || [ -f $INT_CONF_JS_HP ]; then
+if [ -f "$MEET_CONF_HP" ] || [ -f "$INT_CONF_JS_HP" ]; then
 echo "
 This script can't be run multiple times on the same system,
 idempotence not guaranteed, exiting..."
 exit
 fi
 
-if [ -z $LTS_REL ] || [ -z $DOMAIN ];then
+if [ -z "$LTS_REL" ] || [ -z "$DOMAIN" ];then
 echo "This system isn't suitable to configure."
 exit
   else
@@ -122,7 +122,7 @@ PS3='Select the desired resolution for high performance mode: '
 options=("nHD - 640x360" "qHD - 960x540" "HD - 1280x720")
 select opt in "${options[@]}"
 do
-    case $opt in
+    case "$opt" in
         "nHD - 640x360")
             echo -e "\n  > Setting 640x360 resolution.\n"
             VID_RES="360"
@@ -152,7 +152,7 @@ while [[ "$CHAT_DISABLED" != "yes" && \
          "$CHAT_DISABLED" != "" ]]
 do
 echo "> Do you want to disable jitsi's built-in chat?: (yes or no)"
-read -p "(Also you can leave empty to disable)"$'\n' CHAT_DISABLED
+read -p "(Also you can leave empty to disable)"$'\n' -r CHAT_DISABLED
 if [ "$CHAT_DISABLED" = "no" ]; then
 	echo -e "-- Jitsi's built-in chat will be kept active.\n"
 elif [ "$CHAT_DISABLED" = "yes" ] || [ -z "$CHAT_DISABLED" ]; then
@@ -162,149 +162,149 @@ done
 
 ## JMS system tune up
 if [ "$MODE" = "debug" ]; then
-    bash $PWD/jms-stu.sh -m debug
+    bash "$PWD"/jms-stu.sh -m debug
 else
-    bash $PWD/jms-stu.sh
+    bash "$PWD"/jms-stu.sh
 fi
 
 #JVB2
 ##Loose up logging
 # https://community.jitsi.org/t/23641/13
-sed -i "/java.util.logging.FileHandler.level/s|ALL|WARNING|g" $JVB_LOG_POP
-sed -i "s|^.level=INFO|.level=WARNING|" $JVB_LOG_POP
-sed -i "/VIDEOBRIDGE_MAX_MEMORY=/i \ VIDEOBRIDGE_MAX_MEMORY=8192m" $JVB_RC
+sed -i "/java.util.logging.FileHandler.level/s|ALL|WARNING|g" "$JVB_LOG_POP"
+sed -i "s|^.level=INFO|.level=WARNING|" "$JVB_LOG_POP"
+sed -i "/VIDEOBRIDGE_MAX_MEMORY=/i \ VIDEOBRIDGE_MAX_MEMORY=8192m" "$JVB_RC"
 
 #JICOFO
-sed -i "/java.util.logging.FileHandler.level/s|ALL|OFF|g" $JICOFO_LOG_POP
-sed -i "s|^.level=INFO|.level=WARNING|" $JICOFO_LOG_POP
+sed -i "/java.util.logging.FileHandler.level/s|ALL|OFF|g" "$JICOFO_LOG_POP"
+sed -i "s|^.level=INFO|.level=WARNING|" "$JICOFO_LOG_POP"
 
 #MEET
-sed -i "s|defaultLogLevel:.*|defaultLogLevel: 'error',|" $MEET_LOG_CONF
-sed -i "/TraceablePeerConnection.js/s|info|error|" $MEET_LOG_CONF
-sed -i "/CallStats.js/s|info|error|" $MEET_LOG_CONF
-sed -i "/strophe.util.js/s|log|error|" $MEET_LOG_CONF
+sed -i "s|defaultLogLevel:.*|defaultLogLevel: 'error',|" "$MEET_LOG_CONF"
+sed -i "/TraceablePeerConnection.js/s|info|error|" "$MEET_LOG_CONF"
+sed -i "/CallStats.js/s|info|error|" "$MEET_LOG_CONF"
+sed -i "/strophe.util.js/s|log|error|" "$MEET_LOG_CONF"
 
 #UX - Room settings and interface
 ## config.js
-cp $MEET_CONF $MEET_CONF_HP
-sed -i "s|// disableAudioLevels:.*|disableAudioLevels: true,|" $MEET_CONF_HP
-sed -i "s|enableNoAudioDetection:.*|enableNoAudioDetection: false,|" $MEET_CONF_HP
-sed -i "s|enableNoisyMicDetection:.*|enableNoisyMicDetection: false,|" $MEET_CONF_HP
-sed -i "s|startAudioMuted:.*|startAudioMuted: 5,|" $MEET_CONF_HP
-sed -i "s|// startVideoMuted:.*|startVideoMuted: 5,|" $MEET_CONF_HP
-sed -i "s|startWithVideoMuted: true,|startWithVideoMuted: false,|" $MEET_CONF_HP
-sed -i "s|channelLastN:.*|channelLastN: 10,|" $MEET_CONF_HP
-sed -i "s|// enableLayerSuspension:.*|enableLayerSuspension: true,|" $MEET_CONF_HP
-sed -i "s|// apiLogLevels:.*|apiLogLevels: \['warn', 'error'],|" $MEET_CONF_HP
+cp "$MEET_CONF" "$MEET_CONF_HP"
+sed -i "s|// disableAudioLevels:.*|disableAudioLevels: true,|" "$MEET_CONF_HP"
+sed -i "s|enableNoAudioDetection:.*|enableNoAudioDetection: false,|" "$MEET_CONF_HP"
+sed -i "s|enableNoisyMicDetection:.*|enableNoisyMicDetection: false,|" "$MEET_CONF_HP"
+sed -i "s|startAudioMuted:.*|startAudioMuted: 5,|" "$MEET_CONF_HP"
+sed -i "s|// startVideoMuted:.*|startVideoMuted: 5,|" "$MEET_CONF_HP"
+sed -i "s|startWithVideoMuted: true,|startWithVideoMuted: false,|" "$MEET_CONF_HP"
+sed -i "s|channelLastN:.*|channelLastN: 10,|" "$MEET_CONF_HP"
+sed -i "s|// enableLayerSuspension:.*|enableLayerSuspension: true,|" "$MEET_CONF_HP"
+sed -i "s|// apiLogLevels:.*|apiLogLevels: \['warn', 'error'],|" "$MEET_CONF_HP"
 
 if [ "$VID_RES" = "360" ]; then
-sed -i "/Start QJI/,/End QJI/d" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 360," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 360," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 360," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 640," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 640," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" $MEET_CONF_HP
+sed -i "/Start QJI/,/End QJI/d" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 360," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 360," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 360," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 640," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 640," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" "$MEET_CONF_HP"
 fi
 if [ "$VID_RES" = "540" ]; then
-sed -i "/Start QJI/,/End QJI/d" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 540," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 540," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 540," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 960," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 960," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" $MEET_CONF_HP
+sed -i "/Start QJI/,/End QJI/d" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 540," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 540," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 540," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 960," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 960," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" "$MEET_CONF_HP"
 fi
 if [ "$VID_RES" = "720" ]; then
-sed -i "/Start QJI/,/End QJI/d" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 720," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 720," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 720," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 1280," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 1280," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," $MEET_CONF_HP
-sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" $MEET_CONF_HP
+sed -i "/Start QJI/,/End QJI/d" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \/\/ Start QJI - Set resolution and widescreen format" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ resolution: 720," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ constraints: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ aspectRatio: 16 \/ 9," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ video: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ height: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 720," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 720," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 180" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ width: {" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ideal: 1280," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max: 1280," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min: 320" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ \ \ \ \ }" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ \ \ \ \ }" "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \ \ \ \ \ }," "$MEET_CONF_HP"
+sed -i "/Enable \/ disable simulcast support/i \/\/ End QJI" "$MEET_CONF_HP"
 fi
 
 ## interface_config.js
-cp $INT_CONF_JS $INT_CONF_JS_HP
-sed -i "s|CONNECTION_INDICATOR_DISABLED:.*|CONNECTION_INDICATOR_DISABLED: true,|" $INT_CONF_JS_HP
-sed -i "s|DISABLE_DOMINANT_SPEAKER_INDICATOR:.*|DISABLE_DOMINANT_SPEAKER_INDICATOR: true,|" $INT_CONF_JS_HP
-sed -i "s|DISABLE_FOCUS_INDICATOR:.*|DISABLE_FOCUS_INDICATOR: false,|" $INT_CONF_JS_HP
-sed -i "s|DISABLE_JOIN_LEAVE_NOTIFICATIONS:.*|DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,|" $INT_CONF_JS_HP
-sed -i "s|DISABLE_VIDEO_BACKGROUND:.*|DISABLE_VIDEO_BACKGROUND: true,|" $INT_CONF_JS_HP
-sed -i "s|OPTIMAL_BROWSERS: \[.*|OPTIMAL_BROWSERS: \[ 'chrome', 'chromium', 'electron' \],|" $INT_CONF_JS_HP
-sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari', 'firefox' \],|" $INT_CONF_JS_HP
+cp "$INT_CONF_JS" "$INT_CONF_JS_HP"
+sed -i "s|CONNECTION_INDICATOR_DISABLED:.*|CONNECTION_INDICATOR_DISABLED: true,|" "$INT_CONF_JS_HP"
+sed -i "s|DISABLE_DOMINANT_SPEAKER_INDICATOR:.*|DISABLE_DOMINANT_SPEAKER_INDICATOR: true,|" "$INT_CONF_JS_HP"
+sed -i "s|DISABLE_FOCUS_INDICATOR:.*|DISABLE_FOCUS_INDICATOR: false,|" "$INT_CONF_JS_HP"
+sed -i "s|DISABLE_JOIN_LEAVE_NOTIFICATIONS:.*|DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,|" "$INT_CONF_JS_HP"
+sed -i "s|DISABLE_VIDEO_BACKGROUND:.*|DISABLE_VIDEO_BACKGROUND: true,|" "$INT_CONF_JS_HP"
+sed -i "s|OPTIMAL_BROWSERS: \[.*|OPTIMAL_BROWSERS: \[ 'chrome', 'chromium', 'electron' \],|" "$INT_CONF_JS_HP"
+sed -i "s|UNSUPPORTED_BROWSERS: .*|UNSUPPORTED_BROWSERS: \[ 'nwjs', 'safari', 'firefox' \],|" "$INT_CONF_JS_HP"
 
 ### Toolbars
 if version_gt "$(apt-show-versions jitsi-meet|awk '{print$2}')" "2.0.5390-3" ; then
   #New toolbar in config.js
-  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ toolbarButtons:: \[" $MEET_CONF_HP
-  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," $MEET_CONF_HP
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ toolbarButtons:: \[" "$MEET_CONF_HP"
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," "$MEET_CONF_HP"
   if [ -z "$CHAT_DISABLED" ] || [ "$CHAT_DISABLED" = "yes" ]; then
-    sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'recording'," $MEET_CONF_HP
+    sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'recording'," "$MEET_CONF_HP"
   else
-    sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," $MEET_CONF_HP
+    sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," "$MEET_CONF_HP"
   fi
-  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," $MEET_CONF_HP
-  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," $MEET_CONF_HP
-  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'mute-video-everyone', 'security'" $MEET_CONF_HP
-  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \]," $MEET_CONF_HP
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," "$MEET_CONF_HP"
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," "$MEET_CONF_HP"
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'mute-video-everyone', 'security'" "$MEET_CONF_HP"
+  sed -i "/\/\/ toolbarButtons:/i \ \ \ \ \]," "$MEET_CONF_HP"
 else
   #Old toolbar in interface.js (soon deprecated on newer versions)
-  sed -i "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" $INT_CONF_JS_HP
+  sed -i "/^\s*TOOLBAR_BUTTONS*\]$/ s|^|//|; /^\s*TOOLBAR_BUTTONS/, /\],$/ s|^|//|" "$INT_CONF_JS_HP"
 
-  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ TOOLBAR_BUTTONS: \[" $INT_CONF_JS_HP
-  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," $INT_CONF_JS_HP
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ TOOLBAR_BUTTONS: \[" "$INT_CONF_JS_HP"
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'microphone', 'camera', 'desktop', 'fullscreen'," "$INT_CONF_JS_HP"
   if [ -z "$CHAT_DISABLED" ] || [ "$CHAT_DISABLED" = "yes" ]; then
-    sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'recording'," $INT_CONF_JS_HP
+    sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'recording'," "$INT_CONF_JS_HP"
   else
-    sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," $INT_CONF_JS_HP
+    sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'fodeviceselection', 'hangup', 'profile', 'chat', 'recording'," "$INT_CONF_JS_HP"
   fi
-  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," $INT_CONF_JS_HP
-  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," $INT_CONF_JS_HP
-  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'mute-video-everyone', 'security'" $INT_CONF_JS_HP
-  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \]," $INT_CONF_JS_HP
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'livestreaming', 'etherpad', 'settings', 'raisehand'," "$INT_CONF_JS_HP"
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'videoquality', 'filmstrip', 'feedback'," "$INT_CONF_JS_HP"
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \ \ \ \ 'tileview', 'download', 'help', 'mute-everyone', 'mute-video-everyone', 'security'" "$INT_CONF_JS_HP"
+  sed -i "/\/\/    TOOLBAR_BUTTONS/i \ \ \ \ \]," "$INT_CONF_JS_HP"
 fi
 
 #Check config file
 echo -e "\n# Checking $MEET_CONF file for errors\n"
-CHECKJS_MEET_CHP=$(esvalidate $MEET_CONF_HP| cut -d ":" -f2)
+CHECKJS_MEET_CHP="$(esvalidate "$MEET_CONF_HP"| cut -d ":" -f2)"
 if [ -z "$CHECKJS_MEET_CHP" ]; then
 echo -e "\n# The $MEET_CONF_HP configuration seems correct. =)\n"
 else
@@ -313,7 +313,7 @@ echo -e "\n  Watch out!, there seems to be an issue on $MEET_CONF_HP line:
   Most of the times this is due upstream changes, please report to
   https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 fi
-CHECKJS_INT_CHP=$(esvalidate $INT_CONF_JS_HP| cut -d ":" -f2)
+CHECKJS_INT_CHP="$(esvalidate "$INT_CONF_JS_HP"| cut -d ":" -f2)"
 if [ -z "$CHECKJS_INT_CHP" ]; then
 echo -e "\n# The $INT_CONF_JS_HP configuration seems correct. =)\n"
 else
@@ -323,8 +323,8 @@ echo -e "\n  Watch out!, there seems to be an issue on $INT_CONF_JS_HP line:
   https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
 fi
 
-sed -i "s|$MEET_CONF|$MEET_CONF_HP|g" $WS_CONF
-sed -i "s|$INT_CONF_JS|$INT_CONF_JS_HP|" $WS_CONF
+sed -i "s|$MEET_CONF|$MEET_CONF_HP|g" "$WS_CONF"
+sed -i "s|$INT_CONF_JS|$INT_CONF_JS_HP|" "$WS_CONF"
 nginx -t
 #systemctl restart nginx
 

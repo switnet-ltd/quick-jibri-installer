@@ -6,7 +6,7 @@
 # GPLv3 or later.
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have privileges!"
    exit 0
 fi
@@ -22,7 +22,7 @@ done
 
 echo '
 #--------------------------------------------------
-# Starting system tune up configuration 
+# Starting system tune up configuration
 # for high performance
 #--------------------------------------------------
 '
@@ -33,18 +33,18 @@ set -x
 fi
 
 set_once() {
-if [ -z "$(awk '!/^ *#/ && NF {print}' "$2"|grep $(echo $1|awk -F '=' '{print$1}'))" ]; then
-  echo "Setting "$1" on "$2"..."
+if ! grep -q "$(awk '!/^ *#/ && NF {print}' "$2"|grep "$(awk -F '=' '{print$1}' <<< "$1")")" ; then
+  echo "Setting $1 on $2..."
   echo "$1" | tee -a "$2"
 else
-  echo " \"$(echo $1|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
+  echo " \"$(echo "$1"|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
 fi
 }
 FSTAB=/etc/fstab
 
 ##Disable swap
 swapoff -a
-sed -r  '/\sswap\s/s/^#?/#/' -i $FSTAB
+sed -r  '/\sswap\s/s/^#?/#/' -i "$FSTAB"
 
 ##Alternative swap tuning (need more documentation).
 #vm.swappiness=5
