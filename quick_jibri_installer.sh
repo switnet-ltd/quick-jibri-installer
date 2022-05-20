@@ -209,7 +209,7 @@ else
             exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
             echo " - We highly recommend to increase the server resources."
-            echo " - Otherwise, please think about adding dedicated jibri nodes instead."
+            echo -e " - Otherwise, please think about adding dedicated jibri nodes instead.\n"
     fi
     done
 fi
@@ -223,7 +223,7 @@ If you plan to enable other components such as,
  - Additional Jibri Nodes
  - others.
 
-We higly recommend to increase resources of this server.
+>>> We higly recommend to increase resources of this server. <<<
 
 For now we advice to disable the Jibri service locally and add an external
 Jibri node once this installation has finished, using our script:
@@ -256,7 +256,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
         exit
     else
-        echo -e " > No standard desktop environment for user oriented porpuse detected, continuing..."
+        echo -e " > No standard desktop environment for user oriented porpuse detected, continuing...\n"
     fi
 done
 
@@ -517,16 +517,7 @@ do
         echo " - TLSv1.0/1.1 will be dropped"
     fi
 done
-#Dropbox -- no longer requirement for localrecording
-#while [[ $ENABLE_DB != yes && $ENABLE_DB != no ]]
-#do
-#read -p "> Do you want to setup the Dropbox feature now: (yes or no)"$'\n' -r ENABLE_DB
-#if [ $ENABLE_DB = no ]; then
-#    echo "Dropbox won't be enable"
-#elif [ $ENABLE_DB = yes ]; then
-#    read -p "Please set your Dropbox App key: "$'\n' -r DB_CID
-#fi
-#done
+
 #Brandless  Mode
 while [[ "$ENABLE_BLESSM" != "yes" && "$ENABLE_BLESSM" != "no" ]]
 do
@@ -557,21 +548,8 @@ do
         echo " - Close page will be kept disabled."
     fi
 done
-#Enable static avatar
-while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
-do
-    read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)$NL" -r ENABLE_SA
-    if [ "$ENABLE_SA" = "no" ]; then
-        echo " - Static avatar won't be enabled"
-    elif [ "$ENABLE_SA" = "yes" ]; then
-        echo " - Static avatar will be enabled"
-    fi
-done
-
 # Set authentication method
-echo "
-> Jitsi Meet Auth Method selection.
-"
+echo -e "\n> Jitsi Meet Auth Method selection.\n"
 PS3='Select the authentication method for your Jitsi Meet instance: '
 options=("Local" "JWT" "None")
 select opt in "${options[@]}"
