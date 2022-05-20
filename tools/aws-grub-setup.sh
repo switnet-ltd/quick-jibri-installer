@@ -13,7 +13,7 @@ done
 }
 
 echo "####
-# NOTE: Only use this script if you know what you are doing.
+# WARNING: Only use this script if you know what you are doing.
 # Under your own risk.
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY.
