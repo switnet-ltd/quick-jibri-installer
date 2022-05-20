@@ -810,15 +810,6 @@ sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 \\
     hiddenDomain: \'recorder.$DOMAIN\',|" "$MEET_CONF"
 
-#Dropbox feature
-#if [ "$ENABLE_DB" = "yes" ]; then
-#DB_STR=$(grep -n "dropbox:" "$MEET_CONF" | cut -d ":" -f1)
-#DB_END=$((DB_STR + 10))
-#sed -i "$DB_STR,$DB_END{s|// dropbox: {|dropbox: {|}" "$MEET_CONF"
-#sed -i "$DB_STR,$DB_END{s|//     appKey: '<APP_KEY>'|appKey: \'$DB_CID\'|}" "$MEET_CONF"
-#sed -i "$DB_STR,$DB_END{s|// },|},|}" "$MEET_CONF"
-#fi
-
 #Setup main language
 if [ -z "$JB_LANG" ] || [ "$JB_LANG" = "en" ]; then
     echo "Leaving English (en) as default language..."
@@ -1239,19 +1230,7 @@ if [ "$ENABLE_NC_ACCESS" = "yes" ]; then
     fi
 fi
 sleep .1
-}  > >(tee -a qj-installer.log) 2> >(tee -a qj-installer.log >&2)
-#Jigasi Transcript
-if [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-    printf "\nJigasi Transcription will be enabled."
-    # ToDo: Analyze behavior on debug
-    #if [ "$MODE" = "debug" ]; then
-    #    bash "$PWD"/jigasi.sh -m debug
-    #else
-    bash "$PWD"/jigasi.sh
-    #fi
-fi
-sleep .1
-{
+
 #Grafana Dashboard
 if [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
     printf "\nGrafana Dashboard will be enabled."
