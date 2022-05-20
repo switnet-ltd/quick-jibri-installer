@@ -3,12 +3,6 @@
 # SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
 
-####
-# NOTE: Only use this script if you know what you are doing.
-# Under your own risk.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY.
-####
 wait_seconds() {
 secs=$(($1))
 while [ $secs -gt 0 ]; do
@@ -17,6 +11,13 @@ while [ $secs -gt 0 ]; do
    : $((secs--))
 done
 }
+
+echo "####
+# NOTE: Only use this script if you know what you are doing.
+# Under your own risk.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY.
+####"
 
 # Check if user is root
 if [ "$UID" != 0 ]; then
