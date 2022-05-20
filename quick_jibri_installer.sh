@@ -482,11 +482,11 @@ do
   printf "> Set %s as a fqdn hostname?: (yes or no)\n" "$DOMAIN" && \
   read -p "Leave empty to default to your current one ($(hostname -f)):$NL" -r FQDN_HOST
   if [ "$FQDN_HOST" = "yes" ]; then
-    printf " - $DOMAIN will be used as fqdn hostname, changes will show on reboot.\n\n"
+    printf " - %s will be used as fqdn hostname, changes will show on reboot.\n\n" "$DOMAIN"
     hostnamectl set-hostname "${DOMAIN}"
     sed -i "1i ${PUBLIC_IP} ${DOMAIN}" /etc/hosts
   else
-    printf " - $(hostname -f) will be keep.\n\n"
+    printf " - %s will be keep.\n\n" "$(hostname -f)"
   fi
 done
 sleep .1
@@ -600,7 +600,7 @@ do
             JIBRI_RES="1080"
             break
             ;;
-        *) printf "\nInvalid option «$REPLY», choose 1 or 2\n\n"
+        *) printf "\nInvalid option «%s», choose 1 or 2\n\n" "$REPLY"
         ;;
     esac
 done
@@ -798,7 +798,7 @@ prosodyctl register recorder recorder."$DOMAIN" "$JB_REC_PASS"
 cat  << BREWERY >> "$JICOFO_SIP"
 #org.jitsi.jicofo.auth.URL=XMPP:$DOMAIN
 #org.jitsi.jicofo.auth.URL=EXT_JWT:$DOMAIN
-org.jitsi.jicofo.jibri.BREWERY="$JibriBrewery"@internal.auth."$DOMAIN"
+org.jitsi.jicofo.jibri.BREWERY=$JibriBrewery@internal.auth.$DOMAIN
 org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
 #org.jitsi.jicofo.auth.DISABLE_AUTOLOGIN=true
 BREWERY
