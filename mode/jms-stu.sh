@@ -32,12 +32,12 @@ if [ "$MODE" = "debug" ]; then
 set -x
 fi
 
-set_once() {
-if ! grep -q "$(awk '!/^ *#/ && NF {print}' "$2"|grep "$(awk -F '=' '{print$1}' <<< "$1")")" ; then
+set_once_hash_comment() {
+if ! awk '!/^ *#/ && NF {print}' "$2"|grep -q "$(awk -F '=' '{print$1}' <<< "$1")" ; then
   echo "Setting $1 on $2..."
   echo "$1" | tee -a "$2"
 else
-  echo " \"$(echo "$1"|awk -F '=' '{print$1}')\" seems present, skipping setting this variable"
+  echo "\"$(awk -F '=' '{print$1}' <<< "$1")\" seems already present, skipping setting this variable"
 fi
 }
 FSTAB=/etc/fstab
@@ -56,24 +56,24 @@ sysctl -w net.core.rmem_default=262144
 sysctl -w net.core.wmem_default=262144
 sysctl -w net.core.rmem_max=262144
 sysctl -w net.core.wmem_max=262144
-set_once "net.core.rmem_default=262144" "/etc/sysctl.conf"
-set_once "net.core.wmem_default=262144" "/etc/sysctl.conf"
-set_once "net.core.rmem_max=262144" "/etc/sysctl.conf"
-set_once "net.core.wmem_max=262144" "/etc/sysctl.conf"
+set_once_hash_comment "net.core.rmem_default=262144" "/etc/sysctl.conf"
+set_once_hash_comment "net.core.wmem_default=262144" "/etc/sysctl.conf"
+set_once_hash_comment "net.core.rmem_max=262144" "/etc/sysctl.conf"
+set_once_hash_comment "net.core.wmem_max=262144" "/etc/sysctl.conf"
 
 #system
 #https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-quickstart
-set_once "DefaultLimitNOFILE=65000" "/etc/sysctl.conf"
-set_once "DefaultLimitNPROC=65000" "/etc/sysctl.conf"
-set_once "DefaultTasksMax=65000" "/etc/sysctl.conf"
+set_once_hash_comment "DefaultLimitNOFILE=65000" "/etc/sysctl.conf"
+set_once_hash_comment "DefaultLimitNPROC=65000" "/etc/sysctl.conf"
+set_once_hash_comment "DefaultTasksMax=65000" "/etc/sysctl.conf"
 
 #https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_for_real_time/7/html/tuning_guide/reduce_tcp_performance_spikes
 sysctl -w net.ipv4.tcp_timestamps=0
-set_once "net.ipv4.tcp_timestamps=0" "/etc/sysctl.conf"
+set_once_hash_comment "net.ipv4.tcp_timestamps=0" "/etc/sysctl.conf"
 
 #https://bugzilla.redhat.com/show_bug.cgi?id=1283676
 sysctl -w net.core.netdev_max_backlog=100000
-set_once "net.core.netdev_max_backlog=100000" "/etc/sysctl.conf"
+set_once_hash_comment "net.core.netdev_max_backlog=100000" "/etc/sysctl.conf"
 
 ##nginx
 sed -i "s|worker_connections.*|worker_connections 2000;|" /etc/nginx/nginx.conf
