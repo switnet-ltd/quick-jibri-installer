@@ -118,7 +118,7 @@ remove_residuals /usr/share/jitsi-*
 #Clean /etc/hosts
 sed -i "/$DOMAIN/d" /etc/hosts
 
-#Purging debconf db
+echo "#Purging debconf db"
 purge_debconf jicofo
 purge_debconf jigasi
 purge_debconf jitsi-meet
