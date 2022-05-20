@@ -134,16 +134,14 @@ JITSI_TELEGRAF
 
 run_service telegraf
 
-echo "
-# Setup videobridge  options
-"
-sed -i "s|JVB_OPTS=\"--apis.*|JVB_OPTS=\"--apis=rest,xmpp\"|" /etc/jitsi/videobridge/config
+echo -n "\n# Setup videobridge  options\n"
+echo '
+# extra options to pass to the JVB daemon
+JVB_OPTS="--apis=rest,xmpp"' >>  /etc/jitsi/videobridge/config
 sed -i "s|TRANSPORT=muc|TRANSPORT=muc,colibri|" /etc/jitsi/videobridge/sip-communicator.properties
 systemctl restart jitsi-videobridge2
 
-echo "
-# Setup Grafana nginx domain
-"
+echo -e "\n# Setup Grafana nginx domain\n"
 sed -i "s|;protocol =.*|protocol = http|" $GRAFANA_INI
 sed -i "s|;http_addr =.*|http_addr = localhost|" $GRAFANA_INI
 sed -i "s|;http_port =.*|http_port = 3000|" $GRAFANA_INI
