@@ -68,14 +68,10 @@ The recommended setup is using NGINX, exiting...
     exit
 elif [ "$NGINX" -eq 1 ]; then
 
-echo "
-Webserver already installed!
-"
+echo -e "\nWebserver already installed!\n"
 
 else
-    echo "
-Installing nginx webserver!
-"
+    echo -e "\nInstalling nginx webserver!\n"
     install_ifnot nginx
 fi
 }
@@ -201,9 +197,7 @@ else
 fi
 if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
     echo "All requirements seems meet!"
-    echo "
-    - We hope you have a nice recording/streaming session
-    "
+    echo "\n    - We hope you have a nice recording/streaming session\n    "
 else
     echo "CPU ($(nproc --all))/RAM ($((mem_available/1024)) MiB) does NOT meet minimum recommended requirements!"
     echo "Even when you can use the videoconferencing sessions, we advice to increase the resources in order to user Jibri."
@@ -211,17 +205,17 @@ else
     do
     read -p "> Do you want to continue?: (yes or no)$NL" -r CONTINUE_LOW_RES
     if [ "$CONTINUE_LOW_RES" = "no" ]; then
-            echo "See you next time with more resources!..."
+            echo " - See you next time with more resources!..."
             exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
-            echo "We highly recommend to increase the server resources."
-            echo "Otherwise, please think about adding dedicated jibri nodes instead."
+            echo " - We highly recommend to increase the server resources."
+            echo " - Otherwise, please think about adding dedicated jibri nodes instead."
     fi
     done
 fi
 
 if [ "$CONTINUE_LOW_RES" = "yes" ]; then
-echo -e "\nThis server will likely have issues due the lack of resources.
+echo 'This server will likely have issues due the lack of resources.
 If you plan to enable other components such as,
 
  - JRA via Nextcloud
@@ -236,25 +230,24 @@ Jibri node once this installation has finished, using our script:
 
  >> add-jibri-node.sh
 
-So you can add a Jibri server on a instance with enough resources.\n"
+So you can add a Jibri server on a instance with enough resources.'
 
     while [[ "$DISABLE_LOCAL_JIBRI" != "yes" && "$DISABLE_LOCAL_JIBRI" != "no" ]]
     do
     read -p "> Do you want to disable local jibri service?: (yes or no)$NL" -r DISABLE_LOCAL_JIBRI
-    if [ "$DISABLE_LOCAL_JIBRI" = "no" ]; then
-            echo -e "Please keep in mind that we might not support underpowered servers.\n"
-    elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
-            echo -e "You can add dedicated jibri nodes later, see more at the wiki.\n"
-    fi
+        if [ "$DISABLE_LOCAL_JIBRI" = "no" ]; then
+            echo -e " - Please keep in mind that we might not support underpowered servers.\n"
+        elif [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
+            echo -e " - You can add dedicated jibri nodes later, see more at the wiki.\n"
+        fi
     done
 fi
 
 #Check system oriented porpuse
-echo "Checking system oriented purpose....
-"
 apt-get -yq2 update
 SYSTEM_DE="$(apt-cache search "ubuntu-(desktop|mate-desktop)"|awk '{print$1}'|xargs|sed 's|$| trisquel triskel trisquel-mini|')"
 SYSTEM_DE_ARRAY=( "$SYSTEM_DE" )
+echo -e "Checking for common desktop system oriented purpose....\n $de"
 for de in "${SYSTEM_DE_ARRAY[@]}"
 do
     if [ "$(dpkg-query -W -f='${Status}' "$de" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
@@ -263,7 +256,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't."
         exit
     else
-        echo -e " > No standard desktop environment '$de' for user oriented porpuse detected, continuing..."
+        echo -e " > No standard desktop environment for user oriented porpuse detected, continuing..."
     fi
 done
 
@@ -271,9 +264,9 @@ done
 add_prosody_repo
 
 # Jitsi-Meet Repo
-echo -e "\nAdd Jitsi repo\n"
+echo -e "\nAdd Jitsi repo"
 if [ "$JITSI_REPO" = "stable" ]; then
-    echo "Jitsi stable repository already installed"
+    echo "- Jitsi stable repository already installed"
 else
     echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
     wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
@@ -284,10 +277,10 @@ while [[ "$LE_SSL" != "yes" && "$LE_SSL" != "no" ]]
 do
 read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)$NL" -r LE_SSL
 if [ "$LE_SSL" = yes ]; then
-  echo -e "We'll default to Let's Encrypt SSL certs.\n"
+  echo -e " - We'll setup Let's Encrypt SSL certs.\n"
 else
-  echo "We'll let you choose later on for it.
-  Please be aware that a valid SSL cert is required for some features to work properly."
+  echo " - We'll let you choose later on for it.
+   Please be aware that a valid SSL cert is required for some features to work properly."
 fi
 done
 #Set domain
@@ -295,11 +288,11 @@ if [ "$LE_SSL" = "yes" ]; then
   while [[ "$ANS_JD" != "yes" ]]
   do
     read -p "> Please set your domain (or subdomain) here: (e.g.: jitsi.domain.com)$NL" -r JITSI_DOMAIN
-    read -p "\n> Did you mean?: $JITSI_DOMAIN (yes or no)$NL" -r ANS_JD
+    read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)$NL" -r ANS_JD
     if [ "$ANS_JD" = "yes" ]; then
-      echo "Alright, let's use $JITSI_DOMAIN."
+      echo " - Alright, let's use $JITSI_DOMAIN."
     else
-      echo "Please try again."
+      echo " - Please try again."
     fi
   done
 
@@ -311,7 +304,7 @@ if [ "$LE_SSL" = "yes" ]; then
 
   #Simple DNS test
     if [ "$PUBLIC_IP" = "$(dig -4 +short "$JITSI_DOMAIN"||awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}')" ]; then
-        echo -e "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...\n"
+        echo -e "\nServer public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing..."
     else
        echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
     echo "  > Please check your dns records are applied and updated, otherwise components may fail."
@@ -487,11 +480,11 @@ do
   echo -e "> Set $DOMAIN as a fqdn hostname?: (yes or no)" && \
   read -p "Leave empty to default to your current one ($(hostname -f)):$NL" -r FQDN_HOST
   if [ "$FQDN_HOST" = "yes" ]; then
-    echo "$DOMAIN will be used as fqdn hostname, changes will show on reboot."
+    echo " - $DOMAIN will be used as fqdn hostname, changes will show on reboot."
     hostnamectl set-hostname "${DOMAIN}"
     sed -i "1i ${PUBLIC_IP} ${DOMAIN}" /etc/hosts
   else
-    echo "$(hostname -f) will be keep."
+    echo " - $(hostname -f) will be keep."
   fi
 done
 
@@ -519,9 +512,9 @@ while [[ "$DROP_TLS1" != "yes" && "$DROP_TLS1" != "no" ]]
 do
     read -p "> Do you want to drop support for unsecure protocols TLSv1.0/1.1 now: (yes or no)$NL" -r DROP_TLS1
     if [ "$DROP_TLS1" = "no" ]; then
-        echo "TLSv1.0/1.1 will remain."
+        echo " - TLSv1.0/1.1 will remain."
     elif [ "$DROP_TLS1" = "yes" ]; then
-        echo "TLSv1.0/1.1 will be dropped"
+        echo " - TLSv1.0/1.1 will be dropped"
     fi
 done
 #Dropbox -- no longer requirement for localrecording
@@ -539,9 +532,9 @@ while [[ "$ENABLE_BLESSM" != "yes" && "$ENABLE_BLESSM" != "no" ]]
 do
     read -p "> Do you want to install customized \"brandless mode\"?: (yes or no)$NL" -r ENABLE_BLESSM
     if [ "$ENABLE_BLESSM" = "no" ]; then
-        echo "Brandless mode won't be set."
+        echo " - Brandless mode won't be set."
     elif [ "$ENABLE_BLESSM" = "yes" ]; then
-        echo "Brandless mode will be set."
+        echo " - Brandless mode will be set."
     fi
 done
 #Welcome Page
@@ -549,9 +542,9 @@ while [[ "$ENABLE_WELCP" != "yes" && "$ENABLE_WELCP" != "no" ]]
 do
     read -p "> Do you want to disable the Welcome page: (yes or no)$NL" -r ENABLE_WELCP
     if [ "$ENABLE_WELCP" = "yes" ]; then
-        echo "Welcome page will be disabled."
+        echo " - Welcome page will be disabled."
     elif [ "$ENABLE_WELCP" = "no" ]; then
-        echo "Welcome page will be enabled."
+        echo " - Welcome page will be enabled."
     fi
 done
 #Close page
@@ -559,9 +552,9 @@ while [[ "$ENABLE_CLOCP" != "yes" && "$ENABLE_CLOCP" != "no" ]]
 do
     read -p "> Do you want to enable the close page on room exit: (yes or no)$NL" -r ENABLE_CLOCP
     if [ "$ENABLE_CLOCP" = "yes" ]; then
-        echo "Close page will be enabled."
+        echo " - Close page will be enabled."
     elif [ "$ENABLE_CLOCP" = "no" ]; then
-        echo "Close page will be kept disabled."
+        echo " - Close page will be kept disabled."
     fi
 done
 #Enable static avatar
@@ -569,9 +562,9 @@ while [[ "$ENABLE_SA" != "yes" && "$ENABLE_SA" != "no" ]]
 do
     read -p "> (Legacy) Do you want to enable static avatar?: (yes or no)$NL" -r ENABLE_SA
     if [ "$ENABLE_SA" = "no" ]; then
-        echo "Static avatar won't be enabled"
+        echo " - Static avatar won't be enabled"
     elif [ "$ENABLE_SA" = "yes" ]; then
-        echo "Static avatar will be enabled"
+        echo " - Static avatar will be enabled"
     fi
 done
 
@@ -603,9 +596,7 @@ do
 done
 
 # Set jibris default resolution
-echo "
-> What jibri resolution should be the default for this and all the following jibri nodes?
-"
+echo -e "\n> What jibri resolution should be the default for this and all the following jibri nodes?\n"
 PS3='The more resolution the more resources jibri will require to record properly: '
 jib_res=("HD 720" "FHD 1080")
 select res in "${jib_res[@]}"
@@ -641,9 +632,9 @@ do
     read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_NC_ACCESS
     if [ "$ENABLE_NC_ACCESS" = "no" ]; then
-    	echo -e "-- JRA via Nextcloud won't be enabled.\n"
+    	echo -e " - JRA via Nextcloud won't be enabled.\n"
     elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
-    	echo -e "-- JRA via Nextcloud will be enabled.\n"
+    	echo -e " - JRA via Nextcloud will be enabled.\n"
     fi
 done
 #Jigasi
@@ -657,9 +648,9 @@ elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$GC_SDK_REL_FILE" )" == "200" 
         read -p "> Do you want to setup Jigasi Transcription: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_TRANSCRIPT
         if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
-            echo -e "-- Jigasi Transcription won't be enabled.\n"
+            echo -e " - Jigasi Transcription won't be enabled.\n"
         elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
-            echo -e "-- Jigasi Transcription will be enabled.\n"
+            echo -e " - Jigasi Transcription will be enabled.\n"
         fi
     done
 else
@@ -672,9 +663,9 @@ do
 read -p "> Do you want to setup Grafana Dashboard: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_GRAFANA_DSH
 if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
-    echo "-- Grafana Dashboard won't be enabled."
+    echo -e " - Grafana Dashboard won't be enabled.\n"
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-    echo "-- Grafana Dashboard will be enabled."
+    echo -e " - Grafana Dashboard will be enabled.\n"
 fi
 done
 #Docker Etherpad
@@ -682,9 +673,9 @@ while [[ "$ENABLE_DOCKERPAD" != "yes" && "$ENABLE_DOCKERPAD" != "no" ]]
 do
 read -p "> Do you want to setup Docker Etherpad: (yes or no)$NL" -r ENABLE_DOCKERPAD
 if [ "$ENABLE_DOCKERPAD" = "no" ]; then
-    echo -e "-- Docker Etherpad won't be enabled.\n"
+    echo -e " - Docker Etherpad won't be enabled.\n"
 elif [ "$ENABLE_DOCKERPAD" = "yes" ]; then
-    echo -e "-- Docker Etherpad will be enabled.\n"
+    echo -e " - Docker Etherpad will be enabled.\n"
 fi
 done
 #Start configuration
