@@ -28,7 +28,7 @@ GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 GOOGLE_ACTIVE_REPO=$(apt-cache policy | awk '/chrome/{print$3}' | awk -F "/" 'NR==1{print$2}')
 PROSODY_REPO="$(apt-cache policy | awk '/prosody/{print$3}' | awk -F "/" 'NR==1{print$2}')"
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
-NL="$(echo -e '\n> ')"
+NL="$(echo -e '\n  ')"
 
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
@@ -284,7 +284,7 @@ while [[ "$LE_SSL" != "yes" && "$LE_SSL" != "no" ]]
 do
 read -p "> Do you plan to use Let's Encrypt SSL certs?: (yes or no)$NL" -r LE_SSL
 if [ "$LE_SSL" = yes ]; then
-  echo "We'll default to Let's Encrypt SSL certs."
+  echo -e "We'll default to Let's Encrypt SSL certs.\n"
 else
   echo "We'll let you choose later on for it.
   Please be aware that a valid SSL cert is required for some features to work properly."
@@ -295,17 +295,23 @@ if [ "$LE_SSL" = "yes" ]; then
   while [[ "$ANS_JD" != "yes" ]]
   do
     read -p "> Please set your domain (or subdomain) here: (e.g.: jitsi.domain.com)$NL" -r JITSI_DOMAIN
-    read -p "> Did you mean?: $JITSI_DOMAIN (yes or no)$NL" -r ANS_JD
+    read -p "\n> Did you mean?: $JITSI_DOMAIN (yes or no)$NL" -r ANS_JD
     if [ "$ANS_JD" = "yes" ]; then
       echo "Alright, let's use $JITSI_DOMAIN."
     else
       echo "Please try again."
     fi
   done
+
+  #Sysadmin email
+    while [[ -z $SYSADMIN_EMAIL ]]
+    do
+      read -p "> Set sysadmin email (this is a mandatory field):$NL" -r SYSADMIN_EMAIL
+    done
+
   #Simple DNS test
     if [ "$PUBLIC_IP" = "$(dig -4 +short "$JITSI_DOMAIN"||awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}')" ]; then
-        echo "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...
-"
+        echo -e "Server public IP  & DNS record for $JITSI_DOMAIN seems to match, continuing...\n"
     else
        echo "Server public IP ($PUBLIC_IP) & DNS record for $JITSI_DOMAIN don't seem to match."
     echo "  > Please check your dns records are applied and updated, otherwise components may fail."
@@ -316,7 +322,7 @@ if [ "$LE_SSL" = "yes" ]; then
           echo "  - Exiting for now..."
           exit
         fi
-  fi
+    fi
 fi
 # Requirements
 echo -e "\nWe'll start by installing system requirements this may take a while please be patient...\n"
@@ -427,15 +433,11 @@ else
     rm -rf /tpm/chromedriver_linux64.zip
 fi
 
-echo "
-Check Google Software Working...
-"
+echo -e "\nCheck Google Software Working...\n"
 /usr/bin/google-chrome --version
 /usr/local/bin/chromedriver --version | awk '{print$1,$2}'
 
-echo "
-Remove Chrome warning...
-"
+echo -e "\nRemove Chrome warning...\n"
 mkdir -p /etc/opt/chrome/policies/managed
 echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > "$GCMP_JSON"
 
@@ -482,7 +484,7 @@ JIBRI_XORG_CONF="/etc/jitsi/jibri/xorg-video-dummy.conf"
 # Rename hostname for jitsi server
 while [[ "$FQDN_HOST" != "yes" && "$FQDN_HOST" != "no" && -n "$FQDN_HOST" ]]
 do
-  echo -e "> Set $DOMAIN as a fqdn hostname?: (yes or no)\n" && \
+  echo -e "> Set $DOMAIN as a fqdn hostname?: (yes or no)" && \
   read -p "Leave empty to default to your current one ($(hostname -f)):$NL" -r FQDN_HOST
   if [ "$FQDN_HOST" = "yes" ]; then
     echo "$DOMAIN will be used as fqdn hostname, changes will show on reboot."
@@ -493,13 +495,6 @@ do
   fi
 done
 
-#Sysadmin email
-if [ "$LE_SSL" = "yes" ]; then
-  while [[ -z $SYSADMIN_EMAIL ]]
-  do
-    read -p "Set sysadmin email (this is a mandatory field):$NL" -r SYSADMIN_EMAIL
-  done
-fi
 #Language
 echo "## Setting up Jitsi Meet language ##
 You can define the language, for a complete list of the supported languages
@@ -677,9 +672,9 @@ do
 read -p "> Do you want to setup Grafana Dashboard: (yes or no)
 ( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_GRAFANA_DSH
 if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
-    echo -e "-- Grafana Dashboard won't be enabled.\n"
+    echo "-- Grafana Dashboard won't be enabled."
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
-    echo -e "-- Grafana Dashboard will be enabled. \n"
+    echo "-- Grafana Dashboard will be enabled."
 fi
 done
 #Docker Etherpad
