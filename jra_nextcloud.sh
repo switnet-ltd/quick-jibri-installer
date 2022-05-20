@@ -54,7 +54,7 @@ NC_CONFIG="$NC_PATH/config/config.php"
 NC_DB_USER="nextcloud_user"
 NC_DB="nextcloud_db"
 NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
-DIR_RECORD="$(grep -nr RECORDING /home/jibri/finalize_recording.sh|head -n1|cut -d "=" -f2)"
+DIR_RECORD="$(awk  -F '"' '/RECORDING/{print$2}'  /home/jibri/finalize_recording.sh|awk 'NR==1{print$1}')"
 REDIS_CONF="/etc/redis/redis.conf"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f $JITSI_MEET_PROXY ];then
@@ -62,21 +62,21 @@ PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
 fi
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 ISO3166_CODE=TBD
-NL="$(echo -e '\n> ')"
+NL="$(printf '\n  ')"
 
 while [[ "$ANS_NCD" != "yes" ]]
 do
   read -p "> Please set your domain (or subdomain) here for Nextcloud: (e.g.: cloud.domain.com)$NL" -r NC_DOMAIN
   if [ -z "$NC_DOMAIN" ];then
-    echo "-- This field is mandatory."
+    echo " - This field is mandatory."
   elif [ "$NC_DOMAIN" = "$DOMAIN" ]; then
-    echo "-- You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
+    echo " - You can not use the same domain for both, Jitsi Meet and JRA via Nextcloud."
   fi
-  read -p "> Did you mean?: $NC_DOMAIN (yes or no)"$'\n' -r ANS_NCD
+  read -p "  > Did you mean?: $NC_DOMAIN (yes or no)$NL" -r ANS_NCD
   if [ "$ANS_NCD" = "yes" ]; then
-    echo "Alright, let's use $NC_DOMAIN."
+    echo "   - Alright, let's use $NC_DOMAIN."
   else
-    echo "Please try again."
+    echo "   - Please try again."
   fi
 done
   #Simple DNS test
@@ -95,46 +95,48 @@ else
 fi
 
 NC_NGINX_CONF="/etc/nginx/sites-available/$NC_DOMAIN.conf"
-while [[ -z "$NC_USER" ]]
+while [ -z "$NC_USER" ]
 do
     read -p "Nextcloud user: " -r NC_USER
     if [ -z "$NC_USER" ]; then
-        echo "-- This field is mandatory."
+        echo " - This field is mandatory."
     fi
 done
 while [ -z "$NC_PASS" ]  || [ ${#NC_PASS} -lt 6 ]
 do
     read -p "Nextcloud user password: " -r NC_PASS
     if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt 6 ]; then
-        echo -e "-- This field is mandatory. \nPlease make sure it's at least 6 characters.\n"
+        echo -e " - This field is mandatory. \nPlease make sure it's at least 6 characters.\n"
     fi
 done
 #Enable HSTS
-while [[ "$ENABLE_HSTS" != "yes" && "$ENABLE_HSTS" != "no" ]]
+while [ "$ENABLE_HSTS" != "yes" ] && [ "$ENABLE_HSTS" != "no" ]
 do
     read -p "> Do you want to enable HSTS for this domain?: (yes or no)
   Be aware this option apply mid-term effects on the domain, choose \"no\"
   in case you don't know what you are doing. More at https://hstspreload.org/$NL" -r ENABLE_HSTS
     if [ "$ENABLE_HSTS" = "no" ]; then
-        echo "-- HSTS won't be enabled."
+        echo " - HSTS won't be enabled."
     elif [ "$ENABLE_HSTS" = "yes" ]; then
-        echo "-- HSTS will be enabled."
+        echo " - HSTS will be enabled."
     fi
 done
 
 echo -e "#Default country phone code\n
 > Starting at Nextcloud 21.x it's required to set a default country phone ISO 3166-1 alpha-2 code.\n
 >>> https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements  <<<\n"
+sleep .1
 while [ ${#ISO3166_CODE} -gt 2 ];
 do
 echo -e "Some examples might be: Germany > DE | Mexico > MX | Spain > ES | USA > US\n
-Do you want to set such code for your installation?" && \
+Do you want to set such code for your installation?"
+sleep .1
 read -p "Leave empty if you don't want to set any: " -r ISO3166_CODE
   if [ ${#ISO3166_CODE} -gt 2 ]; then
     echo -e "\n-- This code is only 2 characters long, please check your input.\n"
   fi
 done
-
+sleep .1
 echo -e "\n# Check for jitsi-meet/jibri\n"
 if [ "$(dpkg-query -W -f='${Status}' jibri 2>/dev/null | grep -c "ok installed")" == "1" ] || \
    [ -f /etc/prosody/conf.d/"$DOMAIN".conf ]; then
@@ -251,7 +253,7 @@ systemctl restart php"$PHPVER"-fpm.service
 #--------------------------------------------------
 
 echo -e "\n---- Creating the PgSQL DB & User  ----"
-cd /tmp || exit
+cd /tmp || return
 sudo -u postgres psql <<DB
 CREATE DATABASE nextcloud_db;
 CREATE USER ${NC_DB_USER} WITH ENCRYPTED PASSWORD '${NC_DB_PASSWD}';
@@ -441,10 +443,8 @@ if [ -n "$PREAD_PROXY" ]; then
     sed -i "/server {/i \ \ }" "$JITSI_MEET_PROXY"
 fi
 
-echo "
-  Latest version to be installed: $STABLEVERSION
-  (This might take sometime, please be patient...)
-"
+echo -e "\n  Latest version to be installed: $STABLEVERSION
+  (This might take sometime, please be patient...)\n"
 curl -s "$NC_REPO"/"$STABLEVERSION".zip > /tmp/"$STABLEVERSION".zip
 unzip -q /tmp/"$STABLEVERSION".zip
 mv nextcloud "$NC_PATH"
@@ -452,9 +452,7 @@ mv nextcloud "$NC_PATH"
 chown -R www-data:www-data "$NC_PATH"
 chmod -R 755 "$NC_PATH"
 
-echo "
-Database installation...
-"
+echo -e "\nDatabase installation...\n"
 sudo -u www-data php "$NC_PATH"/occ maintenance:install \
 --database=pgsql \
 --database-name="$NC_DB" \
@@ -463,26 +461,22 @@ sudo -u www-data php "$NC_PATH"/occ maintenance:install \
 --admin-user="$NC_USER" \
 --admin-pass="$NC_PASS"
 
-echo "
-Apply custom mods...
-"
+echo -e "\nApply custom mods...\n"
 sed -i "/datadirectory/a \ \ \'skeletondirectory\' => \'\'," "$NC_CONFIG"
 sed -i "/skeletondirectory/a \ \ \'simpleSignUpLink.shown\' => false," "$NC_CONFIG"
 sed -i "/simpleSignUpLink.shown/a \ \ \'knowledgebaseenabled\' => false," "$NC_CONFIG"
 sed -i "s|http://localhost|http://$NC_DOMAIN|" "$NC_CONFIG"
 
-echo "Add crontab..."
+echo -e "\nAdd crontab...\n"
 crontab -u www-data -l | { cat; echo "*/5  *  *  *  * php -f $NC_PATH/cron.php"; } | crontab -u www-data -
 
-echo "
-Add memcache support...
-"
+echo -e "\nAdd memcache support...\n"
 sed -i "s|# unixsocket .*|unixsocket /var/run/redis/redis.sock|g" "$REDIS_CONF"
 sed -i "s|# unixsocketperm .*|unixsocketperm 777|g" "$REDIS_CONF"
 sed -i "s|port 6379|port 0|" "$REDIS_CONF"
 systemctl restart redis-server
 
-echo "--> Setting config.php..."
+echo -e "\n--> Setting config.php...\n"
 if [ -n "$ISO3166_CODE" ]; then
   sed -i "/);/i \ \ 'default_phone_region' => '$ISO3166_CODE'," "$NC_CONFIG"
 fi
@@ -497,11 +491,9 @@ sed -i "/);/i \ \ \ \ \ 'host' => '/var/run/redis/redis.sock'," "$NC_CONFIG"
 sed -i "/);/i \ \ \ \ \ 'port' => 0," "$NC_CONFIG"
 sed -i "/);/i \ \ \ \ \ 'timeout' => 0," "$NC_CONFIG"
 sed -i "/);/i \ \ )," "$NC_CONFIG"
-echo "Done
-"
-echo "
-Addding & Setting up Files External App for Local storage...
-"
+echo -e "Done\n"
+
+echo -e "\nAddding & Setting up Files External App for Local storage...\n"
 sudo -u www-data php "$NC_PATH"/occ app:install files_external
 sudo -u www-data php "$NC_PATH"/occ app:enable files_external
 sudo -u www-data php "$NC_PATH"/occ app:disable support
@@ -511,20 +503,16 @@ usermod -a -G jibri www-data
 chmod -R 770 "$DIR_RECORD"
 chmod -R g+s "$DIR_RECORD"
 
-echo "
-Fixing possible missing tables...
-"
+echo -e "\nFixing possible missing tables...\n\n"
 echo "y"|sudo -u www-data php "$NC_PATH"/occ db:convert-filecache-bigint
 sudo -u www-data php "$NC_PATH"/occ db:add-missing-indices
 sudo -u www-data php "$NC_PATH"/occ db:add-missing-columns
 
-echo "
-Adding trusted domain...
-"
+echo -e "\nAdding trusted domain...\n"
 sudo -u www-data php "$NC_PATH"/occ config:system:set trusted_domains 0 --value="$NC_DOMAIN"
 
-echo "Setting JRA domain on jitsi-updater.sh"
-cd ~/quick-jibri-installer || exit
+echo -e "\nSetting JRA domain on jitsi-updater.sh\n"
+cd ~/quick-jibri-installer || return
 sed -i "s|NC_DOMAIN=.*|NC_DOMAIN=\"$NC_DOMAIN\"|" jitsi-updater.sh
 
-echo "Quick Nextcloud installation complete!"
+echo -e "\nQuick Nextcloud installation complete!\n"
