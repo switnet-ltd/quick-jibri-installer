@@ -28,18 +28,22 @@ ENABLE_BLESSM="TBD"
 CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 CHD_LTST_2D="$(echo "$CHD_LTST"|cut -d "." -f 1,2)"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
-DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua | \
+          awk -F'.cfg' '!/localhost/{print $1}' | xargs basename)"
 NC_DOMAIN="TBD"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f "$JITSI_MEET_PROXY" ];then
-PREAD_PROXY=$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -f1)
+PREAD_PROXY="$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -f1)"
 fi
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
-jibri_packages="$(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages |sort -u|awk '{print $2}'|sed 's|jigasi||')"
+read -r -a jibri_packages < <(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | \
+                              sort -u | awk '{print $2}' | sed '/jigasi/d' | \
+                              xargs)
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f "$apt_repo"/google-chrome.list ]; then
-    google_package=$(grep Package /var/lib/apt/lists/dl.google.com_linux_chrome_deb_dists_stable_main_binary-amd64_Packages | sort -u | cut -d ' ' -f2)
+read -r -a google_package < <(grep Package /var/lib/apt/lists/dl.google.com_*_Packages | \
+                              sort -u | awk '{print $2}' | xargs)
 else
     echo "Seems no Google repo installed"
 fi
@@ -75,14 +79,14 @@ restart_services() {
 update_jitsi_repo() {
     apt-get update -o Dir::Etc::sourcelist="sources.list.d/jitsi-$1.list" \
         -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-    apt-get install -qq --only-upgrade "$jibri_packages"
+    apt-get install -q2 --only-upgrade <<< printf "${jibri_packages[@]}"
 }
 
 update_google_repo() {
     if [ -f "$apt_repo"/google-chrome.list ]; then
     apt-get update -o Dir::Etc::sourcelist="sources.list.d/google-chrome.list" \
         -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-    apt-get install -qq --only-upgrade "$google_package"
+    apt-get install -q2 --only-upgrade <<< printf "${google_package[@]}"
     else
         echo "No Google repository found"
     fi
