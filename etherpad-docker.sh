@@ -6,11 +6,11 @@
 
 while getopts m: option
 do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./etherpad-docker.sh [-m debug]" && exit;;
-    esac
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
 done
 
 #DEBUG

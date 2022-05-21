@@ -1,7 +1,22 @@
 #!/bin/bash
 # JWT Mode Setup
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
+
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
+
 DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
 JICOFO_SIP="/etc/jitsi/jicofo/sip-communicator.properties"

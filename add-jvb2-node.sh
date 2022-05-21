@@ -1,11 +1,25 @@
 #!/bin/bash
 # JVB2 Node Aggregator
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
 
 ### 0_LAST EDITION TIME STAMP ###
 # LETS: AUTOMATED_EDITION_TIME
 ### 1_LAST EDITION ###
+
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
 
 #Make sure the file name is the required one
 if [ ! "$(basename "$0")" = "add-jvb2-node.sh" ]; then
@@ -14,19 +28,6 @@ if [ ! "$(basename "$0")" = "add-jvb2-node.sh" ]; then
     exit
 fi
 
-while getopts m: option
-do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./add-jvb2-node.sh [-m debug]" && exit;;
-    esac
-done
-
-#DEBUG
-if [ "$MODE" = "debug" ]; then
-set -x
-fi
 
 #Check admin rights
 if ! [ "$(id -u)" = 0 ]; then

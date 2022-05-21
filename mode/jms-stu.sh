@@ -2,8 +2,22 @@
 # System-tune-up to remove system software restrictions on a huge load of connections.
 # Be aware that hardware/infrastructure resources are the most common limiters.
 #
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
+
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
 
 #Check if user is root
 if ! [ "$(id -u)" = 0 ]; then
@@ -11,26 +25,12 @@ if ! [ "$(id -u)" = 0 ]; then
    exit 0
 fi
 
-while getopts m: option
-do
-	case "${option}"
-	in
-		m) MODE=${OPTARG};;
-		\?) echo "Usage: sudo ./jms-stu.sh [-m debug]" && exit;;
-	esac
-done
-
 echo '
 #--------------------------------------------------
 # Starting system tune up configuration
 # for high performance
 #--------------------------------------------------
 '
-
-#DEBUG
-if [ "$MODE" = "debug" ]; then
-set -x
-fi
 
 set_once_hash_comment() {
 if ! awk '!/^ *#/ && NF {print}' "$2"|grep -q "$(awk -F '=' '{print$1}' <<< "$1")" ; then

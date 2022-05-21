@@ -1,6 +1,6 @@
 #!/bin/bash
 # Simple Fail2ban configuration
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GNU GPLv3 or later.
 
 while getopts m: option
@@ -8,7 +8,7 @@ do
 	case "${option}"
 	in
 		m) MODE=${OPTARG};;
-		\?) echo "Usage: sudo ./fail2ban_ssh.sh [-m debug]" && exit;;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
 	esac
 done
 

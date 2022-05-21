@@ -1,31 +1,31 @@
 #!/bin/bash
 # Jibri Node Aggregator
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
 
 ### 0_LAST EDITION TIME STAMP ###
 # LETS: AUTOMATED_EDITION_TIME
 ### 1_LAST EDITION ###
 
-#Make sure the file name is the required one
-if [ ! "$(basename "$0")" = "add-jibri-node.sh" ]; then
-    echo "For most cases naming won't matter, for this one it does."
-    echo "Please use the original name for this script: \`add-jibri-node.sh', and run again."
-    exit
-fi
-
 while getopts m: option
 do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./add_jibri_node.sh [-m debug]" && exit;;
-    esac
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
 done
 
 #DEBUG
 if [ "$MODE" = "debug" ]; then
 set -x
+fi
+
+#Make sure the file name is the required one
+if [ ! "$(basename "$0")" = "add-jibri-node.sh" ]; then
+    echo "For most cases naming won't matter, for this one it does."
+    echo "Please use the original name for this script: \`add-jibri-node.sh', and run again."
+    exit
 fi
 
 #Check admin rights

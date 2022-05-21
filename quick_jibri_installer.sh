@@ -1,17 +1,17 @@
 #!/bin/bash
 # Quick Jibri Installer - *buntu (LTS) based systems.
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
 {
 echo "Started at $(date +'%Y-%m-%d %H:%M:%S')" >> qj-installer.log
 
 while getopts m: option
 do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./quick_jibri_installer.sh [-m debug]" && exit;;
-    esac
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
 done
 
 #DEBUG

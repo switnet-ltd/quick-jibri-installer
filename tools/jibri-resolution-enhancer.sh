@@ -1,20 +1,20 @@
 #!/bin/bash
 # Simple Jibri resolution enhancer
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GNU GPLv3 or later.
 
 while getopts m: option
 do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./jibri-resolution-enhancer.sh [-m debug]" && exit;;
-    esac
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
 done
 
 #DEBUG
 if [ "$MODE" = "debug" ]; then
-  set -x
+set -x
 fi
 
 #Check if user is root

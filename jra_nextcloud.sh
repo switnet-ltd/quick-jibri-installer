@@ -1,14 +1,15 @@
 #!/bin/bash
 # JRA (Jibri Recordings Access) via Nextcloud
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
+
 while getopts m: option
 do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./jra_nextcloud.sh [-m debug]" && exit;;
-    esac
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
 done
 
 #DEBUG
