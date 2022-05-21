@@ -1,31 +1,31 @@
 #!/bin/bash
 # Jibri Node Aggregator
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
 
 ### 0_LAST EDITION TIME STAMP ###
 # LETS: AUTOMATED_EDITION_TIME
 ### 1_LAST EDITION ###
 
-#Make sure the file name is the required one
-if [ ! "$(basename $0)" = "add-jibri-node.sh" ]; then
-    echo "For most cases naming won't matter, for this one it does."
-    echo "Please use the original name for this script: \`add-jibri-node.sh', and run again."
-    exit
-fi
-
 while getopts m: option
 do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./add_jibri_node.sh [-m debug]" && exit;;
-    esac
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
 done
 
 #DEBUG
 if [ "$MODE" = "debug" ]; then
 set -x
+fi
+
+#Make sure the file name is the required one
+if [ ! "$(basename "$0")" = "add-jibri-node.sh" ]; then
+    echo "For most cases naming won't matter, for this one it does."
+    echo "Please use the original name for this script: \`add-jibri-node.sh', and run again."
+    exit
 fi
 
 #Check admin rights
@@ -55,7 +55,7 @@ CHD_VER="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
 GOOGL_REPO="/etc/apt/sources.list.d/dl_google_com_linux_chrome_deb.list"
 GOOGLE_ACTIVE_REPO=$(apt-cache policy | awk '/chrome/{print$3}' | awk -F "/" 'NR==1{print$2}')
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
-PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
+#PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
 NJN_USER="jbnode${ADDUP}_${NJN_RAND_TAIL}"
 NJN_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
@@ -68,7 +68,7 @@ JIBRI_XORG_CONF="/etc/jitsi/jibri/xorg-video-dummy.conf"
 
 # sed limiters for add-jibri-node.sh variables
 var_dlim() {
-    grep -n $1 add-jibri-node.sh|head -n1|cut -d ":" -f1
+    grep -n "$1" add-jibri-node.sh|head -n1|cut -d ":" -f1
 }
 
 check_var() {
@@ -89,19 +89,19 @@ echo "
 # Checking initial necessary variables...
 #-----------------------------------------------------------------------"
 
-JMS_DATA=($MAIN_SRV_DIST \
-          $MAIN_SRV_REPO \
-          $MAIN_SRV_DOMAIN \
-          $JibriBrewery \
-          $JB_NAME \
-          $JB_AUTH_PASS \
-          $JB_REC_PASS \
-          $MJS_USER \
-          $MJS_USER_PASS \
-          $JIBRI_RES_CONF \
-          $JIBRI_RES_XORG_CONF)
+JMS_DATA=("$MAIN_SRV_DIST" \
+          "$MAIN_SRV_REPO" \
+          "$MAIN_SRV_DOMAIN" \
+          "$JibriBrewery" \
+          "$JB_NAME" \
+          "$JB_AUTH_PASS" \
+          "$JB_REC_PASS" \
+          "$MJS_USER" \
+          "$MJS_USER_PASS" \
+          "$JIBRI_RES_CONF" \
+          "$JIBRI_RES_XORG_CONF")
 
-JMS_EVAL=${JMS_DATA[0]}
+JMS_EVAL="${JMS_DATA[0]}"
 for i in "${JMS_DATA[@]}"; do
     if [[ "$JMS_EVAL" != "$i" ]]; then
         ALL_TBD="no"
@@ -152,7 +152,7 @@ else
 fi
 ### Test RAM size (8GB min) ###
 mem_available=$(grep MemTotal /proc/meminfo| grep -o '[0-9]\+')
-if [ ${mem_available} -lt 7700000 ]; then
+if [ "${mem_available}" -lt 7700000 ]; then
   echo "
 Warning!: The system do not meet the minimum RAM requirements for Jibri to run.
 >> We recommend 8GB RAM for Jibri!
@@ -190,7 +190,7 @@ sed -i "1i 127.0.0.1 jbnode_${SHORT_ID}.${MAIN_SRV_DOMAIN}" /etc/hosts
 # Jitsi-Meet Repo
 echo "Add Jitsi repo"
 if [ -z "$JITSI_REPO" ]; then
-    echo "deb http://download.jitsi.org $MAIN_SRV_REPO/" > /etc/apt/sources.list.d/jitsi-$MAIN_SRV_REPO.list
+    echo "deb http://download.jitsi.org $MAIN_SRV_REPO/" > /etc/apt/sources.list.d/jitsi-"$MAIN_SRV_REPO".list
     wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
 elif [ ! "$JITSI_REPO" = "$MAIN_SRV_REPO" ]; then
     echo "Main and node servers repository don't match, extiting.."
@@ -235,7 +235,7 @@ else
 # Your audio driver might not be able to load.
 # We'll check the state of this Jibri with our 'test-jibri-env.sh' tool.
 #-----------------------------------------------------------------------"
-curl -s $TEST_JIBRI_ENV > /tmp/test-jibri-env.sh
+curl -s "$TEST_JIBRI_ENV" > /tmp/test-jibri-env.sh
 #Test tool
   if [ "$MODE" = "debug" ]; then
     bash /tmp/test-jibri-env.sh -m debug
@@ -248,14 +248,14 @@ fi
 }
 
 echo "# Check and Install HWE kernel if possible..."
-HWE_VIR_MOD=$(apt-cache madison linux-image-generic-hwe-$(lsb_release -sr) 2>/dev/null|head -n1|grep -c "hwe-$(lsb_release -sr)")
+HWE_VIR_MOD="$(apt-cache madison linux-image-generic-hwe-"$(lsb_release -sr)" 2>/dev/null|head -n1|grep -c hwe-"$(lsb_release -sr)")"
 if [ "$HWE_VIR_MOD" = "1" ]; then
     apt-get -y install \
-    linux-image-generic-hwe-$(lsb_release -sr)
+    linux-image-generic-hwe-"$(lsb_release -sr)"
 else
     apt-get -y install \
     linux-image-generic \
-    linux-modules-extra-$(uname -r)
+    linux-modules-extra-"$(uname -r)"
 fi
 
 echo "
@@ -273,7 +273,7 @@ if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
 else
     echo "Installing Google Chrome Stable"
     wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
-    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee $GOOGL_REPO
+    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee "$GOOGL_REPO"
 fi
 apt-get -q2 update
 apt-get install -y google-chrome-stable
@@ -283,7 +283,7 @@ if [ -f /usr/local/bin/chromedriver ]; then
     echo "Chromedriver already installed."
 else
     echo "Installing Chromedriver"
-    wget -q https://chromedriver.storage.googleapis.com/$CHD_VER/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+    wget -q https://chromedriver.storage.googleapis.com/"$CHD_VER"/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
     unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/
     chown root:root /usr/local/bin/chromedriver
     chmod 0755 /usr/local/bin/chromedriver
@@ -305,18 +305,18 @@ echo "
 Remove Chrome warning...
 "
 mkdir -p /etc/opt/chrome/policies/managed
-echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > $GCMP_JSON
+echo '{ "CommandLineFlagSecurityWarningsEnabled": false }' > "$GCMP_JSON"
 
 # Recording directory
-if [ ! -d $DIR_RECORD ]; then
-mkdir $DIR_RECORD
+if [ ! -d "$DIR_RECORD" ]; then
+mkdir "$DIR_RECORD"
 fi
-chown -R jibri:jibri $DIR_RECORD
+chown -R jibri:jibri "$DIR_RECORD"
 
-cat << REC_DIR > $REC_DIR
+cat << REC_DIR > "$REC_DIR"
 #!/bin/bash
 
-RECORDINGS_DIR=$DIR_RECORD
+RECORDINGS_DIR="$DIR_RECORD"
 
 echo "This is a dummy finalize script" > /tmp/finalize.out
 echo "The script was invoked with recordings directory $RECORDINGS_DIR." >> /tmp/finalize.out
@@ -341,12 +341,12 @@ fi
 
 exit 0
 REC_DIR
-chown jibri:jibri $REC_DIR
-chmod +x $REC_DIR
+chown jibri:jibri "$REC_DIR"
+chmod +x "$REC_DIR"
 
 ## New Jibri Config (2020)
-mv $JIBRI_CONF ${JIBRI_CONF}-dpkg-file
-cat << NEW_CONF > $JIBRI_CONF
+mv "$JIBRI_CONF" "${JIBRI_CONF}"-dpkg-file
+cat << NEW_CONF > "$JIBRI_CONF"
 // New XMPP environment config.
 jibri {
     streaming {
@@ -459,25 +459,25 @@ jibri {
 NEW_CONF
 
 #Jibri xorg resolution
-sed -i "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" $JIBRI_XORG_CONF
+sed -i "s|[[:space:]]Virtual .*|Virtual $JIBRI_RES_XORG_CONF|" "$JIBRI_XORG_CONF"
 
 echo -e "\n---- Create random nodesync user ----"
-useradd -m -g jibri $NJN_USER
+useradd -m -g jibri "$NJN_USER"
 echo "$NJN_USER:$NJN_USER_PASS" | chpasswd
 
 echo -e "\n---- We'll connect to main server ----"
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
-sudo su $NJN_USER -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
+sudo su "$NJN_USER" -c "ssh-keygen -t rsa -f ~/.ssh/id_rsa -b 4096 -o -a 100 -q -N ''"
 
 #Workaround for jibri to do cleaning.
-install -m 0600 -o jibri /home/$NJN_USER/.ssh/id_rsa /home/jibri/jbsync.pem
+install -m 0600 -o jibri /home/"$NJN_USER"/.ssh/id_rsa /home/jibri/jbsync.pem
 sudo su jibri -c "install -D /dev/null /home/jibri/.ssh/known_hosts"
 sudo su jibri -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/jibri/.ssh/known_hosts"
 
 echo -e "\n\n##################\nRemote pass: $MJS_USER_PASS\n################## \n\n"
-ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> ~/.ssh/known_hosts
-ssh $MJS_USER@$MAIN_SRV_DOMAIN sh -c "'cat >> .ssh/authorized_keys'" < /home/$NJN_USER/.ssh/id_rsa.pub
-sudo su $NJN_USER -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
+ssh-keyscan -t rsa "$MAIN_SRV_DOMAIN" >> ~/.ssh/known_hosts
+ssh "$MJS_USER"@"$MAIN_SRV_DOMAIN" sh -c "'cat >> .ssh/authorized_keys'" < /home/"$NJN_USER"/.ssh/id_rsa.pub
+sudo su "$NJN_USER" -c "ssh-keyscan -t rsa $MAIN_SRV_DOMAIN >> /home/$NJN_USER/.ssh/known_hosts"
 
 echo -e "\n---- Setup Log system ----"
 cat << INOT_RSYNC > /etc/jitsi/jibri/remote-jbsync.sh
@@ -486,21 +486,21 @@ cat << INOT_RSYNC > /etc/jitsi/jibri/remote-jbsync.sh
 # Log process
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
-exec 1>/var/log/$NJN_USER/remote_jnsync.log 2>&1
+exec 1>/var/log/"$NJN_USER"/remote_jnsync.log 2>&1
 
 # Run sync
 while true; do
-  inotifywait  -t 60 -r -e modify,attrib,close_write,move,delete $DIR_RECORD
-  sudo su $NJN_USER -c "rsync -Aax  --info=progress2 --remove-source-files --exclude '.*/' $DIR_RECORD/ $MJS_USER@$MAIN_SRV_DOMAIN:$DIR_RECORD"
-  find $DIR_RECORD -depth -type d -empty -not -path $DIR_RECORD -delete
+  inotifywait  -t 60 -r -e modify,attrib,close_write,move,delete "$DIR_RECORD"
+  sudo su "$NJN_USER" -c "rsync -Aax  --info=progress2 --remove-source-files --exclude '.*/' $DIR_RECORD/ $MJS_USER@$MAIN_SRV_DOMAIN:$DIR_RECORD"
+  find "$DIR_RECORD" -depth -type d -empty -not -path "$DIR_RECORD" -delete
 done
 INOT_RSYNC
 
 
-mkdir /var/log/$NJN_USER
+mkdir /var/log/"$NJN_USER"
 
-cat << LOG_ROT > /etc/logrotate.d/$NJN_USER
-/var/log/$NJN_USER/*.log {
+cat << LOG_ROT > /etc/logrotate.d/"$NJN_USER"
+/var/log/"$NJN_USER"/*.log {
     monthly
     missingok
     rotate 12
@@ -561,7 +561,7 @@ echo "
 echo "Make sure to reboot, it's necessary before *any* usage.
 Rebooting in..."
 secs=$((15))
-while [ $secs -gt 0 ]; do
+while [ "$secs" -gt 0 ]; do
    echo -ne "$secs\033[0K\r"
    sleep 1
    : $((secs--))

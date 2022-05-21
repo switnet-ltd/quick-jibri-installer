@@ -1,24 +1,24 @@
 #!/bin/bash
 #Start over
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
 
 while getopts m: option
 do
-    case "${option}"
-    in
-        m) MODE=${OPTARG};;
-        \?) echo "Usage: sudo ./start-over.sh [-m debug]" && exit;;
-    esac
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
 done
 
 #DEBUG
 if [ "$MODE" = "debug" ]; then
-  set -x
+set -x
 fi
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -32,16 +32,16 @@ while [ $secs -gt 0 ]; do
 done
 }
 remove_residuals() {
-  if [ -d $1 ]; then
-    rm -r $1
+  if [ -d "$1" ]; then
+    rm -r "$1"
   fi
 }
 purge_debconf() {
-  echo PURGE | debconf-communicate $1
+  echo PURGE | debconf-communicate "$1"
 }
 remove_services() {
-  systemctl disable $1
-  systemctl stop $1
+  systemctl disable "$1"
+  systemctl stop "$1"
 }
 echo -e '
 ########################################################################
@@ -50,8 +50,8 @@ echo -e '
                     by Software, IT & Networks Ltd
 \n'
 
-SYNC_USER="$(ls /home|awk '/jbsync/{print}')"
-DOMAIN="$(ls /etc/prosody/conf.d/ | awk -F'.cfg' '!/localhost/{print $1}' | awk '!NF || !seen[$0]++')"
+SYNC_USER="$(find /home -maxdepth 1 -type d |awk '/jbsync/{print}')"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 
 echo "We are about to remove and clean all the jitsi-meet platform bits and pieces...
 Please make sure you have backed up anything you don't want to loose."
@@ -118,7 +118,7 @@ remove_residuals /usr/share/jitsi-*
 #Clean /etc/hosts
 sed -i "/$DOMAIN/d" /etc/hosts
 
-#Purging debconf db
+echo "#Purging debconf db"
 purge_debconf jicofo
 purge_debconf jigasi
 purge_debconf jitsi-meet
@@ -128,8 +128,8 @@ purge_debconf jitsi-meet-web-config
 purge_debconf jitsi-videobridge2
 
 #Remove unused users & groups
-if [ ! -z $SYNC_USER ]; then
-  deluser --remove-home $SYNC_USER
+if [ -n "$SYNC_USER" ]; then
+  deluser --remove-home "$SYNC_USER"
 fi
 if [ -d /home/jibri ]; then
   deluser --remove-home  jibri

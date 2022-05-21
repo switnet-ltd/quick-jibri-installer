@@ -1,16 +1,31 @@
 #!/bin/bash
 # JWT Mode Setup
-# SwITNet Ltd © - 2021, https://switnet.net/
+# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
+
+while getopts m: option
+do
+	case "${option}"
+	in
+		m) MODE=${OPTARG};;
+		\?) echo "Usage: sudo bash ./$0 [-m debug]" && exit;;
+	esac
+done
+
+#DEBUG
+if [ "$MODE" = "debug" ]; then
+set -x
+fi
+
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
 JICOFO_SIP="/etc/jitsi/jicofo/sip-communicator.properties"
 PROSODY_FILE="/etc/prosody/conf.d/$DOMAIN.cfg.lua"
 PROSODY_SYS="/etc/prosody/prosody.cfg.lua"
 APP_ID="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 16 | head -n1)"
 SECRET_APP="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 64 | head -n1)"
-SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" $PROSODY_FILE | head -n1 | cut -d ":" -f1)
-SRP_END=$((SRP_STR + 10))
+SRP_STR="$(grep -n "VirtualHost \"$DOMAIN\"" "$PROSODY_FILE" | head -n1 | cut -d ":" -f1)"
+SRP_END="$((SRP_STR + 10))"
 
 ## Required  openssl for Focal 20.04
 if [ "$(lsb_release -sc)" = "focal" ]; then
@@ -37,26 +52,26 @@ echo "set jitsi-meet-tokens/appsecret password $SECRET_APP" | debconf-set-select
 apt-get install -y jitsi-meet-tokens
 
 #Setting up
-sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" $PROSODY_SYS
+sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" "$PROSODY_SYS"
 #-
-sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"token\"|}" $PROSODY_FILE
-sed -i "s|--app_id=\"example_app_id\"|app_id=\"$APP_ID\"|" $PROSODY_FILE
-sed -i "s|--app_secret=\"example_app_secret\"|app_secret=\"$SECRET_APP\"|" $PROSODY_FILE
-sed -i "/app_secret/a \\\\" $PROSODY_FILE
-sed -i "/app_secret/a \ \ \ \ allow_empty_token = false" $PROSODY_FILE
-sed -i "/app_secret/a \\\\" $PROSODY_FILE
-sed -i "/app_secret/a \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" $PROSODY_FILE
-sed -i "/app_secret/a \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \"RocketChat\" }" $PROSODY_FILE
-sed -i "/app_secret/a \\\\" $PROSODY_FILE
-sed -i "s|--allow_empty_token =.*|allow_empty_token = false|" $PROSODY_FILE
-sed -i 's|--"token_verification"|"token_verification"|' $PROSODY_FILE
+sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"token\"|}" "$PROSODY_FILE"
+sed -i "s|--app_id=\"example_app_id\"|app_id=\"$APP_ID\"|" "$PROSODY_FILE"
+sed -i "s|--app_secret=\"example_app_secret\"|app_secret=\"$SECRET_APP\"|" "$PROSODY_FILE"
+sed -i "/app_secret/a \\\\" "$PROSODY_FILE"
+sed -i "/app_secret/a \ \ \ \ allow_empty_token = false" "$PROSODY_FILE"
+sed -i "/app_secret/a \\\\" "$PROSODY_FILE"
+sed -i "/app_secret/a \ \ \ \ asap_accepted_issuers = { \"$APP_ID\" }" "$PROSODY_FILE"
+sed -i "/app_secret/a \ \ \ \ asap_accepted_audiences = { \"$APP_ID\", \"RocketChat\" }" "$PROSODY_FILE"
+sed -i "/app_secret/a \\\\" "$PROSODY_FILE"
+sed -i "s|--allow_empty_token =.*|allow_empty_token = false|" "$PROSODY_FILE"
+sed -i 's|--"token_verification"|"token_verification"|' "$PROSODY_FILE"
 
 #Request auth
-sed -i "s|#org.jitsi.jicofo.auth.URL=EXT_JWT:|org.jitsi.jicofo.auth.URL=EXT_JWT:|" $JICOFO_SIP
-sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" $MEET_CONF
+sed -i "s|#org.jitsi.jicofo.auth.URL=EXT_JWT:|org.jitsi.jicofo.auth.URL=EXT_JWT:|" "$JICOFO_SIP"
+sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" "$MEET_CONF"
 
 #Enable jibri recording
-cat  << REC-JIBRI >> $PROSODY_FILE
+cat  << REC-JIBRI >> "$PROSODY_FILE"
 
 VirtualHost "recorder.$DOMAIN"
   modules_enabled = {
@@ -67,7 +82,7 @@ VirtualHost "recorder.$DOMAIN"
 REC-JIBRI
 
 #Setup guests and lobby
-cat << P_SR >> $PROSODY_FILE
+cat << P_SR >> "$PROSODY_FILE"
 -- #Change back lobby - https://community.jitsi.org/t/64769/136
 VirtualHost "guest.$DOMAIN"
     authentication = "token"

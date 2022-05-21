@@ -9,7 +9,7 @@
 #######################################################
 
 #Check if user is root
-if ! [ $(id -u) = 0 ]; then
+if ! [ "$(id -u)" = 0 ]; then
    echo "You need to be root or have sudo privileges!"
    exit 0
 fi
@@ -22,17 +22,17 @@ echo '
                     by Software, IT & Networks Ltd
 '
 
-JIGASI_CONFIG=/etc/jitsi/jigasi/config
-GC_API_JSON=/opt/gc-sdk/GCTranscriptAPI.json
-DOMAIN=$(ls /etc/prosody/conf.d/ | grep -v localhost | awk -F'.cfg' '{print $1}' | awk '!NF || !seen[$0]++')
-MEET_CONF=/etc/jitsi/meet/${DOMAIN}-config.js
-JIG_SIP_CONF=/etc/jitsi/jigasi/config
-JIG_SIP_PROP=/etc/jitsi/jigasi/sip-communicator.properties
-JIC_SIP_PROP=/etc/jitsi/jicofo/sip-communicator.properties
+JIGASI_CONFIG="/etc/jitsi/jigasi/config"
+GC_API_JSON="/opt/gc-sdk/GCTranscriptAPI.json"
+DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
+MEET_CONF="/etc/jitsi/meet/${DOMAIN}-config.js"
+JIG_SIP_CONF="/etc/jitsi/jigasi/config"
+JIG_SIP_PROP="/etc/jitsi/jigasi/sip-communicator.properties"
+JIC_SIP_PROP="/etc/jitsi/jicofo/sip-communicator.properties"
 JIG_TRANSC_PASWD="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 8 | head -n1)"
 JIG_TRANSC_PASWD_B64="$(echo -n "$JIG_TRANSC_PASWD" | base64)"
-DIST=$(lsb_release -sc)
-CHECK_GC_REPO=$(apt-cache policy | grep http | grep cloud-sdk | head -n1 | awk '{print $3}' | awk -F '/' '{print $1}')
+DIST="$(lsb_release -sc)"
+CHECK_GC_REPO="$(apt-cache policy | grep http | grep cloud-sdk | head -n1 | awk '{print $3}' | awk -F '/' '{print $1}')"
 
 install_gc_repo() {
 if [ "$CHECK_GC_REPO" = "cloud-sdk-$DIST" ]; then
@@ -66,7 +66,7 @@ do
     fi
 done
 
-if [ $SETUP_TYPE = 1 ]; then
+if [ "$SETUP_TYPE" = 1 ]; then
 ### Start of new project configuration - Google SDK
 #Setup option 1 - Google Cloud SDK
 echo "Once logged on Google Cloud SDK, please create a new project (last option)."
@@ -79,14 +79,14 @@ gcloud auth application-default login
 # Start Google Cloud Configuration - Application Service
 GC_MEMBER=transcript
 echo "Checking if project exist..."
-PROJECT_GC_ID=$(gcloud projects list | grep $GC_PROJECT_NAME | awk '{print$3}')
-while [ -z $PROJECT_GC_ID ]
+PROJECT_GC_ID="$(gcloud projects list | grep "$GC_PROJECT_NAME" | awk '{print$3}')"
+while [ -z "$PROJECT_GC_ID" ]
 do
 read -p "Enter the project name you just created for Jigasi Speech-to-Text"$'\n' -r GC_PROJECT_NAME
-if [ -z PROJECT_GC_ID ]; then
+if [ -z "$PROJECT_GC_ID" ]; then
     echo "Please check your project name,"
     echo "There is no project listed with the provided name: $GC_PROJECT_NAME"
-        PROJECT_GC_ID=$(gcloud projects list | grep $GC_PROJECT_NAME | awk '{print$3}')
+        PROJECT_GC_ID="$(gcloud projects list | grep "$GC_PROJECT_NAME" | awk '{print$3}')"
     fi
 done
 echo "Your $GC_PROJECT_NAME ID's project is: $PROJECT_GC_ID"
@@ -102,18 +102,18 @@ do
 CHECK_BILLING="$(gcloud services enable speech.googleapis.com 2>/dev/null)"
 if [[ $? -eq 1 ]]; then
         echo "Seems you haven't enabled billing for this project: $GC_PROJECT_NAME"
-        exho "  For that go to: https://console.developers.google.com/project/$PROJECT_GC_ID/settings
+        echo "  For that go to: https://console.developers.google.com/project/$PROJECT_GC_ID/settings
     "
-        read -p "Press Enter to continue"
+        read -rp "Press Enter to continue"
         CHECK_BILLING="$(gcloud services enable speech.googleapis.com 2>/dev/null)"
 fi
 done
 echo "Billing account seems setup, continuing..."
 
-gcloud iam service-accounts create $GC_MEMBER
+gcloud iam service-accounts create "$GC_MEMBER"
 
-gcloud projects add-iam-policy-binding  $GC_PROJECT_NAME \
-    --member serviceAccount:$GC_MEMBER@$GC_PROJECT_NAME.iam.gserviceaccount.com \
+gcloud projects add-iam-policy-binding  "$GC_PROJECT_NAME" \
+    --member serviceAccount:"$GC_MEMBER"@"$GC_PROJECT_NAME".iam.gserviceaccount.com \
     --role  roles/editor
 
 echo "Setup credentials:"
@@ -133,7 +133,7 @@ fi
 echo "Setting up JSON key file..."
 sleep 2
 mkdir /opt/gc-sdk/
-cat << KEY_JSON > $GC_API_JSON
+cat << KEY_JSON > "$GC_API_JSON"
 #
 # Paste below this comment your GC JSON key for the service account:
 # $GC_MEMBER@$GC_PROJECT_NAME.iam.gserviceaccount.com
@@ -143,11 +143,11 @@ cat << KEY_JSON > $GC_API_JSON
 # These comment lines will be deleted afterwards.
 #
 KEY_JSON
-chmod 644 $GC_API_JSON
-nano $GC_API_JSON
-sed -i '/^#/d' $GC_API_JSON
+chmod 644 "$GC_API_JSON"
+nano "$GC_API_JSON"
+sed -i '/^#/d' "$GC_API_JSON"
 
-CHECK_JSON_KEY="$(cat $GC_API_JSON | python -m json.tool 2>/dev/null)"
+CHECK_JSON_KEY="$(cat "$GC_API_JSON" | python -m json.tool 2>/dev/null)"
 while [[ $? -eq 1 ]]
 do
 CHECK_JSON_KEY="$(cat $GC_API_JSON | python -m json.tool 2>/dev/null)"
@@ -169,7 +169,7 @@ echo "Installing Jigasi, your SIP credentials will be asked. (mandatory)"
 apt-get -y install jigasi
 #apt-mark hold jigasi
 
-cat  << JIGASI_CONF >> $JIGASI_CONFIG
+cat  << JIGASI_CONF >> "$JIGASI_CONFIG"
 
 GOOGLE_APPLICATION_CREDENTIALS=$GC_API_JSON
 
@@ -179,24 +179,24 @@ echo "Your Google Cloud credentials are at $GC_API_JSON"
 
 echo "Setting up Jigasi transcript with current platform..."
 #Connect callcontrol
-sed -i "s|// call_control:|call_control:|" $MEET_CONF
-sed -i "s|// transcribingEnabled|transcribingEnabled|" $MEET_CONF
-sed -i "/transcribingEnabled/ s|false|true|" $MEET_CONF
+sed -i "s|// call_control:|call_control:|" "$MEET_CONF"
+sed -i "s|// transcribingEnabled|transcribingEnabled|" "$MEET_CONF"
+sed -i "/transcribingEnabled/ s|false|true|" "$MEET_CONF"
 
 #siptest2siptest@domain.con
 #changed from conference to internal.auth from jibri
-sed -i "s|siptest|siptest@internal.auth.$DOMAIN|" $JIG_SIP_PROP
+sed -i "s|siptest|siptest@internal.auth.$DOMAIN|" "$JIG_SIP_PROP"
 
 #Disable component in favor of MUC
-if [ $(grep -c nocomponent $JIG_SIP_CONF) != 0 ]; then
+if [ "$(grep -c nocomponent "$JIG_SIP_CONF")" != 0 ]; then
     echo "Jigasi component is already disabled."
 else
     echo "Disabling jigasi component in favor of MUC"
-    sed -i "s|JIGASI_OPTS=.*|JIGASI_OPTS=\"--nocomponent=true\"|" $JIG_SIP_CONF
+    sed -i "s|JIGASI_OPTS=.*|JIGASI_OPTS=\"--nocomponent=true\"|" "$JIG_SIP_CONF"
 fi
 
 #Setup XMPP
-cat << ACC1_XMPP >> $JIG_SIP_PROP
+cat << ACC1_XMPP >> "$JIG_SIP_PROP"
 
 # XMPP account used for control
 net.java.sip.communicator.impl.protocol.jabber.acc1=acc1
@@ -265,30 +265,30 @@ org.jitsi.jigasi.xmpp.acc.ALLOW_NON_SECURE=true
 ACC1_XMPP
 
 #Enable transcription config
-sed -i "/ENABLE_TRANSCRIPTION/ s|#||" $JIG_SIP_PROP
-sed -i "/ENABLE_TRANSCRIPTION/ s|false|true|" $JIG_SIP_PROP
-sed -i "/ENABLE_SIP/ s|#||" $JIG_SIP_PROP
-sed -i "/ENABLE_SIP/ s|true|false|" $JIG_SIP_PROP
+sed -i "/ENABLE_TRANSCRIPTION/ s|#||" "$JIG_SIP_PROP"
+sed -i "/ENABLE_TRANSCRIPTION/ s|false|true|" "$JIG_SIP_PROP"
+sed -i "/ENABLE_SIP/ s|#||" "$JIG_SIP_PROP"
+sed -i "/ENABLE_SIP/ s|true|false|" "$JIG_SIP_PROP"
 
 #Transcript format
-sed -i "/SAVE_JSON/ s|# ||" $JIG_SIP_PROP
-sed -i "/SEND_JSON/ s|# ||" $JIG_SIP_PROP
-sed -i "/SAVE_TXT/ s|# ||" $JIG_SIP_PROP
-sed -i "/SEND_TXT/ s|# ||" $JIG_SIP_PROP
+sed -i "/SAVE_JSON/ s|# ||" "$JIG_SIP_PROP"
+sed -i "/SEND_JSON/ s|# ||" "$JIG_SIP_PROP"
+sed -i "/SAVE_TXT/ s|# ||" "$JIG_SIP_PROP"
+sed -i "/SEND_TXT/ s|# ||" "$JIG_SIP_PROP"
 #sed -i "/SEND_TXT/ s|false|true|" $JIG_SIP_PROP
 
 #Allow to connect other than same server only.
 sed -i \
 "/xmpp.acc.SERVER_ADDRESS/ s|org.jitsi.jigasi.xmpp.acc.SERVER_ADDRESS=.*|org.jitsi.jigasi.xmpp.acc.SERVER_ADDRESS=$DOMAIN|" \
-$JIG_SIP_PROP
+"$JIG_SIP_PROP"
 
 #Remember to study how to use LE or what's needed #ToDo
-sed -i "/ALWAYS_TRUST_MODE_ENABLED/ s|# ||" $JIG_SIP_PROP
+sed -i "/ALWAYS_TRUST_MODE_ENABLED/ s|# ||" "$JIG_SIP_PROP"
 
-prosodyctl register jigasi auth.$DOMAIN $JIG_TRANSC_PASWD
+prosodyctl register jigasi auth."$DOMAIN" "$JIG_TRANSC_PASWD"
 
 #Set Brewery
-cat << JIG_JIC >> $JIC_SIP_PROP
+cat << JIG_JIC >> "$JIC_SIP_PROP"
 org.jitsi.jicofo.jigasi.BREWERY=JigasiBreweryRoom@internal.auth.$DOMAIN
 JIG_JIC
 
