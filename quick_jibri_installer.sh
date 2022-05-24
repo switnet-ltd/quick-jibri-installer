@@ -1092,7 +1092,11 @@ sleep .1
 ###JWT
 if [ "$ENABLE_JWT" = "yes" ]; then
     printf "\nJWT auth is being setup...\n"
-    bash "$PWD"/mode/jwt.sh
+    if [ "$MODE" = "debug" ]; then
+        bash "$PWD"/mode/jwt.sh -m debug
+    else
+        bash "$PWD"/mode/jwt.sh
+    fi
 fi
 sleep .1
 #Guest allow
@@ -1201,7 +1205,11 @@ fi
 if [ "$ENABLE_BLESSM" = "yes" ]; then
     echo "Custom brandless mode will be enabled."
     sed -i "s|ENABLE_BLESSM=.*|ENABLE_BLESSM=\"on\"|" jitsi-updater.sh
-    bash "$PWD"/jm-bm.sh
+    if [ "$MODE" = "debug" ]; then
+        bash "$PWD"/jm-bm.sh -m debug
+    else
+        bash "$PWD"/jm-bm.sh
+    fi
 fi
 
 # Applying best practives for interface config.js

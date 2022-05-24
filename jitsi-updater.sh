@@ -207,6 +207,10 @@ restart_services
 #                         Brandless mode                               #
 ########################################################################
 if [ "$ENABLE_BLESSM" = "on" ]; then
-    bash "$PWD"/jm-bm.sh
+    if [ "$MODE" = "debug" ]; then
+        bash "$PWD"/jm-bm.sh -m debug
+    else
+        bash "$PWD"/jm-bm.sh
+    fi
 fi
 printwc "${Blue}" "Script completed \o/!\n"
