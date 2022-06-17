@@ -20,6 +20,7 @@ fi
 
 Blue='\e[0;34m'
 Purple='\e[0;35m'
+Red='\e[0;31m'
 Green='\e[0;32m'
 Yellow='\e[0;33m'
 Color_Off='\e[0m'
@@ -40,10 +41,14 @@ support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 ENABLE_BLESSM="TBD"
 CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
-CHD_LTST_2D="$(echo "$CHD_LTST"|cut -d "." -f 1,2)"
+CHD_LTST_2D="$(cut -d "." -f 1,2 <<<  "$CHD_LTST")"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
+if [ -d /etc/prosody/conf.d/ ]; then
 DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua | \
           awk -F'.cfg' '!/localhost/{print $1}' | xargs basename)"
+else
+    echo -e "Seems no prosody is installed...\n  > is this a jibri node?"
+fi
 NC_DOMAIN="TBD"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
 if [ -f "$JITSI_MEET_PROXY" ];then
@@ -65,13 +70,13 @@ if [ -z "$CHDB" ]; then
     echo "Seems no chromedriver installed"
 else
     CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
-    CHD_VER_2D="$(echo "$CHD_VER_LOCAL"|awk '{printf "%.1f\n", $NF}')"
+    CHD_VER_2D="$(awk '{printf "%.1f\n", $NF}' <<< "$CHD_VER_LOCAL")"
 fi
 
 # True if $1 is greater than $2
 version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
-check_jibri() {
+restart_jibri() {
 if [ "$(dpkg-query -W -f='${Status}' "jibri" 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     systemctl restart jibri
@@ -86,7 +91,7 @@ fi
 restart_services() {
     systemctl restart jitsi-videobridge2
     systemctl restart jicofo
-    check_jibri
+    restart_jibri
     systemctl restart prosody
 }
 
@@ -105,7 +110,13 @@ update_google_repo() {
         echo "No Google repository found"
     fi
 }
-GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{printf "%.1f\n", $NF}')"
+printwc "${Purple}" "Checking for Google Chrome\n"
+if [ -f /usr/bin/google-chrome ]; then
+    GOOGL_VER_2D="$(/usr/bin/google-chrome --version|awk '{printf "%.1f\n", $NF}')"
+else
+    printwc "${Yellow}" " -> Seems there is no Google Chrome installed\n"
+    IS_GLG_CHRM="no"
+fi
 upgrade_cd() {
 if [ -n "$GOOGL_VER_2D" ]; then
     if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" ; then
@@ -139,6 +150,7 @@ if [ -f "$CHDB" ]; then
     upgrade_cd
 else
     printwc "${Yellow}" " -> Seems there is no Chromedriver installed\n"
+    IS_CHDB="no"
 fi
 }
 
@@ -155,6 +167,21 @@ else
     echo "Please check your repositories, something is not right."
     exit 1
 fi
+check_if_installed(){
+if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+    echo "1"
+else
+    echo "0"
+fi
+}
+check_for_jibri_node() {
+if [ "$(check_if_installed jibri)" = 1 ] && \
+   [ "$(check_if_installed jitsi-meet)" = 0 ] && \
+   [ "$(check_if_installed prosody)" = 0 ]; then
+    printwc "${Green}" "\n::: This seems to be a jibri node :::\n"
+JIBRI_NODE="yes"
+fi
+}
 # Any customization, image, name or link change for any purpose should
 # be documented here so new updates won't remove those changes.
 # We divide them on UI changes and branding changes, feel free to adapt
@@ -165,13 +192,16 @@ fi
 ########################################################################
 #                     User interface changes                           #
 ########################################################################
+#Check for jibri node
+check_for_jibri_node
 
+[ "$JIBRI_NODE" != yes ] && \
 if [ -f "$INT_CONF_ETC" ]; then
     echo "Static interface_config.js exists, skipping modification..."
 else
     echo "This setup doesn't have a static interface_config.js, checking changes..."
     printwc "${Purple}" "========== Setting Static Avatar  ==========\n"
-    if [[ -z "$AVATAR" ]]; then
+    if [ -z "$AVATAR" ]; then
         echo "Moving on..."
     else
         echo "Setting Static Avatar"
@@ -179,7 +209,7 @@ else
         sed -i "/RANDOM_AVATAR_URL_SUFFIX/ s|false|\'.png\'|" "$INT_CONF"
     fi
     printwc "${Purple}" "========== Setting Support Link  ==========\n"
-    if [[ -z "$support" ]]; then
+    if [ -z "$support" ]; then
         echo "Moving on..."
     else
         echo "Setting Support custom link"
@@ -189,6 +219,7 @@ else
     sed -i "s|'videobackgroundblur', ||" "$INT_CONF"
 fi
 
+[ "$JIBRI_NODE" != yes ] && \
 if [  "$NC_DOMAIN" != "TBD" ]; then
 printwc "${Purple}" "========== Enable $NC_DOMAIN for sync client ==========\n"
     if [ -z "$PREAD_PROXY" ]; then
@@ -201,8 +232,19 @@ printwc "${Purple}" "========== Enable $NC_DOMAIN for sync client ==========\n"
         echo "$NC_DOMAIN seems to be on place, skipping..."
     fi
 fi
-restart_services
+if [ "$JIBRI_NODE" = "yes" ]; then
+    restart_jibri
+else
+    restart_services
+fi
 
+if  [ "$JIBRI_NODE" = "yes" ] && \
+    [ "$IS_CHDB" = "no" ] && \
+    [ "$IS_GLG_CHRM" = "no" ];then
+printwc "${Red}" "\nBeware: This jibri node seems to be missing important packages.\n"
+echo " > Googe Chrome"
+echo " > Chromedriver"
+fi
 ########################################################################
 #                         Brandless mode                               #
 ########################################################################
