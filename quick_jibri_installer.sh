@@ -425,7 +425,7 @@ else
     unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
     chown root:root /usr/local/bin/chromedriver
     chmod 0755 /usr/local/bin/chromedriver
-    rm -rf /tpm/chromedriver_linux64.zip
+    rm -rf /tmp/chromedriver_linux64.zip
 fi
 
 printf "\nCheck Google Software Working...\n"
