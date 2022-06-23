@@ -222,7 +222,7 @@ fi
 [ "$JIBRI_NODE" != yes ] && \
 if [  "$NC_DOMAIN" != "TBD" ]; then
 printwc "${Purple}" "========== Enable $NC_DOMAIN for sync client ==========\n"
-    if [ -z "$PREAD_PROXY" ]; then
+    if [ -f "$JITSI_MEET_PROXY" ] && [ -z "$PREAD_PROXY" ]; then
         printf "\n  Setting up Nextcloud domain on Jitsi Meet turn proxy\n\n"
         sed -i "/server {/i \ \ map \$ssl_preread_server_name \$upstream {" "$JITSI_MEET_PROXY"
         sed -i "/server {/i \ \ \ \ \ \ $DOMAIN    web;" "$JITSI_MEET_PROXY"
