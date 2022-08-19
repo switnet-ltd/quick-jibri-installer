@@ -300,7 +300,7 @@ sleep .1
   #Sysadmin email
     while [ -z "$SYSADMIN_EMAIL" ]
     do
-      read -p "  > Set sysadmin email (this is a mandatory field):$NL" -r SYSADMIN_EMAIL
+      read -p "$NL  > Set sysadmin email (this is a mandatory field):$NL" -r SYSADMIN_EMAIL
     done
 sleep .1
   #Simple DNS test
@@ -805,7 +805,10 @@ BREWERY
 
 # Jibri tweaks for /etc/jitsi/meet/$DOMAIN-config.js
 sed -i "s|conference.$DOMAIN|internal.auth.$DOMAIN|" "$MEET_CONF"
-sed -i "s|// fileRecordingsEnabled: false,|fileRecordingsEnabled: true,| " "$MEET_CONF"
+#New recording implementation.
+sed -i "s|// recordingService:|recordingService:|" "$MEET_CONF"
+sed -i "/recordingService/,/hideStorageWarning/s|//     enabled: false,|       enabled: true,|" "$MEET_CONF"
+sed -i "/hideStorageWarning: false/,/Local recording configuration/s|// },|},|" "$MEET_CONF"
 sed -i "s|// liveStreamingEnabled: false,|liveStreamingEnabled: true,\\
 \\
     hiddenDomain: \'recorder.$DOMAIN\',|" "$MEET_CONF"
