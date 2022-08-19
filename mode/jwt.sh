@@ -54,7 +54,7 @@ apt-get install -y jitsi-meet-tokens
 #Setting up
 sed -i "s|c2s_require_encryption = true|c2s_require_encryption = false|" "$PROSODY_SYS"
 #-
-sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"token\"|}" "$PROSODY_FILE"
+sed -i "$SRP_STR,$SRP_END{s|authentication = \"jitsi-anonymous\"|authentication = \"token\"|}" "$PROSODY_FILE"
 sed -i "s|--app_id=\"example_app_id\"|app_id=\"$APP_ID\"|" "$PROSODY_FILE"
 sed -i "s|--app_secret=\"example_app_secret\"|app_secret=\"$SECRET_APP\"|" "$PROSODY_FILE"
 sed -i "/app_secret/a \\\\" "$PROSODY_FILE"

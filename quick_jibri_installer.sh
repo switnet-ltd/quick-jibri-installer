@@ -172,13 +172,13 @@ if [ "$DIST" = "bionic" ]; then
 fi
 
 #Check system resources
-echo "Verifying System Resources:"
+printf "\n\nVerifying System Resources:"
 if [ "$(nproc --all)" -lt 4 ];then
     printf "\nWarning!: The system do not meet the minimum CPU requirements for Jibri to run."
-    printf "\n>> We recommend 4 cores/threads for Jibri!\n\n"
+    printf "\n>> We recommend 4 cores/threads for Jibri!\n"
     CPU_MIN="N"
 else
-    printf "\nCPU Cores/Threads: OK (%s)\n\n" "$(nproc --all)"
+    printf "\nCPU Cores/Threads: OK (%s)\n" "$(nproc --all)"
     CPU_MIN="Y"
 fi
 sleep .1
@@ -189,7 +189,7 @@ if [ "$mem_available" -lt 7700000 ]; then
     printf "\n>> We recommend 8GB RAM for Jibri!\n\n"
     MEM_MIN="N"
 else
-    printf "\nMemory: OK (%s) MiB)\n\n" "$(mem_available/1024)"
+    printf "\nMemory: OK (%s) MiB\n\n" "$((mem_available/1024))"
     MEM_MIN="Y"
 fi
 sleep .1
@@ -1058,7 +1058,7 @@ if [ "$ENABLE_SA" = "yes" ] && [ -f "$WS_CONF" ]; then
 fi
 #nginx -tlsv1/1.1
 if [ "$DROP_TLS1" = "yes" ];then
-    printf "\nDropping TLSv1/1.1\\nn"
+    printf "\nDropping TLSv1/1.1\n\n"
     sed -i "s|TLSv1 TLSv1.1||" /etc/nginx/nginx.conf
 elif [ "$DROP_TLS1" = "no" ];then
     printf "\nNo TLSv1/1.1 dropping was done.\n\n"
@@ -1073,7 +1073,7 @@ sleep .1
 if [ "$ENABLE_SC" = "yes" ]; then
     SRP_STR=$(grep -n "VirtualHost \"$DOMAIN\"" "$PROSODY_FILE" | awk -F ':' 'NR==1{print$1}')
     SRP_END=$((SRP_STR + 10))
-    sed -i "$SRP_STR,$SRP_END{s|authentication = \"anonymous\"|authentication = \"internal_hashed\"|}" "$PROSODY_FILE"
+    sed -i "$SRP_STR,$SRP_END{s|authentication = \"jitsi-anonymous\"|authentication = \"internal_hashed\"|}" "$PROSODY_FILE"
     sed -i "s|// anonymousdomain: 'guest.example.com'|anonymousdomain: \'guest.$DOMAIN\'|" "$MEET_CONF"
 
     #Secure room initial user
