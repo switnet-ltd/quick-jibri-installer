@@ -56,12 +56,12 @@ PREAD_PROXY="$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -
 fi
 INT_CONF="/usr/share/jitsi-meet/interface_config.js"
 INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
-read -r -a jibri_packages < <(grep Package /var/lib/apt/lists/download.jitsi.org_*_Packages | \
+read -r -a jibri_packages < <(grep ^Package /var/lib/apt/lists/download.jitsi.org_*_Packages | \
                               sort -u | awk '{print $2}' | sed '/jigasi/d' | \
                               xargs)
 AVATAR="$(grep -r avatar /etc/nginx/sites-*/ 2>/dev/null)"
 if [ -f "$apt_repo"/google-chrome.list ]; then
-read -r -a google_package < <(grep Package /var/lib/apt/lists/dl.google.com_*_Packages | \
+read -r -a google_package < <(grep ^Package /var/lib/apt/lists/dl.google.com_*_Packages | \
                               sort -u | awk '{print $2}' | xargs)
 else
     echo "Seems no Google repo installed"
