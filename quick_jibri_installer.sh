@@ -371,6 +371,7 @@ echo "
 if [ "$LE_SSL" = "yes" ]; then
 echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
 echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
+echo "jitsi-meet-web-config	jitsi-meet/email	string $SYSADMIN_EMAIL" | debconf-set-selections
 fi
 echo "jitsi-meet-web-config	jitsi-meet/jaas-choice	boolean	false"  | debconf-set-selections
 apt-get -y install \
