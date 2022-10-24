@@ -199,6 +199,7 @@ if [ "$CPU_MIN" = "Y" ] && [ "$MEM_MIN" = "Y" ];then
 else
     printf "CPU (%s)/RAM (%s MiB) does NOT meet minimum recommended requirements!" "$(nproc --all)" "$((mem_available/1024))"
     printf "\nEven when you can use the videoconferencing sessions, we advice to increase the resources in order to user Jibri.\n\n"
+sleep .1
     while [ "$CONTINUE_LOW_RES" != "yes" ] && [ "$CONTINUE_LOW_RES" != "no" ]
     do
     read -p "> Do you want to continue?: (yes or no)$NL" -r CONTINUE_LOW_RES
@@ -206,8 +207,8 @@ else
             echo " - See you next time with more resources!..."
             exit
     elif [ "$CONTINUE_LOW_RES" = "yes" ]; then
-            printf " - We highly recommend to increase the server resources."
-            printf " - Otherwise, please think about adding dedicated jibri nodes instead.\n"
+            printf "\n - We highly recommend to increase the server resources."
+            printf "\n - Otherwise, please think about adding dedicated jibri nodes instead.\n\n"
     fi
     done
 fi
@@ -253,7 +254,7 @@ do
  This is an unsupported use, as it will likely BREAK YOUR SYSTEM, so please don't." "$de"
         exit
     else
-        printf " > No standard desktop environment for user oriented porpuse detected, continuing...\n\n"
+        printf " > No standard desktop environment for user oriented porpuse detected, good!, continuing...\n\n"
     fi
 done
 sleep .1
@@ -370,7 +371,9 @@ echo "
 if [ "$LE_SSL" = "yes" ]; then
 echo "set jitsi-meet/cert-choice	select	Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)" | debconf-set-selections
 echo "jitsi-videobridge2	jitsi-videobridge/jvb-hostname	string	$JITSI_DOMAIN" | debconf-set-selections
+echo "jitsi-meet-web-config	jitsi-meet/email	string $SYSADMIN_EMAIL" | debconf-set-selections
 fi
+echo "jitsi-meet-web-config	jitsi-meet/jaas-choice	boolean	false"  | debconf-set-selections
 apt-get -y install \
                 jitsi-meet \
                 jibri \
