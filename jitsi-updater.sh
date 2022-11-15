@@ -72,7 +72,12 @@ else
     CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
     CHD_VER_2D="$(awk '{printf "%.1f\n", $NF}' <<< "$CHD_VER_LOCAL")"
 fi
-
+if [ -f "$apt_repo"/nodesource.list ]; then
+read -r -a nodejs_package < <(grep ^Package /var/lib/apt/lists/deb.nodesource.com_node*_Packages | \
+                              sort -u | awk '{print $2}' | xargs)
+else
+    echo "Seems no nodejs repo installed"
+fi
 # True if $1 is greater than $2
 version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
@@ -109,6 +114,11 @@ update_google_repo() {
     else
         echo "No Google repository found"
     fi
+}
+update_nodejs_repo() {
+    apt-get update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" \
+        -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+    apt-get install -q2 --only-upgrade <<< printf "${nodejs_package[@]}"
 }
 printwc "${Purple}" "Checking for Google Chrome\n"
 if [ -f /usr/bin/google-chrome ]; then
@@ -167,6 +177,13 @@ else
     echo "Please check your repositories, something is not right."
     exit 1
 fi
+printwc "${Blue}" "Check for supported nodejs LTS version"
+if version_gt "14" "$(dpkg-query -W -f='${Version}' nodejs)"; then
+    curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+    apt-get install -yq2 nodejs
+else
+    update_nodejs_repo
+fi
 check_if_installed(){
 if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
     echo "1"
@@ -217,6 +234,12 @@ else
     fi
     printwc "${Purple}" "========== Disable Blur my background  ==========\n"
     sed -i "s|'videobackgroundblur', ||" "$INT_CONF"
+fi
+if [ "$(check_if_installed openjdk-8-jre-headless)" = 1 ]; then
+    printwc "${Red}" "\n::: Unsupported OpenJDK JRE version found :::\n"
+    apt-get install -y openjdk-11-jre-headless
+    apt-get purge -y openjdk-8-jre-headless
+    printwc "${Green}" "\n::: Updated to supported OpenJDK JRE version 11 :::\n"
 fi
 
 [ "$JIBRI_NODE" != yes ] && \
