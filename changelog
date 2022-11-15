@@ -1,3 +1,17 @@
+quick-jibri-installer (7.0.8)
+
+    * jitsi-updater.sh: add checks for openjdk and nodejs supported versions
+    * add-jibri-node.sh: set openjdk-jre-headless default version to 11
+    * changelog: add changelog
+
+-- Software, IT & Networks <info@switnet.net>  Tue Nov 15 02:56:26 2022 -0600
+
+quick-jibri-installer (7.0.7)
+
+    * quick_jibri_installer.sh: fix jaas & acme integration    
+
+-- Software, IT & Networks <info@switnet.net>  Sun Oct 23 23:52:23 2022 -0500
+
 quick-jibri-installer (7.0.6)
 
     * jitsi-updater.sh: fix jitsi repo package update filtering.
