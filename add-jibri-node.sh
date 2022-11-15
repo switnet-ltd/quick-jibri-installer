@@ -265,7 +265,7 @@ echo "
 "
 apt-get -y install \
                 jibri \
-                openjdk-8-jre-headless
+                openjdk-11-jre-headless
 
 echo "# Installing Google Chrome / ChromeDriver"
 if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
