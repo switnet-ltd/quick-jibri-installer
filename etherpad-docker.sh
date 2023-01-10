@@ -1,6 +1,5 @@
 #!/bin/bash
 # Etherpad Installer for Jitsi Meet
-# SwITNet Ltd  Â© - 2020, https://switnet.net/
 #
 # GPLv3 or later.
 
@@ -113,8 +112,7 @@ elif [ -f "$WS_CONF" ]; then
     sed -i "/# ensure all static content can always be found first/i \ \ \ \ }" "$WS_CONF"
     sed -i "/# ensure all static content can always be found first/i \\\n" "$WS_CONF"
 else
-    echo "> No etherpad config done to server file, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+    echo "> No etherpad config done to server file"
 fi
 
 # Configure config.js
@@ -132,6 +130,5 @@ if nginx -t 2>/dev/null ; then
 #    systemctl reload nginx
 else
     echo "Please check your configuration, something may be wrong."
-    echo "Will not try to enable etherpad nginx configuration, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+    echo "Will not try to enable etherpad nginx configuration"
 fi

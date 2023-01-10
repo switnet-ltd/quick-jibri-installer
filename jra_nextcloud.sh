@@ -1,6 +1,6 @@
 #!/bin/bash
 # JRA (Jibri Recordings Access) via Nextcloud
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 # GPLv3 or later.
 
 while getopts m: option
@@ -24,8 +24,7 @@ fi
 exit_if_not_installed() {
 if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" != "1" ]; then
     echo " This instance doesn't have $1 installed, exiting..."
-    echo " If you think this is an error, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+    echo " If you think this is an error "
     exit
 fi
 }
@@ -151,8 +150,7 @@ fi
 exit_ifinstalled() {
 if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
     echo " This instance already has $1 installed, exiting..."
-    echo " If you think this is an error, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+    echo " If you think this is an error "
     exit
 fi
 }

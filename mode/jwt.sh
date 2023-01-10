@@ -1,6 +1,6 @@
 #!/bin/bash
 # JWT Mode Setup
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 # GPLv3 or later.
 
 while getopts m: option

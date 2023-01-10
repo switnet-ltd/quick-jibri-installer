@@ -2,7 +2,7 @@
 # System-tune-up to remove system software restrictions on a huge load of connections.
 # Be aware that hardware/infrastructure resources are the most common limiters.
 #
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 # GPLv3 or later.
 
 while getopts m: option

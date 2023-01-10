@@ -1,6 +1,6 @@
 #!/bin/bash
 # Jibri Node Aggregator
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 # GPLv3 or later.
 
 ### 0_LAST EDITION TIME STAMP ###
@@ -60,7 +60,7 @@ NJN_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
 NJN_USER="jbnode${ADDUP}_${NJN_RAND_TAIL}"
 NJN_USER_PASS="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 32 | head -n1)"
 GITHUB_RAW="https://raw.githubusercontent.com"
-GIT_REPO="switnet-ltd/quick-jibri-installer"
+GIT_REPO="codex-ist/quick-jibri-installer"
 TEST_JIBRI_ENV="$GITHUB_RAW/$GIT_REPO/unstable/tools/test-jibri-env.sh"
 SHORT_ID="$(awk '{print substr($0,0,7)}' /etc/machine-id)"
 JIBRI_XORG_CONF="/etc/jitsi/jibri/xorg-video-dummy.conf"
@@ -554,7 +554,7 @@ echo "
 ########################################################################
                         Node addition complete!!
 
-               For customized support: http://switnet.net
+
 ########################################################################
 "
 

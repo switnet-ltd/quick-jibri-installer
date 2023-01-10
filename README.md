@@ -11,7 +11,7 @@ As for our current latest release, as we have integrated more and more features,
 Login into your clean server, clone git repository and run the installer,
 
 ```
-git clone https://github.com/switnet-ltd/quick-jibri-installer
+git clone https://github.com/codex-ist/quick-jibri-installer
 cd quick-jibri-installer
 sudo bash quick_jibri_installer.sh
 ```
@@ -48,7 +48,6 @@ Check more details on our wiki.
 ## Requirements
 1. Clean VM/VPS/Server using a supported Ubuntu LTS
 2. Valid domain with DNS record, **mandatory** for SSL certs via Let's Encrypt.
-3. open ports for JMS interaction, [see wiki](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Firewall).
 4. Starting at 8 GB RAM / 4 Cores @ ~3.0GHz
     *  Adding resources as your audience or features you require, so your experience don't suffer from the lack of resources.
 5. Webcam
@@ -73,7 +72,7 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 * Enabled Session Recording via Jibri
   * Rename Jibri folder with name room + date.
   * Jibri node network.
-    * Automatic Jibri nodes network sync ([see more](https://github.com/switnet-ltd/quick-jibri-installer/wiki/Setup-and-Jibri-Nodes)).
+    * Automatic Jibri nodes network sync.
 * JRA (Jibri Recordings Access) via Nextcloud
 * Grafana Dashboard
 * Etherpad via docker install
@@ -115,8 +114,6 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 
 
 ## Documentation
-* Please check our [wiki](https://github.com/switnet-ltd/quick-jibri-installer/wiki) for further documentation.
 
 Please note: This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 
-SwITNet Ltd © - 2022, https://switnet.net/

@@ -1,6 +1,5 @@
 #!/bin/bash
 # Quick Jigasi Installer - *buntu (LTS) based systems.
-# SwITNet Ltd © - 2020, https://switnet.net/
 # GPLv3 or later.
 
 ##################### Whistlist #######################

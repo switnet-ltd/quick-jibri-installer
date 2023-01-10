@@ -8,7 +8,7 @@
 # by "mephisto"
 #
 # Igor Kerstges © - 2021
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 #
 # GPLv3 or later.
 
@@ -167,8 +167,7 @@ if [ -f "$WS_CONF" ]; then
     sed -i "/# ensure all static content can always be found first/i \\\n" "$WS_CONF"
     systemctl restart nginx
 else
-    echo "No app configuration done to server file, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+    echo "No app configuration done to server file"
 fi
 
 echo "
