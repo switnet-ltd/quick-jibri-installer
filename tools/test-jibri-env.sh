@@ -1,6 +1,6 @@
 #!/bin/bash
 # Simple Jibri Env tester
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 # GNU GPLv3 or later.
 
 while getopts m: option

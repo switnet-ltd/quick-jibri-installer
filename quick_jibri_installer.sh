@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick Jibri Installer - *buntu (LTS) based systems.
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 # GPLv3 or later.
 {
 echo "Started at $(date +'%Y-%m-%d %H:%M:%S')" >> qj-installer.log
@@ -1270,7 +1270,6 @@ check_snd_driver
 echo "
 ########################################################################
                     Installation complete!!
-           for customized support: http://switnet.net
 ########################################################################
 "
 apt-get -y autoremove

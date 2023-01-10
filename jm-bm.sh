@@ -1,7 +1,7 @@
 #!/bin/bash
 # Jitsi Meet brandless mode
 # for Debian/*buntu binaries.
-# SwITNet Ltd © - 2022, https://switnet.net/
+
 # GNU GPLv3 or later.
 
 while getopts m: option

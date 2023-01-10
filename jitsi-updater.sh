@@ -1,7 +1,6 @@
 #!/bin/bash
 # Jitsi Meet recurring upgrader and customization keeper
 # for Debian/*buntu binaries.
-# SwITNet Ltd © - 2022, https://switnet.net/
 # GNU GPLv3 or later.
 
 while getopts m: option

@@ -4,52 +4,44 @@ quick-jibri-installer (7.0.8)
     * add-jibri-node.sh: set openjdk-jre-headless default version to 11
     * changelog: add changelog
 
--- Software, IT & Networks <info@switnet.net>  Tue Nov 15 02:56:26 2022 -0600
 
 quick-jibri-installer (7.0.7)
 
     * quick_jibri_installer.sh: fix jaas & acme integration    
 
--- Software, IT & Networks <info@switnet.net>  Sun Oct 23 23:52:23 2022 -0500
 
 quick-jibri-installer (7.0.6)
 
     * jitsi-updater.sh: fix jitsi repo package update filtering.
 
--- Software, IT & Networks <info@switnet.net>  Fri Sep 30 04:04:31 2022 -0500
 
 quick-jibri-installer (7.0.5)
 
     * quick_jibri_installer.sh: use new setup to enable local recording feature.
 
--- Software, IT & Networks <info@switnet.net>  Fri Aug 19 07:23:41 2022 -0500
 
 quick-jibri-installer (7.0.4)
 
     * quick_jibri_installer.sh,jwt.sh: update anonymous string on prosody setup.
       -fix small format issues.
 
--- Software, IT & Networks <info@switnet.net>  Fri Aug 19 06:47:21 2022 -0500
 
 quick-jibri-installer (7.0.3)
 
     * jitsi-updater: fix condition to set turn config.
     * quick-jibri-installer: fix typo on path.
 
--- Software, IT & Networks <info@switnet.net>  Thu Jun 30 09:57:12 2022 -0500
 
 quick-jibri-installer (7.0.2)
 
     * Detect jibri node by jitsi-updater.
 
--- Software, IT & Networks <info@switnet.net>  Fri Jun 17 16:36:15 2022 -0500
 
 quick-jibri-installer (7.0.1)
 
     * Fix debug mode on triggered scripts.
     * Fix grep condition.
 
--- Software, IT & Networks <info@switnet.net>  Mon May 23 23:17:39 2022 -0500
 
 quick-jibri-installer (7.0)
 
@@ -79,12 +71,10 @@ quick-jibri-installer (7.0)
     * Yet again more fixes on echo and printf
     * Standarize jra_nextcloud
     * Add comment on debconf state
-    * Update SwITNet copyright and standarize debug option for scripts.
-    
+
     ## Remove
     * Rename deprecated scripts folder
     * Remove old
     * Remove unused code
     * Finally remove jigasi deprecated script.
 
--- Software, IT & Networks <info@switnet.net>  Fri May 20 20:07:02 2022 -0500

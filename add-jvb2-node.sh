@@ -1,6 +1,5 @@
 #!/bin/bash
 # JVB2 Node Aggregator
-# SwITNet Ltd © - 2022, https://switnet.net/
 # GPLv3 or later.
 
 ### 0_LAST EDITION TIME STAMP ###
@@ -67,7 +66,7 @@ JVB2_SIP="/etc/jitsi/videobridge/sip-communicator.properties"
 SHORT_ID="$(awk '{print substr($0,0,7)}' /etc/machine-id)"
 #PUBLIC_IP="$(dig -4 @resolver1.opendns.com ANY myip.opendns.com +short)"
 #GITHUB_RAW="https://raw.githubusercontent.com"
-#GIT_REPO="switnet-ltd/quick-jibri-installer"
+#GIT_REPO="codex-ist/quick-jibri-installer"
 ### 1_VAR_DEF
 
 # sed limiters for add-jvb2-node.sh variables
@@ -295,7 +294,6 @@ echo "
 ########################################################################
                         Node addition complete!!
 
-               For customized support: http://switnet.net
 ########################################################################
 "
 

@@ -118,4 +118,3 @@ Feel free to use our `test-jibri-env.sh` tool to find some details on your curre
 
 Please note: This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 
-SwITNet Ltd © - 2022, https://switnet.net/

@@ -8,7 +8,6 @@
 # by "mephisto"
 #
 # Igor Kerstges © - 2021
-# SwITNet Ltd © - 2022, https://switnet.net/
 #
 # GPLv3 or later.
 
