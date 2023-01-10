@@ -35,8 +35,7 @@ if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")"
     echo "
 This instance already has $1 installed, exiting...
 Please try again on a clean system.
- If you think this is an error, please report to:
-  -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+"
     exit
 fi
 }
@@ -138,8 +137,7 @@ Featuring:
 - Recurring changes updater
 
 Learn more about these at,
-Main repository: https://github.com/switnet-ltd/quick-jibri-installer
-Wiki and documentation: https://github.com/switnet-ltd/quick-jibri-installer/wiki\n'
+Main repository: https://github.com/codex-ist/quick-jibri-installer\n'
 
 read -n 1 -s -r -p "Press any key to continue..."$'\n'
 
@@ -343,8 +341,7 @@ if [ "$LE_SSL" = "yes" ]; then
 apt-get -y install \
                 letsencrypt
     if [ "$(dpkg-query -W -f='${Status}' ufw 2>/dev/null | grep -c "ok installed")" == "1"  ]; then
-        echo "# Disable pre-installed ufw, more on firewall see:
-    > https://github.com/switnet-ltd/quick-jibri-installer/wiki/Firewall"
+        echo "# Disable pre-installed ufw"
         ufw disable
     fi
 fi
@@ -622,7 +619,7 @@ fi
 while [ "$ENABLE_NC_ACCESS" != "yes" ] && [ "$ENABLE_NC_ACCESS" != "no" ]
 do
     read -p "> Do you want to setup Jibri Records Access via Nextcloud: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_NC_ACCESS
+( Please check requirements at: https://github.com/codex-ist/quick-jibri-installer )$NL" -r ENABLE_NC_ACCESS
     if [ "$ENABLE_NC_ACCESS" = "no" ]; then
         printf " - JRA via Nextcloud won't be enabled.\n\n"
     elif [ "$ENABLE_NC_ACCESS" = "yes" ]; then
@@ -638,7 +635,7 @@ elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$GC_SDK_REL_FILE" )" == "200" 
     while [ "$ENABLE_TRANSCRIPT" != "yes" ] && [ "$ENABLE_TRANSCRIPT" != "no" ]
     do
         read -p "> Do you want to setup Jigasi Transcription: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_TRANSCRIPT
+( Please check requirements at: https://github.com/codex-ist/quick-jibri-installer )$NL" -r ENABLE_TRANSCRIPT
         if [ "$ENABLE_TRANSCRIPT" = "no" ]; then
             printf " - Jigasi Transcription won't be enabled.\n\n"
         elif [ "$ENABLE_TRANSCRIPT" = "yes" ]; then
@@ -646,15 +643,14 @@ elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$GC_SDK_REL_FILE" )" == "200" 
         fi
     done
 else
-    echo "No valid option for Jigasi. Please report this to
-https://github.com/switnet-ltd/quick-jibri-installer/issues"
+    echo "No valid option for Jigasi"
 fi
 sleep .1
 #Grafana
 while [ "$ENABLE_GRAFANA_DSH" != "yes" ] && [ "$ENABLE_GRAFANA_DSH" != "no" ]
 do
 read -p "> Do you want to setup Grafana Dashboard: (yes or no)
-( Please check requirements at: https://github.com/switnet-ltd/quick-jibri-installer )$NL" -r ENABLE_GRAFANA_DSH
+( Please check requirements at: https://github.com/codex-ist/quick-jibri-installer )$NL" -r ENABLE_GRAFANA_DSH
 if [ "$ENABLE_GRAFANA_DSH" = "no" ]; then
     printf " - Grafana Dashboard won't be enabled.\n\n"
 elif [ "$ENABLE_GRAFANA_DSH" = "yes" ]; then
@@ -1049,8 +1045,7 @@ if [ -f "$WS_CONF" ]; then
     sed -i "/# ensure all static content can always be found first/i \\\n" "$WS_CONF"
     systemctl reload nginx
 else
-    echo "No app configuration done to server file, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+    echo "No app configuration done to server file"
 fi
 #Static avatar
 if [ "$ENABLE_SA" = "yes" ] && [ -f "$WS_CONF" ]; then
@@ -1069,8 +1064,7 @@ if [ "$DROP_TLS1" = "yes" ];then
 elif [ "$DROP_TLS1" = "no" ];then
     printf "\nNo TLSv1/1.1 dropping was done.\n\n"
 else
-    echo "No condition meet, please report to
-https://github.com/switnet-ltd/quick-jibri-installer/issues "
+    echo "No condition meet"
 fi
 sleep .1
 #================== Setup prosody conf file =================
@@ -1176,8 +1170,7 @@ if [ -z "$CHECKJS" ]; then
 else
     echo -e "\nWatch out!, there seems to be an issue on $MEET_CONF line:
 $CHECKJS
-Most of the times this is due upstream changes, please report to
-https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+Most of the times this is due upstream changes\n"
 fi
 
 #Enable jibri services
@@ -1231,8 +1224,7 @@ if [ -f "$WS_CONF" ]; then
     sed -i "/external_api.js/i \\\n" "$WS_CONF"
     systemctl reload nginx
 else
-    echo "No interface_config.js configuration done to server file, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues"
+    echo "No interface_config.js configuration done to server file"
 fi
 #JRA via Nextcloud
 if [ "$ENABLE_NC_ACCESS" = "yes" ]; then

@@ -86,8 +86,7 @@ Overview:
 
 echo "# Note: As for January 2021 Firefox can't handle correctly widescreen sizing
 # on lower resolution than HD (nHD & qHD), setting as incompatible for now.
-# (If you know this is no longer the case. Please report it to \
-https://github.com/switnet-ltd/quick-jibri-installer/issues)
+
 "
 
 #Tools to consider
@@ -309,8 +308,7 @@ echo -e "\n# The $MEET_CONF_HP configuration seems correct. =)\n"
 else
 echo -e "\n  Watch out!, there seems to be an issue on $MEET_CONF_HP line:
     $CHECKJS_MEET_CHP
-  Most of the times this is due upstream changes, please report to
-  https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+  Most of the times this is due upstream changes\n"
 fi
 CHECKJS_INT_CHP="$(esvalidate "$INT_CONF_JS_HP"| cut -d ":" -f2)"
 if [ -z "$CHECKJS_INT_CHP" ]; then
@@ -318,8 +316,7 @@ echo -e "\n# The $INT_CONF_JS_HP configuration seems correct. =)\n"
 else
 echo -e "\n  Watch out!, there seems to be an issue on $INT_CONF_JS_HP line:
     $CHECKJS_INT_CHP
-  Most of the times this is due upstream changes, please report to
-  https://github.com/switnet-ltd/quick-jibri-installer/issues\n"
+  Most of the times this is due upstream changes\n"
 fi
 
 sed -i "s|$MEET_CONF|$MEET_CONF_HP|g" "$WS_CONF"
