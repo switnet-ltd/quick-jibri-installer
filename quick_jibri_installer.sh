@@ -108,8 +108,8 @@ echo "Add Prosody repo"
 if [ "$PROSODY_REPO" = "main" ]; then
     echo "Prosody repository already installed"
 else
-    echo "deb http://packages.prosody.im/debian $(lsb_release -sc) main" > /etc/apt/sources.list.d/prosody.list
-    wget -qO - https://prosody.im/files/prosody-debian-packages.key | apt-key add -
+    echo "deb [signed-by=/etc/apt/trusted.gpg.d/prosody-debian-packages.key] http://packages.prosody.im/debian $(lsb_release -sc) main" > /etc/apt/sources.list.d/prosody.list
+    curl -s https://prosody.im/files/prosody-debian-packages.key > /etc/apt/trusted.gpg.d/prosody-debian-packages.key
 fi
 }
 dpkg-compare() {
@@ -150,24 +150,24 @@ if ! [ "$(id -u)" = 0 ]; then
 fi
 
     printf "\nOS: %s" "$(lsb_release -sd)"
-if [ "$DIST" = "bionic" ] || \
-   [ "$DIST" = "focal" ]; then
+if [ "$DIST" = "focal" ] || \
+   [ "$DIST" = "jammy" ]; then
     printf "\nGood, this is a supported platform!"
 else
     printf "\nSorry, this platform is not supported... exiting"
     exit
 fi
-#Suggest 20.04 LTS release over 18.04 in April 2022
+#Suggest 22.04 LTS release over 20.04 in April 2024
 TODAY=$(date +%s)
-NEXT_LTS_DATE=$(date -d 2022-04-01 +%s)
+NEXT_LTS_DATE=$(date -d 2024-04-01 +%s)
 
-if [ "$DIST" = "bionic" ]; then
+if [ "$DIST" = "focal" ]; then
   if [ "$TODAY" -gt "$NEXT_LTS_DATE" ]; then
     echo "  > $(lsb_release -sc), even when it's compatible and functional.
     We suggest to use the next (LTS) release, for longer support and security reasons."
     read -n 1 -s -r -p "Press any key to continue..."$'\n'
   else
-    echo "Bionic is supported."
+    echo "Focal is supported."
   fi
 fi
 
@@ -266,8 +266,8 @@ printf "\nAdd Jitsi repo\n"
 if [ "$JITSI_REPO" = "stable" ]; then
     printf " - Jitsi stable repository already installed\n\n"
 else
-    echo 'deb http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
-    wget -qO -  https://download.jitsi.org/jitsi-key.gpg.key | apt-key add -
+    echo 'deb [signed-by=/etc/apt/trusted.gpg.d/jitsi-key.gpg.key] http://download.jitsi.org stable/' > /etc/apt/sources.list.d/jitsi-stable.list
+    curl -s https://download.jitsi.org/jitsi-key.gpg.key > /etc/apt/trusted.gpg.d/jitsi-key.gpg.key
     JITSI_REPO="stable"
 fi
 sleep .1
@@ -279,7 +279,7 @@ if [ "$LE_SSL" = yes ]; then
     printf " - We'll setup Let's Encrypt SSL certs.\n\n"
 else
     printf " - We'll let you choose later on for it."
-    printf"   Please be aware that a valid SSL cert is required for some features to work properly.\n\n"
+    printf "   Please be aware that a valid SSL cert is required for some features to work properly.\n\n"
 fi
 done
 sleep .1
@@ -341,7 +341,7 @@ apt-get -y install \
 
 if [ "$LE_SSL" = "yes" ]; then
 apt-get -y install \
-                letsencrypt
+                certbot
     if [ "$(dpkg-query -W -f='${Status}' ufw 2>/dev/null | grep -c "ok installed")" == "1"  ]; then
         echo "# Disable pre-installed ufw, more on firewall see:
     > https://github.com/switnet-ltd/quick-jibri-installer/wiki/Firewall"
@@ -412,7 +412,8 @@ if [ "$GOOGLE_ACTIVE_REPO" = "main" ]; then
     echo "Google repository already set."
 else
     echo "Installing Google Chrome Stable"
-    wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+    curl -s https://dl.google.com/linux/linux_signing_key.pub | \
+    gpg --dearmor | tee /etc/apt/trusted.gpg.d/google-chrome-key.gpg  >/dev/null
     echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee "$GOOGL_REPO"
 fi
 apt-get -q2 update
@@ -470,8 +471,6 @@ LE_RENEW_LOG="/var/log/letsencrypt/renew.log"
 MOD_LISTU="https://prosody.im/files/mod_listusers.lua"
 MOD_LIST_FILE="/usr/lib/prosody/modules/mod_listusers.lua"
 ENABLE_SA="yes"
-CERTBOT_REPO="$(apt-cache policy | awk '/certbot/{print$2}' | awk -F '/' 'NR==1{print$4}')"
-CERTBOT_REL_FILE="http://ppa.launchpad.net/certbot/certbot/ubuntu/dists/$(lsb_release -sc)/Release"
 GC_SDK_REL_FILE="http://packages.cloud.google.com/apt/dists/cloud-sdk-$(lsb_release -sc)/Release"
 MJS_RAND_TAIL="$(tr -dc "a-zA-Z0-9" < /dev/urandom | fold -w 4 | head -n1)"
 MJS_USER="jbsync_$MJS_RAND_TAIL"
@@ -686,7 +685,7 @@ INT_CONF_ETC="/etc/jitsi/meet/$DOMAIN-interface_config.js"
 ssl_wa() {
 if [ "$LE_SSL" = "yes" ]; then
   systemctl stop "$1"
-  letsencrypt certonly --standalone --renew-by-default --agree-tos --email "$5" -d "$6"
+  certbot certonly --standalone --renew-by-default --agree-tos --email "$5" -d "$6"
   sed -i "s|/etc/jitsi/meet/$3.crt|/etc/letsencrypt/live/$3/fullchain.pem|" "$4"
   sed -i "s|/etc/jitsi/meet/$3.key|/etc/letsencrypt/live/$3/privkey.pem|" "$4"
   systemctl restart "$1"
@@ -697,35 +696,6 @@ if [ "$LE_SSL" = "yes" ]; then
     echo "Crontab seems to be already in place, skipping."
   fi
   crontab -l
-fi
-}
-
-enable_letsencrypt() {
-if [ "$LE_SSL" = "yes" ]; then
-    echo '
-#--------------------------------------------------
-# Starting LetsEncrypt configuration
-#--------------------------------------------------
-'
-#Disabled 'til fixed upstream
-#bash /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
-
-    echo "#Set and upgrade certbot PPA if posssible..."
-    if [ "$CERTBOT_REPO" = "certbot" ]; then
-        printf "\nCertbot repository already on the system!\nChecking for updates...\n"
-        apt-get -q2 update
-        apt-get -yq2 dist-upgrade
-    elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$CERTBOT_REL_FILE" )" == "200" ]; then
-        printf "\nAdding cerbot (formerly letsencrypt) PPA repository for latest updates\n"
-        echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu $DIST main" > /etc/apt/sources.list.d/certbot.list
-        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 75BCA694
-        apt-get -q2 update
-        apt-get -yq2 dist-upgrade
-    elif [ "$(curl -s -o /dev/null -w "%{http_code}" "$CERTBOT_REL_FILE" )" == "404" ]; then
-        printf "\nCertbot PPA is not available for %s just yet, it won't be installed...\n" "$(lsb_release -sc)"
-    fi
-else
-    echo "SSL setup will be skipped."
 fi
 }
 
@@ -1193,8 +1163,6 @@ if [ "$DISABLE_LOCAL_JIBRI" = "yes" ]; then
 # Manually apply permissions since finalize_recording.sh won't be triggered under this server options.
     chmod -R 770 "$DIR_RECORD"
 fi
-
-enable_letsencrypt
 
 # Fix prosody not able to read SSL Certs
 chown -R root:prosody /etc/prosody/certs/
