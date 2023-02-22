@@ -64,12 +64,26 @@ fi
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 ISO3166_CODE=TBD
 NL="$(printf '\n  ')"
-TMP_GPG_REPO="$(mktemp)"
+TMP_GPG_REPO="$(mktemp -d)"
 add_gpg_keyring() {
 apt-key adv --recv-keys --keyserver keyserver.ubuntu.com "$1"
 apt-key export "$1" | gpg --dearmour | tee "$TMP_GPG_REPO"/"$1".gpg >/dev/null
 apt-key del "$1"
 mv "$TMP_GPG_REPO"/"$1".gpg /etc/apt/trusted.gpg.d/
+}
+install_aval_package() {
+for i in $1
+  do
+     if [ -z "$(apt-cache madison $i 2>/dev/null)" ]; then
+     echo " > Package $i not available on repo."
+     else
+     echo " > Add package $i to the install list"
+     packages="$packages $i"
+     fi
+ done
+ echo "$packages"
+ apt-get -y install $packages
+ packages=""
 }
 
 while [[ "$ANS_NCD" != "yes" ]]
@@ -171,7 +185,7 @@ else
     apt-get -yq2 install "$1"
 fi
 }
-add_php74() {
+add_php() {
 if [ "$PHP_REPO" = "php" ]; then
     echo "PHP $PHPVER already installed"
     apt-get -q2 update
@@ -193,8 +207,8 @@ exit_ifinstalled postgresql-"$PSGVER"
 install_ifnot postgresql-"$PSGVER"
 
 # PHP 7.4
-add_php74
-apt-get install -y \
+add_php
+install_aval_package \
             imagemagick \
             php"$PHPVER"-fpm \
             php"$PHPVER"-bcmath \
