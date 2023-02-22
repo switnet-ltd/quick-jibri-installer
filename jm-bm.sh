@@ -74,7 +74,7 @@ fi
 #Customize room title
 sed -i "s|Jitsi Meet|$APP_NAME|g" "$TITLE_FILE"
 sed -i "s| powered by the Jitsi Videobridge||g" "$TITLE_FILE"
-sed -i "/appNotInstalled/ s|{{app}}|$MOVILE_APP_NAME|" /usr/share/jitsi-meet/lang/*
+sed -i "/appNotInstalled/ s|{{app}}|$MOVILE_APP_NAME|g" /usr/share/jitsi-meet/lang/*
 
 #Custom UI changes
 if [ -f "$INT_CONF_ETC" ]; then
