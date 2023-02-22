@@ -41,8 +41,8 @@ exit_if_not_installed jitsi-meet
 DISTRO_RELEASE="$(lsb_release -sc)"
 DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 PHP_REPO="$(apt-cache policy | awk '/http/&&/php/{print$2}' | awk -F "/" 'NR==1{print$5}')"
-PHPVER="7.4"
-PSGVER="$(apt-cache madison postgresql|awk -F'[ +]' 'NR==1{print $3}')"
+PHPVER="$(apt-cache madison php|grep -v ppa|awk -F'[:+]' 'NR==1{print $2}')"
+PSGVER="$(apt-cache madison postgresql|tr -d '[:blank:]'|awk -F'[|+]' 'NR==1{print $2}')"
 PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
@@ -58,12 +58,19 @@ NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 DIR_RECORD="$(awk  -F '"' '/RECORDING/{print$2}'  /home/jibri/finalize_recording.sh|awk 'NR==1{print$1}')"
 REDIS_CONF="/etc/redis/redis.conf"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
-if [ -f $JITSI_MEET_PROXY ];then
-PREAD_PROXY=$(grep -nr "preread_server_name" $JITSI_MEET_PROXY | cut -d ":" -f1)
+if [ -f "$JITSI_MEET_PROXY" ];then
+PREAD_PROXY=$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -f1)
 fi
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 ISO3166_CODE=TBD
 NL="$(printf '\n  ')"
+TMP_GPG_REPO="$(mktemp)"
+add_gpg_keyring() {
+apt-key adv --recv-keys --keyserver keyserver.ubuntu.com "$1"
+apt-key export "$1" | gpg --dearmour | tee "$TMP_GPG_REPO"/"$1".gpg >/dev/null
+apt-key del "$1"
+mv "$TMP_GPG_REPO"/"$1".gpg /etc/apt/trusted.gpg.d/
+}
 
 while [[ "$ANS_NCD" != "yes" ]]
 do
@@ -171,8 +178,8 @@ if [ "$PHP_REPO" = "php" ]; then
     apt-get -yq2 dist-upgrade
 else
     echo "# Adding Ondrej PHP $PHPVER PPA Repository"
-    apt-key adv --recv-keys --keyserver keyserver.ubuntu.com E5267A6C
-    echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php7x.list
+    add_gpg_keyring E5267A6C
+    echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php"$PHPVER".list
     apt-get update -q2
 fi
 }
