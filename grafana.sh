@@ -60,15 +60,16 @@ apt-get install -y gnupg2 \
 echo "
 # Setup InfluxDB Packages
 "
-wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
-echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+curl -s https://repos.influxdata.com/influxdata-archive.key > /etc/apt/trusted.gpg.d/influxdata-archive.key
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive.key] https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt-get update && apt-get install influxdb -y
 run_service influxdb
 
 echo "
 #  Setup Grafana Packages
 "
-curl -s https://packages.grafana.com/gpg.key | sudo apt-key add -
+curl -s https://apt.grafana.com/gpg-full.key | \
+gpg --dearmor | tee /etc/apt/trusted.gpg.d/grafana-full-key.gpg  >/dev/null
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
 apt-get update && apt-get install grafana -y
 run_service grafana-server
@@ -76,8 +77,6 @@ run_service grafana-server
 echo "
 # Setup Telegraf Packages
 "
-wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
-echo "deb https://repos.influxdata.com/debian buster stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
 apt-get update && apt-get install telegraf -y
 mv /etc/telegraf/telegraf.conf /etc/telegraf/telegraf.conf.original
 
@@ -134,7 +133,7 @@ JITSI_TELEGRAF
 
 run_service telegraf
 
-echo -n "\n# Setup videobridge  options\n"
+echo -e "\n# Setup videobridge  options\n"
 echo '
 # extra options to pass to the JVB daemon
 JVB_OPTS="--apis=rest,xmpp"' >>  /etc/jitsi/videobridge/config
