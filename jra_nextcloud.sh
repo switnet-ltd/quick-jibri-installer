@@ -208,7 +208,7 @@ install_ifnot postgresql-"$PSGVER"
 
 # PHP 7.4
 add_php
-install_aval_package \
+install_aval_package " \
             imagemagick \
             php"$PHPVER"-fpm \
             php"$PHPVER"-bcmath \
@@ -228,7 +228,8 @@ install_aval_package \
             php"$PHPVER"-xmlrpc \
             php"$PHPVER"-zip \
             redis-server \
-            unzip
+            unzip \
+            "
 
 #System related
 install_ifnot smbclient
