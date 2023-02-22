@@ -45,7 +45,7 @@ fi
 DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
 MEET_CONF="/etc/jitsi/meet/$DOMAIN-config.js"
 WS_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
-PSGVER="$(apt-cache madison postgresql|awk -F'[ +]' 'NR==1{print $3}')"
+PSGVER="$(apt-cache madison postgresql|tr -d '[:blank:]'|awk -F'[|+]' 'NR==1{print $2}')"
 ETHERPAD_DB_USER="dockerpad"
 ETHERPAD_DB_NAME="etherpad"
 ETHERPAD_DB_PASS="$(tr -dc "a-zA-Z0-9#*=" < /dev/urandom | fold -w 10 | head -n1)"
@@ -56,7 +56,8 @@ if [ "$DOCKER_CE_REPO" = "stable" ]; then
     echo "Docker repository already installed"
 else
     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker-ce.list
-    wget -qO - https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+    wget -qO - https://download.docker.com/linux/ubuntu/gpg | \
+    gpg --dearmor | tee /etc/apt/trusted.gpg.d/docker-gpg-key.gpg  >/dev/null
     apt -q2 update
 fi
 
