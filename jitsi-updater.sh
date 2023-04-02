@@ -66,12 +66,6 @@ read -r -a google_package < <(grep ^Package /var/lib/apt/lists/dl.google.com_*_P
 else
     echo "Seems no Google repo installed"
 fi
-if [ -z "$CHDB" ]; then
-    echo "Seems no chromedriver installed"
-else
-    CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
-    CHD_VER_2D="$(awk '{printf "%.1f\n", $NF}' <<< "$CHD_VER_LOCAL")"
-fi
 if [ -f "$apt_repo"/nodesource.list ]; then
 read -r -a nodejs_package < <(grep ^Package /var/lib/apt/lists/deb.nodesource.com_node*_Packages | \
                               sort -u | awk '{print $2}' | xargs)
@@ -114,6 +108,12 @@ update_google_repo() {
     else
         echo "No Google repository found"
     fi
+	if [ -z "$CHDB" ]; then
+		echo "Seems no chromedriver installed"
+	else
+		CHD_VER_LOCAL="$($CHDB -v | awk '{print $2}')"
+		CHD_VER_2D="$(awk '{printf "%.1f\n", $NF}' <<< "$CHD_VER_LOCAL")"
+	fi
 }
 update_nodejs_repo() {
     apt-get update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" \
