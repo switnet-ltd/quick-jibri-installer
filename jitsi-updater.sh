@@ -40,7 +40,10 @@ fi
 support="https://switnet.net/support"
 apt_repo="/etc/apt/sources.list.d"
 ENABLE_BLESSM="TBD"
-CHD_LTST="$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)"
+G_CHROME=$(apt-cache madison google-chrome-stable|awk '{print$3}'|cut -d. -f1-3)
+CHROMELAB_URL="https://googlechromelabs.github.io/chrome-for-testing"
+CHD_LTST_DWNL=$(curl -s $CHROMELAB_URL/known-good-versions-with-downloads.json | jq -r ".versions[].downloads.chromedriver | select(. != null) | .[].url" | grep linux64 | grep "$G_CHROME" | tail -1)
+CHD_LTST=$(awk -F '/' '{print$7}' <<< "$CHD_LTST_DWNL")
 CHD_LTST_2D="$(cut -d "." -f 1,2 <<<  "$CHD_LTST")"
 CHDB="$(whereis chromedriver | awk '{print$2}')"
 if [ -d /etc/prosody/conf.d/ ]; then
@@ -131,9 +134,10 @@ upgrade_cd() {
 if [ -n "$GOOGL_VER_2D" ]; then
     if version_gt "$GOOGL_VER_2D" "$CHD_VER_2D" ; then
         echo "Upgrading Chromedriver to Google Chromes version"
-        wget -q https://chromedriver.storage.googleapis.com/"$CHD_LTST"/chromedriver_linux64.zip \
+        wget -q "$CHD_LTST_DWNL" \
              -O /tmp/chromedriver_linux64.zip
         unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+        mv /usr/local/bin/chromedriver-linux64/chromedriver "$CHDB"
         chown root:root "$CHDB"
         chmod 0755 "$CHDB"
         rm -rf /tpm/chromedriver_linux64.zip

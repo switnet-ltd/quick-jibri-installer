@@ -404,7 +404,10 @@ elif [ "$(npm list -g esprima 2>/dev/null | grep -c "esprima")" == "1" ]; then
     echo "Good. Esprima package is already installed"
 fi
 
-CHD_LTST=$(curl -sL https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+G_CHROME=$(apt-cache madison google-chrome-stable|awk '{print$3}'|cut -d. -f1-3)
+CHROMELAB_URL="https://googlechromelabs.github.io/chrome-for-testing"
+CHD_LTST_DWNL=$(curl -s $CHROMELAB_URL/known-good-versions-with-downloads.json | jq -r ".versions[].downloads.chromedriver | select(. != null) | .[].url" | grep linux64 | grep "$G_CHROME" | tail -1)
+CHD_LTST=$(awk -F '/' '{print$7}' <<< "$CHD_LTST_DWNL")
 GCMP_JSON="/etc/opt/chrome/policies/managed/managed_policies.json"
 
 echo "# Installing Google Chrome / ChromeDriver"
@@ -424,9 +427,10 @@ if [ -f /usr/local/bin/chromedriver ]; then
     echo "Chromedriver already installed."
 else
     echo "Installing Chromedriver"
-    wget -q https://chromedriver.storage.googleapis.com/"$CHD_LTST"/chromedriver_linux64.zip \
+    wget -q "$CHD_LTST_DWNL" \
          -O /tmp/chromedriver_linux64.zip
     unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
+    mv /usr/local/bin/chromedriver-linux64/chromedriver "$CHDB"
     chown root:root /usr/local/bin/chromedriver
     chmod 0755 /usr/local/bin/chromedriver
     rm -rf /tmp/chromedriver_linux64.zip
