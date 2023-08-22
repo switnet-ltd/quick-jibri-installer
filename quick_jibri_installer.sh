@@ -430,7 +430,7 @@ else
     wget -q "$CHD_LTST_DWNL" \
          -O /tmp/chromedriver_linux64.zip
     unzip -o /tmp/chromedriver_linux64.zip -d /usr/local/bin/
-    mv /usr/local/bin/chromedriver-linux64/chromedriver "$CHDB"
+    mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
     chown root:root /usr/local/bin/chromedriver
     chmod 0755 /usr/local/bin/chromedriver
     rm -rf /tmp/chromedriver_linux64.zip
