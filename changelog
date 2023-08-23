@@ -1,3 +1,17 @@
+quick-jibri-installer (7.1.0)
+
+* changelog: add changelog
+* quick_jibri_installer.sh: increase support to 22.04
+fix key aggregation and remove deprecated letsencrypt ppa
+* etherpad-docker.sh: fix key aggregation and variable collection.
+* grafana.sh: fix gpg key aggregation
+* jm-bm.sh: tweak sed
+* jra_nextcloud.sh: fix key aggregation and variable collection.
+* jra_nextcloud.sh: fix add gpg key function and add install available version package
+* jra_nextcloud.sh: small fix for install_aval_package function
+
+-- Software, IT & Networks <info@switnet.net>  Wed Feb 22 05:56:20 2023 -0600
+
 quick-jibri-installer (7.0.8)
 
     * jitsi-updater.sh: add checks for openjdk and nodejs supported versions
