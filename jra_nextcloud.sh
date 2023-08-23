@@ -63,6 +63,7 @@ NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 DIR_RECORD="$(awk  -F '"' '/RECORDING/{print$2}'  /home/jibri/finalize_recording.sh|awk 'NR==1{print$1}')"
 REDIS_CONF="/etc/redis/redis.conf"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
+
 [ -f "$JITSI_MEET_PROXY" ] && PREAD_PROXY=$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -f1)
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 ISO3166_CODE=TBD
@@ -210,6 +211,7 @@ exit_ifinstalled postgresql-"$PSGVER"
 install_ifnot postgresql-"$PSGVER"
 
 # PHP 7.4 / 8.1
+
 add_php
 install_aval_package " \
             imagemagick \
