@@ -37,6 +37,10 @@ echo -e '\n
                     by Software, IT & Networks Ltd
 \n'
 exit_if_not_installed jitsi-meet
+## APT checks
+apt-get update -q2
+# Manually add prerequisites.
+apt-get install -y curl letsencrypt nginx
 
 DISTRO_RELEASE="$(lsb_release -sc)"
 DOMAIN="$(find /etc/prosody/conf.d/ -name \*.lua|awk -F'.cfg' '!/localhost/{print $1}'|xargs basename)"
@@ -47,6 +51,7 @@ PHP_FPM_DIR="/etc/php/$PHPVER/fpm"
 PHP_INI="$PHP_FPM_DIR/php.ini"
 PHP_CONF="/etc/php/$PHPVER/fpm/pool.d/www.conf"
 NC_NGINX_SSL_PORT="$(grep "listen 44" /etc/nginx/sites-available/"$DOMAIN".conf | awk '{print$2}')"
+[ -z $NC_NGINX_SSL_PORT ] && NC_NGINX_SSL_PORT="443"
 NC_REPO="https://download.nextcloud.com/server/releases"
 NCVERSION="$(curl -s -m 900 $NC_REPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)"
 STABLEVERSION="nextcloud-$NCVERSION"
@@ -58,13 +63,13 @@ NC_DB_PASSWD="$(tr -dc "a-zA-Z0-9#_*=" < /dev/urandom | fold -w 14 | head -n1)"
 DIR_RECORD="$(awk  -F '"' '/RECORDING/{print$2}'  /home/jibri/finalize_recording.sh|awk 'NR==1{print$1}')"
 REDIS_CONF="/etc/redis/redis.conf"
 JITSI_MEET_PROXY="/etc/nginx/modules-enabled/60-jitsi-meet.conf"
-if [ -f "$JITSI_MEET_PROXY" ];then
-PREAD_PROXY=$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -f1)
-fi
+
+[ -f "$JITSI_MEET_PROXY" ] && PREAD_PROXY=$(grep -nr "preread_server_name" "$JITSI_MEET_PROXY" | cut -d ":" -f1)
 PUBLIC_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 ISO3166_CODE=TBD
 NL="$(printf '\n  ')"
 TMP_GPG_REPO="$(mktemp -d)"
+
 add_gpg_keyring() {
 apt-key adv --recv-keys --keyserver keyserver.ubuntu.com "$1"
 apt-key export "$1" | gpg --dearmour | tee "$TMP_GPG_REPO"/"$1".gpg >/dev/null
@@ -85,7 +90,34 @@ for i in $1
  apt-get -y install $packages
  packages=""
 }
-
+exit_ifinstalled() {
+if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+    echo " This instance already has $1 installed, exiting..."
+    echo " If you think this is an error, please report to:
+    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
+    exit
+fi
+}
+install_ifnot() {
+if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
+    echo " $1 is installed, skipping..."
+else
+    echo -e "\n---- Installing $1 ----"
+    apt-get -yq2 install "$1"
+fi
+}
+add_php() {
+if [ "$PHP_REPO" = "php" ]; then
+    echo "PHP $PHPVER already installed"
+    apt-get -q2 update
+    apt-get -yq2 dist-upgrade
+else
+    echo "# Adding Ondrej PHP $PHPVER PPA Repository"
+    add_gpg_keyring E5267A6C
+    echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php"$PHPVER".list
+    apt-get update -q2
+fi
+}
 while [[ "$ANS_NCD" != "yes" ]]
 do
   read -p "> Please set your domain (or subdomain) here for Nextcloud: (e.g.: cloud.domain.com)$NL" -r NC_DOMAIN
@@ -124,11 +156,11 @@ do
         echo " - This field is mandatory."
     fi
 done
-while [ -z "$NC_PASS" ]  || [ ${#NC_PASS} -lt 6 ]
+while [ -z "$NC_PASS" ]  || [ ${#NC_PASS} -lt 8 ]
 do
     read -p "Nextcloud user password: " -r NC_PASS
-    if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt 6 ]; then
-        echo -e " - This field is mandatory. \nPlease make sure it's at least 6 characters.\n"
+    if [ -z "$NC_PASS" ] || [ ${#NC_PASS} -lt8 ]; then
+        echo -e " - This field is mandatory. \nPlease make sure it's at least 8 characters.\n"
     fi
 done
 #Enable HSTS
@@ -169,34 +201,6 @@ else
     exit
 fi
 
-exit_ifinstalled() {
-if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-    echo " This instance already has $1 installed, exiting..."
-    echo " If you think this is an error, please report to:
-    -> https://github.com/switnet-ltd/quick-jibri-installer/issues "
-    exit
-fi
-}
-install_ifnot() {
-if [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -c "ok installed")" == "1" ]; then
-    echo " $1 is installed, skipping..."
-else
-    echo -e "\n---- Installing $1 ----"
-    apt-get -yq2 install "$1"
-fi
-}
-add_php() {
-if [ "$PHP_REPO" = "php" ]; then
-    echo "PHP $PHPVER already installed"
-    apt-get -q2 update
-    apt-get -yq2 dist-upgrade
-else
-    echo "# Adding Ondrej PHP $PHPVER PPA Repository"
-    add_gpg_keyring E5267A6C
-    echo "deb [arch=amd64] http://ppa.launchpad.net/ondrej/php/ubuntu $DISTRO_RELEASE main" > /etc/apt/sources.list.d/php"$PHPVER".list
-    apt-get update -q2
-fi
-}
 #Prevent root folder permission issues
 cp "$PWD"/files/jra-nc-app-ef.json /tmp
 
@@ -206,7 +210,8 @@ exit_ifinstalled postgresql-"$PSGVER"
 # PostgresSQL
 install_ifnot postgresql-"$PSGVER"
 
-# PHP 7.4
+# PHP 7.4 / 8.1
+
 add_php
 install_aval_package " \
             imagemagick \
@@ -488,7 +493,7 @@ echo -e "\nApply custom mods...\n"
 sed -i "/datadirectory/a \ \ \'skeletondirectory\' => \'\'," "$NC_CONFIG"
 sed -i "/skeletondirectory/a \ \ \'simpleSignUpLink.shown\' => false," "$NC_CONFIG"
 sed -i "/simpleSignUpLink.shown/a \ \ \'knowledgebaseenabled\' => false," "$NC_CONFIG"
-sed -i "s|http://localhost|http://$NC_DOMAIN|" "$NC_CONFIG"
+sed -i "s|http://localhost|https://$NC_DOMAIN|" "$NC_CONFIG"
 
 echo -e "\nAdd crontab...\n"
 crontab -u www-data -l | { cat; echo "*/5  *  *  *  * php -f $NC_PATH/cron.php"; } | crontab -u www-data -
