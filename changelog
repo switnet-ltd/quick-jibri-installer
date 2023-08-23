@@ -1,3 +1,29 @@
+quick-jibri-installer (7.2.0)
+
+* changelog: update previous version.
+* quick_jibri_installer.sh: rearrange chromedriver variables.
+* quick_jibri_installer.sh: fix empty varible usage.
+* quick_jibri_installer.sh: update nodejs to a stable release.
+* quick_jibri_installer.sh,jitsi-updater.sh: update chromedriver 115+ version download.
+* jra_nextcloud.sh: organize functions, add apt checks, higher password lenght and small fixes.
+* jitsi-updater.sh: fix check chrome driver version.
+
+-- Software, IT & Networks <info@switnet.net>  Wed Aug 23 00:51:24 2023 -0600
+
+quick-jibri-installer (7.1.0)
+
+* changelog: add changelog
+* quick_jibri_installer.sh: increase support to 22.04
+fix key aggregation and remove deprecated letsencrypt ppa
+* etherpad-docker.sh: fix key aggregation and variable collection.
+* grafana.sh: fix gpg key aggregation
+* jm-bm.sh: tweak sed
+* jra_nextcloud.sh: fix key aggregation and variable collection.
+* jra_nextcloud.sh: fix add gpg key function and add install available version package
+* jra_nextcloud.sh: small fix for install_aval_package function
+
+-- Software, IT & Networks <info@switnet.net>  Wed Feb 22 05:56:20 2023 -0600
+
 quick-jibri-installer (7.0.8)
 
     * jitsi-updater.sh: add checks for openjdk and nodejs supported versions
