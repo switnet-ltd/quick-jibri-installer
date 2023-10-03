@@ -1,3 +1,12 @@
+# Migration of git repository.
+## Important! 02-Oct-2023
+We are migrating all our projects to a selfhosted libre / opensource git forge at [forge.swinet.net](https://forge.switnet.net).<br />
+This repo will not receive any updates as it will soon become an archive project, we are sorry for any inconvenience.<br />
+You will be free to pull as usual from the new source.
+
+Best regards<br />
+-- SwITNet Team
+
 # Quick Jibri Installer
 Bash installer for Jitsi Meet standalone along with Jibri on supported **Ubuntu LTS** based systems using **nginx** as default webserver.
 
